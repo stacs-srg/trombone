@@ -18,8 +18,6 @@
  */
 package uk.ac.standrews.cs.trombone.churn;
 
-import uk.ac.standrews.cs.shabdiz.util.Duration;
-
 public interface Churn {
 
     Churn NONE = new Churn() {
@@ -35,13 +33,13 @@ public interface Churn {
 
     final class Availability {
 
-        public static final Availability MAX_AVAILABILITY = new Availability(Duration.MAX_DURATION, true);
+        public static final Availability MAX_AVAILABILITY = new Availability(Long.MAX_VALUE, true);
         private final boolean available;
-        private final Duration duration;
+        private final long duration_nanos;
 
-        public Availability(final Duration duration, final boolean available) {
+        public Availability(final long duration_nanos, final boolean available) {
 
-            this.duration = duration;
+            this.duration_nanos = duration_nanos;
             this.available = available;
         }
 
@@ -50,9 +48,9 @@ public interface Churn {
             return available;
         }
 
-        public Duration getDuration() {
+        public long getDurationInNanos() {
 
-            return duration;
+            return duration_nanos;
         }
     }
 }

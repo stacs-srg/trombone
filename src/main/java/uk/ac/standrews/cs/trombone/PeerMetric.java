@@ -68,7 +68,7 @@ public class PeerMetric implements Metric, WrittenByteCountListenner {
         sent_bytes_meter.mark(byte_count);
     }
 
-    final class LookupMeasurement {
+    public final class LookupMeasurement {
 
         private final int retry_threshold;
         private final Timer.Time time;

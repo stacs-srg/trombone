@@ -62,5 +62,4 @@ public class Rate implements Metric {
         final long time = unit.convert(elapsed, TimeUnit.NANOSECONDS);
         return count / (time < 1 ? 1 : time);
     }
-
 }

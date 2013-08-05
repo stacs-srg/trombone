@@ -167,7 +167,7 @@ public class Peer implements PeerRemote {
         return server.isExposed();
     }
 
-    public PeerReference lookup(final Key target, int retry_count) throws RPCException {
+    public PeerMetric.LookupMeasurement lookup(final Key target, int retry_count) throws RPCException {
 
         final PeerMetric.LookupMeasurement measurement = metric.newLookupMeasurement(retry_count);
         do {
@@ -183,11 +183,9 @@ public class Peer implements PeerRemote {
             finally {
                 measurement.incrementRetryCount();
             }
-        }
-        while (!Thread.currentThread().isInterrupted() && !measurement.isDone());
+        } while (!Thread.currentThread().isInterrupted() && !measurement.isDone());
 
-        if (measurement.isDoneInError()) { throw measurement.getError(); }
-        return measurement.getResult();
+        return measurement;
     }
 
     public PeerMetric getPeerMetric() {

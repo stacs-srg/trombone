@@ -19,19 +19,38 @@
 package uk.ac.standrews.cs.trombone.workload;
 
 import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.trombone.Peer;
 import uk.ac.standrews.cs.trombone.key.Key;
 
-public abstract class Workload {
+public interface Workload {
 
-    public abstract PeerTask getWorkAt(long time);
+    Lookup getLookupAt(long time);
 
-    public interface PeerTask {
+    public class Lookup {
 
-        Duration getInterval();
+        private final int retry_threshold;
+        private final Key target;
+        private final Duration interval;
 
-        Key getTarget();
+        Lookup(final Duration interval, final Key target, final int retry_threshold) {
 
-        void run(final Peer peer);
+            this.interval = interval;
+            this.target = target;
+            this.retry_threshold = retry_threshold;
+        }
+
+        public Duration getInterval() {
+
+            return interval;
+        }
+
+        public Key getTarget() {
+
+            return target;
+        }
+
+        public int getRetryThreshold() {
+
+            return retry_threshold;
+        }
     }
 }

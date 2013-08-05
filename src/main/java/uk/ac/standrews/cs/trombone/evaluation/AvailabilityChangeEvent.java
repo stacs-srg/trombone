@@ -1,7 +1,6 @@
-package uk.ac.standrews.cs.trombone.evaluation.event;
+package uk.ac.standrews.cs.trombone.evaluation;
 
 import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
-import uk.ac.standrews.cs.trombone.PeerReference;
 
 /**
  * Peresents the change of a peer's availability at {@code t} nanoseconds through an experiment.
@@ -12,21 +11,21 @@ public class AvailabilityChangeEvent extends ExperimentEvent {
 
     private static final long serialVersionUID = -9157210573159544121L;
     private final boolean available;
-    private final Long availability_duration_in_nanos;
+    private final Long duration_nanos;
 
     /**
      * Constructs an availability change event.
      *
      * @param source The peer on which the Event initially occurred
-     * @param time_in_nanos the time through the experiment in nanoseconds
+     * @param time_nanos the time through the experiment in nanoseconds
      * @param available whether the source is reachable
      * @throws IllegalArgumentException if source is {@code null}
      */
-    public AvailabilityChangeEvent(final PeerReference source, long time_in_nanos, boolean available, Long availability_duration_in_nanos) {
+    AvailabilityChangeEvent(final Participant source, long time_nanos, boolean available, Long duration_nanos) {
 
-        super(source, time_in_nanos);
+        super(source, time_nanos);
         this.available = available;
-        this.availability_duration_in_nanos = availability_duration_in_nanos;
+        this.duration_nanos = duration_nanos;
     }
 
     /**
@@ -41,13 +40,13 @@ public class AvailabilityChangeEvent extends ExperimentEvent {
 
     public long getAvailabilityDurationInNanos() {
 
-        return availability_duration_in_nanos;
+        return duration_nanos;
     }
 
     @Override
     public int hashCode() {
 
-        return HashCodeUtil.generate(super.hashCode(), available ? 1 : 0);
+        return HashCodeUtil.generate(super.hashCode(), available ? 1 : 2, duration_nanos.hashCode());
     }
 
     @Override
@@ -56,6 +55,17 @@ public class AvailabilityChangeEvent extends ExperimentEvent {
         if (this == other) { return true; }
         if (!(other instanceof AvailabilityChangeEvent)) { return false; }
         final AvailabilityChangeEvent that = (AvailabilityChangeEvent) other;
-        return super.equals(other) && available == that.available && availability_duration_in_nanos.equals(that.availability_duration_in_nanos);
+        return super.equals(other) && available == that.available && duration_nanos.equals(that.duration_nanos);
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("AvailabilityChangeEvent{");
+        sb.append("time=").append(getTimeInNanos());
+        sb.append(", peer=").append(getSource().getKey());
+        sb.append(", available=").append(available);
+        sb.append(", duration_nanos=").append(duration_nanos);
+        sb.append('}');
+        return sb.toString();
     }
 }

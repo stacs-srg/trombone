@@ -18,8 +18,6 @@
  */
 package uk.ac.standrews.cs.trombone.evaluation;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -28,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 import javax.inject.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,8 +34,6 @@ import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.job.Worker;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
-import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.trombone.evaluation.job.MultiplePeerConductorJob;
 import uk.ac.standrews.cs.trombone.evaluation.provider.PeerConductorProvider;
 import uk.ac.standrews.cs.trombone.util.TimeoutSupport;
 
@@ -50,21 +45,13 @@ public class Experiment implements Callable<File> {
     private final ExperimentPeerManager manager;
     private final WorkerNetwork worker_network;
     private final Map<Host, Worker> host_worker_map;
-    private final MembershipServiceExposer membership_service_exposer;
-    private final Injector injector;
-    private final InetSocketAddress membership_service_address;
     private final TimeoutSupport timing;
 
     public Experiment(String name, final Scenario scenario) throws IOException {
 
         this.name = name;
         this.scenario = scenario;
-        injector = Guice.createInjector(scenario);
         timing = new TimeoutSupport();
-
-        membership_service_exposer = new MembershipServiceExposer(scenario.getMembershipService());
-        membership_service_exposer.expose();
-        membership_service_address = membership_service_exposer.getAddress();
 
         manager = new ExperimentPeerManager(this);
         worker_network = new WorkerNetwork();
@@ -124,15 +111,16 @@ public class Experiment implements Callable<File> {
     private void deployPeerNetwork() throws Exception {
 
         final Map<Host, Integer> peers_per_host = countPeersPerHost();
-        final Provider<PeerConductorProvider> conductor_provider = scenario.getPeerConductorProvider();
+        final Provider<PeerConductorProvider> conductor_provider = null;
 
+        final InetSocketAddress inetSocketAddress = null;
         for (Map.Entry<Host, Integer> entry : peers_per_host.entrySet()) {
 
-            final Host host = entry.getKey();
-            final Integer peer_count = entry.getValue();
-            final MultiplePeerConductorJob conductor_job = new MultiplePeerConductorJob(conductor_provider.get(), membership_service_address, timing.getRemainingTime(), peer_count, new Duration(5, TimeUnit.SECONDS));
-            final Worker worker = host_worker_map.get(host);
-            worker.submit(conductor_job);
+            //            final Host host = entry.getKey();
+            //            final Integer peer_count = entry.getValue();
+            //            final ExperimentEventExecutorJob conductor_job = new ExperimentEventExecutorJob(conductor_provider.get(), inetSocketAddress, timing.getRemainingTime(), peer_count, new Duration(5, TimeUnit.SECONDS));
+            //            final Worker worker = host_worker_map.get(host);
+            //            worker.submit(conductor_job);
         }
 
     }
@@ -141,9 +129,10 @@ public class Experiment implements Callable<File> {
 
         Map<Host, Integer> peers_per_host = new HashMap<Host, Integer>();
 
-        final List<Host> hosts = scenario.getHosts();
+        final List<Host> hosts = null; //scenario.getHostNames();
+        final Set<Host> uniquehosts = null; //scenario.getHostNames();
 
-        for (Host host : scenario.getUniqueHosts()) {
+        for (Host host : uniquehosts) {
             int i = 0;
             for (Host h : hosts) {
                 if (h.equals(host)) {
@@ -158,7 +147,7 @@ public class Experiment implements Callable<File> {
     private void deployWorkerNetwork() throws Exception {
 
         //TODO do concurrently
-        final Set<Host> unique_hosts = scenario.getUniqueHosts();
+        final Set<Host> unique_hosts = null;//scenario.getUniqueHosts();
 
         for (Host host : unique_hosts) {
             worker_network.add(host);

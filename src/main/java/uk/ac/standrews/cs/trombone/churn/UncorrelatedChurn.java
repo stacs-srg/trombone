@@ -19,6 +19,7 @@
 package uk.ac.standrews.cs.trombone.churn;
 
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.math.ProbabilityDistribution;
 import uk.ac.standrews.cs.trombone.math.RandomNumberGenerator;
@@ -42,7 +43,7 @@ public abstract class UncorrelatedChurn implements Churn {
 
         try {
             final Duration duration = exposed ? getSessionLengthAt(time) : first_arrival ? getfirstArrivalDelay() : getDowntimeAt(time);
-            return new Availability(duration, exposed);
+            return new Availability(duration.getLength(TimeUnit.NANOSECONDS), exposed);
         }
         finally {
             switchExposure();

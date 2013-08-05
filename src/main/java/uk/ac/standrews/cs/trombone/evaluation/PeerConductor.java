@@ -41,7 +41,6 @@ import uk.ac.standrews.cs.trombone.util.Timeoutable;
 import uk.ac.standrews.cs.trombone.workload.Workload;
 
 import static uk.ac.standrews.cs.trombone.churn.Churn.Availability;
-import static uk.ac.standrews.cs.trombone.workload.Workload.PeerTask;
 
 public class PeerConductor extends AbstractFuture<Void> implements Timeoutable, Runnable {
 
@@ -122,7 +121,7 @@ public class PeerConductor extends AbstractFuture<Void> implements Timeoutable, 
         }
     }
 
-    private void attemptStartWithDelay(final Duration duration) {
+    private void attemptStartWithDelay(final long duration_nanos) {
 
         CHURN_EXECUTOR.schedule(new Runnable() {
 
@@ -136,18 +135,18 @@ public class PeerConductor extends AbstractFuture<Void> implements Timeoutable, 
                     e.printStackTrace();
                 }
             }
-        }, duration.getLength(), duration.getTimeUnit());
+        }, duration_nanos, TimeUnit.NANOSECONDS);
     }
 
     private void start() throws IOException {
 
         final Availability availability = churn.getAvailabilityAt(System.nanoTime());
-        final Duration duration = availability.getDuration();
+        final long duration = availability.getDurationInNanos();
         final boolean exposed = availability.isAvailable();
 
         setPeerExposure(exposed);
 
-        if (!timing.exceedsRemainingTime(duration)) {
+        if (!timing.exceedsRemainingTimeInNanos(duration)) {
             attemptStartWithDelay(duration);
         }
         else {
@@ -233,7 +232,7 @@ public class PeerConductor extends AbstractFuture<Void> implements Timeoutable, 
 
     private ScheduledFuture scheduleNextWork() {
 
-        final PeerTask task = workload.getWorkAt(System.nanoTime()); // FIXME nextTask time
+        final Workload.Lookup task = workload.getLookupAt(System.nanoTime()); // FIXME nextTask time
         final Duration interval = task.getInterval();
         final ScheduledFuture scheduled_work = WORKLOAD_EXECUTOR.schedule(new Runnable() {
 
@@ -242,7 +241,12 @@ public class PeerConductor extends AbstractFuture<Void> implements Timeoutable, 
 
                 if (!isInterrupted() && peer.isExposed() && !isDone()) {
                     executeWorkloadWhileExposed();
-                    task.run(peer);
+                    try {
+                        peer.lookup(task.getTarget(), task.getRetryThreshold());
+                    }
+                    catch (RPCException e) {
+                        //            e.printStackTrace();
+                    }
                 }
                 purgeScheduledWorkQueue();
             }

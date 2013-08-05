@@ -1,22 +1,12 @@
 package uk.ac.standrews.cs.trombone.evaluation.job;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.io.File;
-import java.net.InetSocketAddress;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.Executors;
 import org.apache.commons.io.FileUtils;
 import uk.ac.standrews.cs.shabdiz.job.Job;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.trombone.evaluation.MembershipServiceExposer;
-import uk.ac.standrews.cs.trombone.evaluation.PeerConductor;
-import uk.ac.standrews.cs.trombone.evaluation.membership.MembershipService;
-import uk.ac.standrews.cs.trombone.evaluation.provider.PeerConductorProvider;
 import uk.ac.standrews.cs.trombone.metric.LookupFailureRateMeter;
 import uk.ac.standrews.cs.trombone.metric.LookupSuccessDelayTimer;
 import uk.ac.standrews.cs.trombone.metric.LookupSuccessHopCountHistogram;
@@ -27,27 +17,21 @@ import uk.ac.standrews.cs.trombone.metric.PeerStateSizeGauge;
 import uk.ac.standrews.cs.trombone.metric.SentBytesMeter;
 import uk.ac.standrews.cs.trombone.metric.core.CsvReporter;
 import uk.ac.standrews.cs.trombone.metric.core.MetricRegistry;
+import uk.ac.standrews.cs.trombone.metric.core.Sampler;
 import uk.ac.standrews.cs.trombone.util.TimeoutSupport;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class MultiplePeerConductorJob implements Job<File> {
+public class ExperimentEventExecutorJob implements Job<File> {
 
     private static final long serialVersionUID = -4494691063017253898L;
-    private final PeerConductorProvider conductor_provider;
     private final TimeoutSupport timing;
-    private final InetSocketAddress membership_service_address;
-    private final int peer_count;
     private final Duration report_interval;
-    private final Set<ListenableFuture<?>> scheduled_conductors;
+    Sampler event_execution_lag_metric = new Sampler();
 
-    public MultiplePeerConductorJob(PeerConductorProvider conductor_provider, InetSocketAddress membership_service_address, Duration timeout, int peer_count, Duration report_interval) {
+    public ExperimentEventExecutorJob(Duration report_interval, File a) {
 
-        this.conductor_provider = conductor_provider;
-        this.membership_service_address = membership_service_address;
-        this.peer_count = peer_count;
         this.report_interval = report_interval;
-        timing = new TimeoutSupport(timeout);
-        scheduled_conductors = new HashSet<ListenableFuture<?>>();
+        timing = new TimeoutSupport();
     }
 
     @Override
@@ -65,6 +49,7 @@ public class MultiplePeerConductorJob implements Job<File> {
         registry.register("peer.state_size", PeerStateSizeGauge.getTotalPeerStateSizeHistogram());
         registry.register("bytes.sent.per_exposed_peer", SentBytesMeter.getSentBytesPerExposedPeerGauge());
         registry.register("bytes.sent.total", SentBytesMeter.getTotalSentBytesMeter());
+        registry.register("event.execution.lag", event_execution_lag_metric);
 
         final File test = new File("/Users/masih/Desktop", "test");
         FileUtils.forceMkdir(test);
@@ -74,57 +59,17 @@ public class MultiplePeerConductorJob implements Job<File> {
         final ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
         try {
             timing.startCountdown();
-            conductPeers(executor);
+            executeEvents(executor);
             timing.awaitTimeout();
         }
         finally {
             reporter.stop();
             executor.shutdownNow();
-            cancelScheduledConductors();
         }
         return test;
     }
 
-    private void conductPeers(final ListeningExecutorService executor) {
+    private void executeEvents(final ListeningExecutorService executor) {
 
-        final MembershipService membership_service = MembershipServiceExposer.bind(membership_service_address);
-        for (int i = 0; i < peer_count; i++) {
-            executeNewConductor(executor, membership_service);
-        }
-    }
-
-    private void cancelScheduledConductors() {
-
-        for (final ListenableFuture<?> pending_conductor : scheduled_conductors) {
-            pending_conductor.cancel(true);
-        }
-        scheduled_conductors.clear();
-    }
-
-    private void executeNewConductor(final ListeningExecutorService executor, final MembershipService membership_service) {
-
-        final PeerConductor conductor = conductor_provider.get();
-        conductor.setMembershipService(membership_service);
-        conductor.setTimeout(timing.getRemainingTime());
-        final ListenableFuture<?> submit = executor.submit(conductor);
-        scheduled_conductors.add(submit);
-
-        Futures.addCallback(submit, new FutureCallback<Object>() {
-
-            @Override
-            public void onSuccess(final Object result) {
-
-                //
-                //                if (!timing.isTimedOut()) {
-                //                    executeNewConductor(executor, membership_service);
-                //                }
-            }
-
-            @Override
-            public void onFailure(final Throwable t) {
-
-                t.printStackTrace();
-            }
-        }, executor);
     }
 }

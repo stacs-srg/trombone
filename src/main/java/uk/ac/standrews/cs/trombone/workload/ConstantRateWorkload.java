@@ -28,9 +28,10 @@ import uk.ac.standrews.cs.trombone.math.RandomNumberGenerator;
 
 /**
  * Presents a synthetic workload.
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class ConstantRateWorkload extends Workload {
+public class ConstantRateWorkload implements Workload {
 
     private final Provider<Key> key_factory;
     private final ProbabilityDistribution intervals_distribution;
@@ -47,11 +48,11 @@ public class ConstantRateWorkload extends Workload {
     }
 
     @Override
-    public LookupWithRetryTask getWorkAt(final long time) {
+    public Lookup getLookupAt(final long time) {
 
         final Duration interval = getNextInterval();
         final Key target = getNextTarget();
-        return new LookupWithRetryTask(interval, target, retry_threshold);
+        return new Lookup(interval, target, retry_threshold);
     }
 
     private Duration getNextInterval() {

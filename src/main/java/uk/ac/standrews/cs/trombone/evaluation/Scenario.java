@@ -18,72 +18,110 @@
  */
 package uk.ac.standrews.cs.trombone.evaluation;
 
-import com.google.inject.AbstractModule;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import java.io.Serializable;
+import java.util.Collection;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
-import javax.inject.Provider;
-import uk.ac.standrews.cs.shabdiz.host.Host;
-import uk.ac.standrews.cs.trombone.Peer;
-import uk.ac.standrews.cs.trombone.churn.Churn;
-import uk.ac.standrews.cs.trombone.evaluation.membership.MembershipService;
-import uk.ac.standrews.cs.trombone.evaluation.provider.PeerConductorProvider;
-import uk.ac.standrews.cs.trombone.evaluation.provider.SerializableProvider;
-import uk.ac.standrews.cs.trombone.workload.Workload;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.TimeUnit;
+import org.apache.commons.math3.random.RandomGenerator;
+import org.apache.commons.math3.random.Well19937c;
+import uk.ac.standrews.cs.shabdiz.util.Duration;
 
-public abstract class Scenario extends AbstractModule {
+public class Scenario implements Serializable {
 
-    private List<Host> hosts;
-    private Provider<PeerConductorProvider> conductor_provider;
+    private static final int DEFAULT_LOOKUP_RETRY_COUNT = 5;
+    private static final long serialVersionUID = 5082585779371037794L;
+    private final String name;
+    private final long master_seed;
+    private final Duration experiment_duration;
+    private final RandomGenerator random;
+    private final ConcurrentHashMap<String, Integer> peers_per_host;
+    private int lookup_retry_count = DEFAULT_LOOKUP_RETRY_COUNT;
 
-    protected Scenario() {
-
-        hosts = new ArrayList<Host>();
-        conductor_provider = new Provider<PeerConductorProvider>() {
-
-            @Override
-            public PeerConductorProvider get() {
-
-                return new PeerConductorProvider(getPeerProvider().get(), getChurnProvider().get(), getWorkloadProvider().get());
-            }
-        };
+    protected Scenario(String name, long master_seed, final Duration experiment_duration) {
+        this.name = name;
+        this.master_seed = master_seed;
+        this.experiment_duration = experiment_duration;
+        random = newRandomGenerator(master_seed);
+        peers_per_host = new ConcurrentHashMap<String, Integer>();
     }
 
-    public boolean add(Host host) {
+    public Set<String> getHostNames() {
 
-        return hosts.add(host);
+        return new CopyOnWriteArraySet<String>(peers_per_host.keySet());
     }
 
-    public List<Host> getHosts() {
+    public Integer setPeersPerHost(String host, Integer peer_count) {
 
-        return new CopyOnWriteArrayList<Host>(hosts);
+        return peers_per_host.putIfAbsent(host, peer_count);
     }
 
-    public Set<Host> getUniqueHosts() {
+    public void setPeersPerHosts(Collection<String> hosts, Integer peer_count) {
 
-        return new HashSet<Host>(hosts);
+        for (String host : hosts) {
+            peers_per_host.putIfAbsent(host, peer_count);
+        }
     }
 
-    @Override
-    protected void configure() {
+    public final int getMaximumNetworkSize() {
 
+        int max_network_size = 0;
+        for (Integer count : peers_per_host.values()) {
+
+            max_network_size += count;
+        }
+        return max_network_size;
     }
 
-    Provider<PeerConductorProvider> getPeerConductorProvider() {
+    public Duration getExperimentDuration() {
 
-        return conductor_provider;
+        return experiment_duration;
     }
 
-    abstract MembershipService getMembershipService();
+    public Integer getMaximumPeersOnHost(final String host) {
 
-    abstract Provider<SerializableProvider<Long>> getSeedProvider();
+        return peers_per_host.get(host);
+    }
 
-    abstract Provider<SerializableProvider<Churn>> getChurnProvider();
+    public final long getExperimentDurationInNanos() {
 
-    abstract Provider<SerializableProvider<Workload>> getWorkloadProvider();
+        return getExperimentDuration().getLength(TimeUnit.NANOSECONDS);
+    }
 
-    abstract Provider<SerializableProvider<Peer>> getPeerProvider();
+    public void setLookupRetryCount(int lookup_retry_count) {
+
+        this.lookup_retry_count = lookup_retry_count;
+    }
+
+    public int getLookupRetryCount() {
+
+        return lookup_retry_count;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    protected long getMasterSeed() {
+
+        return master_seed;
+    }
+
+    protected long generateSeed() {
+
+        synchronized (random) {
+            return random.nextLong();
+        }
+    }
+
+    Participant newParticipantOnHost(String host) {
+        return null;
+    }
+
+    protected RandomGenerator newRandomGenerator(long seed) {
+
+        return new Well19937c(seed);
+    }
 
 }
