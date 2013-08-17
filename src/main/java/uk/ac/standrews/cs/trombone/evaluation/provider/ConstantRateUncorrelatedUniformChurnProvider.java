@@ -19,23 +19,19 @@
 package uk.ac.standrews.cs.trombone.evaluation.provider;
 
 import java.util.Random;
-import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.churn.Churn;
 import uk.ac.standrews.cs.trombone.churn.ConstantRateUncorrelatedChurn;
 import uk.ac.standrews.cs.trombone.math.ProbabilityDistribution;
-import uk.ac.standrews.cs.trombone.math.RandomNumberGenerator;
 
 public class ConstantRateUncorrelatedUniformChurnProvider implements SerializableProvider<Churn> {
 
-    private final ProbabilityDistribution first_arrival_delay_distribution;
     private final ProbabilityDistribution session_length_distribution;
     private final ProbabilityDistribution downtime_distribution;
     private final SerializableProvider<Long> seed_provider;
     private final Random uniform_random;
 
-    public ConstantRateUncorrelatedUniformChurnProvider(final ProbabilityDistribution first_arrival_delay_distribution, final ProbabilityDistribution session_length_distribution, final ProbabilityDistribution downtime_distribution, final SerializableProvider<Long> seed_provider) {
+    public ConstantRateUncorrelatedUniformChurnProvider(final ProbabilityDistribution session_length_distribution, final ProbabilityDistribution downtime_distribution, final SerializableProvider<Long> seed_provider) {
 
-        this.first_arrival_delay_distribution = first_arrival_delay_distribution;
         this.session_length_distribution = session_length_distribution;
         this.downtime_distribution = downtime_distribution;
         this.seed_provider = seed_provider;
@@ -45,13 +41,7 @@ public class ConstantRateUncorrelatedUniformChurnProvider implements Serializabl
     @Override
     public synchronized Churn get() {
 
-        final Duration first_arrival_delay = generateFirstArrivalDelay();
         final Long seed = seed_provider.get();
-        return new ConstantRateUncorrelatedChurn(first_arrival_delay, session_length_distribution, downtime_distribution, seed);
-    }
-
-    private Duration generateFirstArrivalDelay() {
-
-        return RandomNumberGenerator.generateDurationInNanoseconds(first_arrival_delay_distribution, uniform_random);
+        return new ConstantRateUncorrelatedChurn(session_length_distribution, downtime_distribution, seed);
     }
 }

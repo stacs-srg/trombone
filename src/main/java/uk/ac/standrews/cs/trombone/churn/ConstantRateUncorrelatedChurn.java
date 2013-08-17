@@ -32,11 +32,19 @@ public class ConstantRateUncorrelatedChurn extends UncorrelatedChurn {
     private final ProbabilityDistribution session_lengths;
     private final ProbabilityDistribution downtimes;
 
-    public ConstantRateUncorrelatedChurn(final Duration first_arrival_delay, final ProbabilityDistribution session_lengths, final ProbabilityDistribution downtimes, final long seed) {
+    public ConstantRateUncorrelatedChurn(final ProbabilityDistribution session_lengths, final ProbabilityDistribution downtimes, final long seed) {
 
-        super(first_arrival_delay, seed);
+        super(getAvailability(session_lengths, downtimes), seed);
         this.session_lengths = session_lengths;
         this.downtimes = downtimes;
+    }
+
+    private static double getAvailability(final ProbabilityDistribution session_lengths, final ProbabilityDistribution downtimes) {
+        final double mean_session_length = session_lengths.mean().doubleValue();
+        final double mean_downtime = downtimes.mean().doubleValue();
+        final double sum_of_mean_downtime_and_session_length = mean_downtime + mean_session_length;
+
+        return sum_of_mean_downtime_and_session_length != 0 ? mean_session_length / sum_of_mean_downtime_and_session_length : 1;
     }
 
     @Override
@@ -50,4 +58,5 @@ public class ConstantRateUncorrelatedChurn extends UncorrelatedChurn {
 
         return generateRandomDurationFromDistribution(downtimes);
     }
+
 }

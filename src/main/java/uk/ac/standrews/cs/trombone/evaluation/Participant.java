@@ -1,7 +1,7 @@
 package uk.ac.standrews.cs.trombone.evaluation;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicInteger;
 import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
 import uk.ac.standrews.cs.trombone.PeerReference;
 import uk.ac.standrews.cs.trombone.churn.Churn;
@@ -11,8 +11,8 @@ import uk.ac.standrews.cs.trombone.workload.Workload;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class Participant implements Comparable<Participant> {
 
-    private static final AtomicLong NEXT_ID = new AtomicLong();
-    private final Long id;
+    private static final AtomicInteger NEXT_ID = new AtomicInteger();
+    private final Integer id;
     private final Key key;
     private final InetSocketAddress address;
     private final Churn churn;
@@ -30,7 +30,7 @@ public class Participant implements Comparable<Participant> {
 
     }
 
-    public Long getId() {
+    public Integer getId() {
 
         return id;
     }

@@ -18,113 +18,33 @@
  */
 package uk.ac.standrews.cs.trombone.math;
 
-import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.Collections;
+import java.util.List;
 
-import static uk.ac.standrews.cs.trombone.math.ProbabilityDistribution.ONE;
 import static uk.ac.standrews.cs.trombone.math.ProbabilityDistribution.ONE_HUNDRED;
 import static uk.ac.standrews.cs.trombone.math.ProbabilityDistribution.ZERO;
 
 public class Statistics extends StatisticsStateless {
 
-    private final ConcurrentSkipListSet<Sample> sorted_samples;
+    private final UniformReservoir reservoir;
 
     public Statistics() {
 
-        sorted_samples = new ConcurrentSkipListSet<Sample>(); // TODO optimise
+        reservoir = new UniformReservoir();
     }
 
     @Override
     public void addSample(final Number value) {
 
         super.addSample(value);
-        sorted_samples.add(new Sample(value));
+        reservoir.update(value);
     }
 
     @Override
     public synchronized void reset() {
 
         super.reset();
-        sorted_samples.clear();
-    }
-
-    public Number getPercentile(final double p) {
-
-        NumericalRangeValidator.validateRange(p, ZERO, ONE_HUNDRED, true, true);
-        final Number percentile;
-        if (sorted_samples.isEmpty()) {
-            percentile = Double.NaN;
-        }
-        else {
-            // see http://en.wikipedia.org/wiki/Percentile#Alternative_methods
-            final Double sample_size = getSampleSize().doubleValue();
-            final Double rank = p * (sample_size - 1) / ONE_HUNDRED + 1;
-
-            if (rank == ONE) {
-                percentile = sorted_samples.first().value;
-            }
-            else if (rank.equals(sample_size)) {
-                percentile = sorted_samples.last().value;
-            }
-            else {
-
-                final long k = (long) Math.floor(rank);
-                final double d = rank - k;
-                final double k_th_sample = iThSample(k);
-                final double k_plus_1_th_sample = iThSample(k + 1);
-
-                percentile = k_th_sample + d * (k_plus_1_th_sample - k_th_sample);
-            }
-        }
-        return percentile;
-    }
-
-    private double iThSample(final long i) {
-
-        if (i > 0 && i <= getSampleSize()) {
-            long count = 1;
-            for (final Sample sample : sorted_samples) {
-                if (count == i) { return sample.value; }
-                count++;
-            }
-        }
-        return Double.NaN;
-    }
-
-    private static final class Sample implements Comparable<Sample> {
-
-        private static final AtomicLong SAMPLE_ID_GENERATOR = new AtomicLong();
-        private final Long id; // To resolve tie when sorting equal values
-        private final double value;
-
-        private Sample(final Number value) {
-
-            id = SAMPLE_ID_GENERATOR.incrementAndGet();
-            this.value = value.doubleValue();
-        }
-
-        @Override
-        public int compareTo(final Sample o) {
-
-            assert o != null;
-            return equals(o) ? 0 : value == o.value ? id.compareTo(o.id) : Double.compare(value, o.value);
-        }
-
-        @Override
-        public int hashCode() {
-
-            return id.intValue();
-        }
-
-        @Override
-        public boolean equals(final Object other) {
-
-            if (other != null && other instanceof Sample) {
-                final Sample other_sample = (Sample) other;
-                return id.equals(other_sample.id) && value == other_sample.value;
-            }
-            return false;
-        }
+        reservoir.reset();
     }
 
     @Override
@@ -133,4 +53,34 @@ public class Statistics extends StatisticsStateless {
         return "Statistics [getMax()=" + getMax() + ", getMin()=" + getMin() + ", getMean()=" + getMean() + ", getSampleSize()=" + getSampleSize() + "]";
     }
 
+    public Number getPercentile(final double quantile) {
+
+        NumericalRangeValidator.validateRange(quantile, ZERO, ONE_HUNDRED, true, true);
+        final Number percentile;
+
+        final List<Double> snapshot = reservoir.getSnapshot();
+        if (snapshot.isEmpty()) {
+            percentile = Double.NaN;
+        }
+        else {
+            Collections.sort(snapshot); //FIXME optimize
+            final int sample_size = snapshot.size();
+            final double position = quantile / 100 * (sample_size + 1);
+
+            if (position < 1) {
+                percentile = snapshot.get(0);
+            }
+            else if (position >= sample_size) {
+                percentile = snapshot.get(sample_size - 1);
+            }
+            else {
+
+                final double lower = snapshot.get((int) position - 1);
+                final double upper = snapshot.get((int) position);
+                percentile = lower + (position - Math.floor(position)) * (upper - lower);
+            }
+        }
+
+        return percentile;
+    }
 }

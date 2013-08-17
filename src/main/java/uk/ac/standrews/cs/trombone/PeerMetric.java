@@ -77,6 +77,7 @@ public class PeerMetric implements Metric, WrittenByteCountListenner {
         private volatile int hop_count;
         private volatile PeerReference result;
         private volatile RPCException error;
+        private long duration_in_nanos;
 
         private LookupMeasurement(int retry_threshold) {
 
@@ -115,7 +116,7 @@ public class PeerMetric implements Metric, WrittenByteCountListenner {
 
             if (doneIfUndone()) {
                 this.result = result;
-                time.stop();
+                duration_in_nanos = time.stop();
                 lookup_success_hop_count_histogram.update(hop_count);
                 lookup_success_retry_count_histogram.update(retry_count);
             }
@@ -125,7 +126,7 @@ public class PeerMetric implements Metric, WrittenByteCountListenner {
 
             if (doneIfUndone()) {
                 this.error = error;
-                time.stop();
+                duration_in_nanos = time.stop();
                 lookup_failure_rate_meter.mark();
             }
         }
@@ -148,6 +149,18 @@ public class PeerMetric implements Metric, WrittenByteCountListenner {
         public PeerReference getResult() {
 
             return result;
+        }
+
+        public long getHopCout() {
+            return hop_count;
+        }
+
+        public long getRetryCount() {
+            return retry_count;
+        }
+
+        public long getDurationInNanos() {
+            return duration_in_nanos;
         }
 
         private boolean doneIfUndone() {

@@ -25,6 +25,7 @@ import org.junit.Test;
 
 /**
  * Tests  {@link Statistics} and {@link Statistics}.
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class StatisticsTest {
@@ -47,29 +48,23 @@ public class StatisticsTest {
 
     //@formatter:off
     private static final Number[][] TEST_SAMPLES = {
-        {},
-        {1.0, 5.64, 989.321, .6546, 65, -45, -.5566, -656.544, 77777, 213, 5654},
-        {Double.NaN, 544.0, 5.674, 2589.3211, 0.54, 4565, -475, Double.NaN, -55.55366, -6.544, 87.577, 21.3, 54.57},
-        {Double.POSITIVE_INFINITY, 544.0, 5.674, 2589.3211, 0.54, 4565, -475, -55.55366, -6.544, 87.577, 21.3, 54.57},
-        {Double.NEGATIVE_INFINITY, 544.0, 5.674, 2589.3211, 0.54, 4565, -475, -55.55366, -6.544, 87.577, 21.3, 54.57}
+            {}, {1.0, 5.64, 989.321, .6546, 65, -45, -.5566, -656.544, 77777, 213, 5654}, {Double.NaN, 544.0, 5.674, 2589.3211, 0.54, 4565, -475, Double.NaN, -55.55366, -6.544, 87.577, 21.3, 54.57}, {Double.POSITIVE_INFINITY, 544.0, 5.674, 2589.3211, 0.54, 4565, -475, -55.55366, -6.544, 87.577, 21.3, 54.57}, {Double.NEGATIVE_INFINITY, 544.0, 5.674, 2589.3211, 0.54, 4565, -475, -55.55366, -6.544, 87.577, 21.3, 54.57}
     };
 
     private static final Number[][] EXPECTED_OUTPUT = {
-        //mean, min, max, sample_size, st_dev, sum, sum_sq, ci_95, ci_96, ci_97, ci_98, ci_99, percentile 10 to 100
-        {Double.NaN, Double.NaN, Double.NaN, 0L, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN},
-        {7636.683181818182, -656.544, 77777.0, 11L, 23326.342776780868, 84003.515, 6.082690903612882E9, 15670.850307467577, 16593.430101146976, 17776.19343980587, 19438.02444082271, 22289.992202212048, -45.0, -0.5566, 0.6546, 1.0, 5.64, 65.0, 213.0, 989.321, 5654.0, 77777.0},
-        {Double.NaN, Double.NaN, Double.NaN, 13L, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, -45.75172799999999, -3.7104000000000004, 3.6203999999999983, 18.174799999999998, 54.57, 178.86159999999967, 1362.1284400000009, 3774.7284399999994, Double.NaN, Double.NaN},
-        {Double.POSITIVE_INFINITY, -475.0, Double.POSITIVE_INFINITY, 12L, Double.NaN, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, -50.652694, -5.127199999999998, 2.080199999999999, 11.924400000000006, 37.935, 74.37419999999999, 407.07309999999967, 2180.2568800000017, 4367.432110000001, Double.POSITIVE_INFINITY},
-        {Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, 4565.0, 12L, Double.NaN, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, -433.05536599999994, -45.75172799999999, -4.418800000000001, 2.593600000000002, 13.487000000000002, 41.261999999999986, 77.67489999999998, 452.71540000000033, 2384.788990000001, 4565.0}
+            //mean, min, max, sample_size, st_dev, sum, sum_sq, ci_95, ci_96, ci_97, ci_98, ci_99, percentile 10 to 100
+            {Double.NaN, Double.NaN, Double.NaN, 0L, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN},
+            {7636.683181818182, -656.544, 77777.0, 11L, 23326.342776780868, 84003.515, 6.082690903612882E9, 15670.850307467577, 16593.430101146976, 17776.19343980587, 19438.02444082271, 22289.992202212048, -45.0, -0.5566, 0.6546, 1.0, 5.64, 65.0, 213.0, 989.321, 5654.0, 77777.0},
+            {Double.NaN, Double.NaN, Double.NaN, 13L, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, -45.75172799999999, -3.7104000000000004, 3.6203999999999983, 18.174799999999998, 54.57, 178.86159999999967, 1362.1284400000009, 3774.7284399999994, Double.NaN, Double.NaN},
+            {Double.POSITIVE_INFINITY, -475.0, Double.POSITIVE_INFINITY, 12L, Double.NaN, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, -50.652694, -5.127199999999998, 2.080199999999999, 11.924400000000006, 37.935, 74.37419999999999, 407.07309999999967, 2180.2568800000017, 4367.432110000001, Double.POSITIVE_INFINITY},
+            {Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, 4565.0, 12L, Double.NaN, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, -433.05536599999994, -45.75172799999999, -4.418800000000001, 2.593600000000002, 13.487000000000002, 41.261999999999986, 77.67489999999998, 452.71540000000033, 2384.788990000001, 4565.0}
     };
     //@formatter:on
 
     private Statistics[] test_statistics;
     private DescriptiveStatistics[] test_statistics2;
 
-    /**
-     * Initialises test statistics objects and adds test samples to each.
-     */
+    /** Initialises test statistics objects and adds test samples to each. */
     @Before
     public void setup() {
 
@@ -89,9 +84,7 @@ public class StatisticsTest {
 
     }
 
-    /**
-     * Tests {@link Statistics#addSample(double)}.
-     */
+    /** Tests {@link Statistics#addSample(double)}. */
     @Test
     public void testAddSample() {
 
@@ -104,9 +97,7 @@ public class StatisticsTest {
         }
     }
 
-    /**
-     * Tests {@link Statistics#reset()}.
-     */
+    /** Tests {@link Statistics#reset()}. */
     @Test
     public void testReset() {
 
@@ -116,9 +107,7 @@ public class StatisticsTest {
         }
     }
 
-    /**
-     * Tests arithmetic operations in {@link Statistics}.
-     */
+    /** Tests arithmetic operations in {@link Statistics}. */
     @Test
     public void testArithmetics() {
 
@@ -136,6 +125,7 @@ public class StatisticsTest {
             Assert.assertEquals(stats.getConfidenceInterval(CONFIDENCE_LEVEL_97), EXPECTED_OUTPUT[i][j++]);
             Assert.assertEquals(stats.getConfidenceInterval(CONFIDENCE_LEVEL_98), EXPECTED_OUTPUT[i][j++]);
             Assert.assertEquals(stats.getConfidenceInterval(CONFIDENCE_LEVEL_99), EXPECTED_OUTPUT[i][j++]);
+
             Assert.assertEquals(stats.getPercentile(PERCENTILE_10), EXPECTED_OUTPUT[i][j++]);
             Assert.assertEquals(stats.getPercentile(PERCENTILE_20), EXPECTED_OUTPUT[i][j++]);
             Assert.assertEquals(stats.getPercentile(PERCENTILE_30), EXPECTED_OUTPUT[i][j++]);

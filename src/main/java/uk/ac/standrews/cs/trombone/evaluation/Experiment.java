@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import javax.inject.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
@@ -34,7 +33,6 @@ import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.job.Worker;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
-import uk.ac.standrews.cs.trombone.evaluation.provider.PeerConductorProvider;
 import uk.ac.standrews.cs.trombone.util.TimeoutSupport;
 
 public class Experiment implements Callable<File> {
@@ -52,7 +50,6 @@ public class Experiment implements Callable<File> {
         this.name = name;
         this.scenario = scenario;
         timing = new TimeoutSupport();
-
         manager = new ExperimentPeerManager(this);
         worker_network = new WorkerNetwork();
         host_worker_map = new HashMap<Host, Worker>();
@@ -111,7 +108,6 @@ public class Experiment implements Callable<File> {
     private void deployPeerNetwork() throws Exception {
 
         final Map<Host, Integer> peers_per_host = countPeersPerHost();
-        final Provider<PeerConductorProvider> conductor_provider = null;
 
         final InetSocketAddress inetSocketAddress = null;
         for (Map.Entry<Host, Integer> entry : peers_per_host.entrySet()) {

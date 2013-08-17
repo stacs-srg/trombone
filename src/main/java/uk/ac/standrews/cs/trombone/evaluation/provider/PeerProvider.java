@@ -2,6 +2,7 @@ package uk.ac.standrews.cs.trombone.evaluation.provider;
 
 import java.net.UnknownHostException;
 import uk.ac.standrews.cs.trombone.Peer;
+import uk.ac.standrews.cs.trombone.PeerFactory;
 import uk.ac.standrews.cs.trombone.key.Key;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
@@ -20,7 +21,7 @@ public class PeerProvider implements SerializableProvider<Peer> {
 
         final Key key = key_provider.get();
         try {
-            return new Peer(key);
+            return PeerFactory.createPeer(key);
         }
         catch (UnknownHostException e) {
             throw new RuntimeException("failed to provide peer", e);

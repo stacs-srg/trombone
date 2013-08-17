@@ -31,12 +31,12 @@ public class Peer implements PeerRemote {
     private final Maintenance maintenance;
     private volatile PeerReference self;
 
-    public Peer(final Key key) throws UnknownHostException {
+    Peer(final Key key) throws UnknownHostException {
 
         this(NetworkUtil.getLocalIPv4InetSocketAddress(0), key);
     }
 
-    public Peer(final InetSocketAddress address, final Key key) {
+    Peer(final InetSocketAddress address, final Key key) {
 
         this.key = key;
         state = new PeerState(key);
@@ -82,7 +82,7 @@ public class Peer implements PeerRemote {
     @Override
     public synchronized void join(final PeerReference member) throws RPCException {
 
-        if (isExposed() && !hasJoined()) {
+        if (isExposed() && !hasJoined() && member != null) {
             final PeerRemote remote_member = getRemote(member);
             final PeerReference successor = remote_member.lookup(key);
             push(member);
@@ -167,7 +167,7 @@ public class Peer implements PeerRemote {
         return server.isExposed();
     }
 
-    public PeerMetric.LookupMeasurement lookup(final Key target, int retry_count) throws RPCException {
+    public PeerMetric.LookupMeasurement lookup(final Key target, int retry_count) {
 
         final PeerMetric.LookupMeasurement measurement = metric.newLookupMeasurement(retry_count);
         do {
@@ -222,6 +222,7 @@ public class Peer implements PeerRemote {
             current_hop = next_hop;
             current_hop_remote = next_hop_remote;
         }
+
         return next_hop;
     }
 

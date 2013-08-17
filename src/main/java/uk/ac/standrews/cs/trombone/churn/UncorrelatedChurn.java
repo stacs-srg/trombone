@@ -21,28 +21,27 @@ package uk.ac.standrews.cs.trombone.churn;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
+import uk.ac.standrews.cs.trombone.math.NumericalRangeValidator;
 import uk.ac.standrews.cs.trombone.math.ProbabilityDistribution;
 import uk.ac.standrews.cs.trombone.math.RandomNumberGenerator;
 
 public abstract class UncorrelatedChurn implements Churn {
 
-    private final Duration first_arrival_delay;
     private final Random uniform_random;
     private boolean exposed;
-    private boolean first_arrival;
 
-    protected UncorrelatedChurn(final Duration first_arrival_delay, final long seed) {
+    protected UncorrelatedChurn(final double availability, final long seed) {
 
-        this.first_arrival_delay = first_arrival_delay;
+        NumericalRangeValidator.validateRangeZeroToOneExclusive(availability);
         uniform_random = new Random(seed);
-        first_arrival = true;
+        exposed = availability > uniform_random.nextDouble();
     }
 
     @Override
     public synchronized final Availability getAvailabilityAt(final long time) {
 
         try {
-            final Duration duration = exposed ? getSessionLengthAt(time) : first_arrival ? getfirstArrivalDelay() : getDowntimeAt(time);
+            final Duration duration = exposed ? getSessionLengthAt(time) : getDowntimeAt(time);
             return new Availability(duration.getLength(TimeUnit.NANOSECONDS), exposed);
         }
         finally {
@@ -53,13 +52,6 @@ public abstract class UncorrelatedChurn implements Churn {
     protected abstract Duration getSessionLengthAt(final long time);
 
     protected abstract Duration getDowntimeAt(final long time);
-
-    private Duration getfirstArrivalDelay() {
-
-        assert first_arrival;
-        first_arrival = false;
-        return first_arrival_delay;
-    }
 
     protected Duration generateRandomDurationFromDistribution(final ProbabilityDistribution distribution) {
 
