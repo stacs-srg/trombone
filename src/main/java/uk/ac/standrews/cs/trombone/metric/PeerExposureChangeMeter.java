@@ -2,9 +2,9 @@ package uk.ac.standrews.cs.trombone.metric;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import org.mashti.gauge.Counter;
+import org.mashti.gauge.Rate;
 import uk.ac.standrews.cs.trombone.Peer;
-import uk.ac.standrews.cs.trombone.metric.core.Counter;
-import uk.ac.standrews.cs.trombone.metric.core.Rate;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class PeerExposureChangeMeter {

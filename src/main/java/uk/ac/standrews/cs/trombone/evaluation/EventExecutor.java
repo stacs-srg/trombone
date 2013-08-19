@@ -16,6 +16,12 @@ import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
+import org.mashti.gauge.Counter;
+import org.mashti.gauge.MetricRegistry;
+import org.mashti.gauge.Rate;
+import org.mashti.gauge.Sampler;
+import org.mashti.gauge.Timer;
+import org.mashti.gauge.reporter.CsvReporter;
 import org.mashti.jetson.exception.RPCException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,12 +30,6 @@ import uk.ac.standrews.cs.trombone.Peer;
 import uk.ac.standrews.cs.trombone.PeerFactory;
 import uk.ac.standrews.cs.trombone.PeerMetric;
 import uk.ac.standrews.cs.trombone.PeerReference;
-import uk.ac.standrews.cs.trombone.metric.core.Counter;
-import uk.ac.standrews.cs.trombone.metric.core.CsvReporter;
-import uk.ac.standrews.cs.trombone.metric.core.MetricRegistry;
-import uk.ac.standrews.cs.trombone.metric.core.Rate;
-import uk.ac.standrews.cs.trombone.metric.core.Sampler;
-import uk.ac.standrews.cs.trombone.metric.core.Timer;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class EventExecutor {

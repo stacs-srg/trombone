@@ -2,15 +2,15 @@ package uk.ac.standrews.cs.trombone;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.mashti.gauge.Metric;
+import org.mashti.gauge.Rate;
+import org.mashti.gauge.Sampler;
+import org.mashti.gauge.Timer;
 import org.mashti.jetson.WrittenByteCountListenner;
 import org.mashti.jetson.exception.RPCException;
 import org.mashti.sina.distribution.statistic.Statistics;
 import uk.ac.standrews.cs.trombone.metric.PeerExposureChangeMeter;
 import uk.ac.standrews.cs.trombone.metric.PeerMembershipChangeMeter;
-import uk.ac.standrews.cs.trombone.metric.core.Metric;
-import uk.ac.standrews.cs.trombone.metric.core.Rate;
-import uk.ac.standrews.cs.trombone.metric.core.Sampler;
-import uk.ac.standrews.cs.trombone.metric.core.Timer;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class PeerMetric implements Metric, WrittenByteCountListenner {
