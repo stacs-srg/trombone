@@ -15,7 +15,6 @@ import org.mashti.jetson.lean.LeanClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.codec.PeerCodecs;
-import uk.ac.standrews.cs.trombone.gossip.OpportunisticGossip;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class PeerRemoteFactory extends LeanClientFactory<PeerRemote> {
@@ -108,9 +107,9 @@ public class PeerRemoteFactory extends LeanClientFactory<PeerRemote> {
         protected List<FutureResponse> getExtraRequrests() throws RPCException {
 
             final List<FutureResponse> responses = new ArrayList<FutureResponse>();
-            final List<OpportunisticGossip> gossips = peer_maintenance.getOpportunisticGossips();
+            final List<Maintenance.OpportunisticGossip> gossips = peer_maintenance.getOpportunisticGossips();
             if (gossips != null) {
-                for (OpportunisticGossip gossip : gossips) {
+                for (Maintenance.OpportunisticGossip gossip : gossips) {
                     final FutureResponse future_gossip = gossip.get(this);
                     responses.add(future_gossip);
                 }

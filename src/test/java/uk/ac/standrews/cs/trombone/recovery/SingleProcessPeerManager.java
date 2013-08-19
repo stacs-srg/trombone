@@ -36,7 +36,7 @@ public class SingleProcessPeerManager implements ApplicationManager {
 
         final InetAddress host_address = descriptor.getHost().getAddress();
         final InetSocketAddress peer_address = new InetSocketAddress(host_address, 0);
-        final Peer peer = PeerFactory.createPeer(peer_address, KEY_PROVIDER.get());
+        final Peer peer = PeerFactory.createPeer(peer_address, KEY_PROVIDER.get(), null);
 
         peer.expose();
         descriptor.setAttribute(PEER_KEY, peer);

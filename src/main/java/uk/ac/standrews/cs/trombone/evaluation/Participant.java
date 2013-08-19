@@ -3,6 +3,7 @@ package uk.ac.standrews.cs.trombone.evaluation;
 import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicInteger;
 import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
+import uk.ac.standrews.cs.trombone.PeerConfigurator;
 import uk.ac.standrews.cs.trombone.PeerReference;
 import uk.ac.standrews.cs.trombone.churn.Churn;
 import uk.ac.standrews.cs.trombone.key.Key;
@@ -17,17 +18,18 @@ public class Participant implements Comparable<Participant> {
     private final InetSocketAddress address;
     private final Churn churn;
     private final Workload workload;
+    private final PeerConfigurator configurator;
     private final PeerReference reference;
 
-    public Participant(final Key key, final InetSocketAddress address, final Churn churn, final Workload workload) {
+    public Participant(final Key key, final InetSocketAddress address, final Churn churn, final Workload workload, final PeerConfigurator configurator) {
 
         id = NEXT_ID.incrementAndGet();
         this.key = key;
         this.address = address;
         this.churn = churn;
         this.workload = workload;
+        this.configurator = configurator;
         reference = new PeerReference(key, address);
-
     }
 
     public Integer getId() {

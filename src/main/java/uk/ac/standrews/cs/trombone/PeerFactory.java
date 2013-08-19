@@ -24,15 +24,24 @@ public final class PeerFactory {
         return new PeerReference(key, address);
     }
 
-    public static Peer createPeer(PeerReference reference) {
-        return createPeer(reference.getAddress(), reference.getKey());
+    public static Peer createPeer(PeerReference reference, final PeerConfigurator configurator) {
+
+        final Key key = reference.getKey();
+        final InetSocketAddress address = reference.getAddress();
+        return createPeer(address, key, configurator);
     }
 
     public static Peer createPeer(final Key key) throws UnknownHostException {
+
         return new Peer(key);
     }
 
-    public static Peer createPeer(final InetSocketAddress address, final Key key) {
-        return new Peer(address, key);
+    public static Peer createPeer(final InetSocketAddress address, final Key key, final PeerConfigurator configurator) {
+
+        final Peer peer = new Peer(address, key);
+        if (configurator != null) {
+            configurator.configure(peer);
+        }
+        return peer;
     }
 }

@@ -302,7 +302,7 @@ public class EventExecutor {
 
         final Peer peer;
         if (!peers_map.containsKey(reference)) {
-            peer = PeerFactory.createPeer(reference);
+            peer = PeerFactory.createPeer(reference, null);
             peers_map.put(reference, peer);
         }
         else {

@@ -50,7 +50,7 @@ public class EventGeneratorTest {
 
             Participant newParticipantOnHost(String host) {
 
-                return new Participant(key_provider.get(), new InetSocketAddress(host, next_port.incrementAndGet()), getChurn(), getWorkload());
+                return new Participant(key_provider.get(), new InetSocketAddress(host, next_port.incrementAndGet()), getChurn(), getWorkload(), null);
             }
         };
 

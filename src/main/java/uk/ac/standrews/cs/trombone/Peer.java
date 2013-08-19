@@ -40,7 +40,7 @@ public class Peer implements PeerRemote {
 
         this.key = key;
         state = new PeerState(key);
-        maintenance = new Maintenance();
+        maintenance = new Maintenance(this);
         property_change_support = new PropertyChangeSupport(this);
         metric = new PeerMetric(this);
         remote_factory = new PeerRemoteFactory(this, PeerFactory.CLIENT_FACTORY);
