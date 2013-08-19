@@ -18,8 +18,8 @@
  */
 package uk.ac.standrews.cs.trombone.churn;
 
+import org.mashti.sina.distribution.ProbabilityDistribution;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.trombone.math.ProbabilityDistribution;
 
 /**
  * Implements a churn model where arrivals and departures are not correlated.
@@ -40,6 +40,7 @@ public class ConstantRateUncorrelatedChurn extends UncorrelatedChurn {
     }
 
     private static double getAvailability(final ProbabilityDistribution session_lengths, final ProbabilityDistribution downtimes) {
+
         final double mean_session_length = session_lengths.mean().doubleValue();
         final double mean_downtime = downtimes.mean().doubleValue();
         final double sum_of_mean_downtime_and_session_length = mean_downtime + mean_session_length;

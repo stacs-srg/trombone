@@ -20,10 +20,10 @@ package uk.ac.standrews.cs.trombone.churn;
 
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import org.mashti.sina.distribution.ProbabilityDistribution;
+import org.mashti.sina.util.NumericalRangeValidator;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.trombone.math.NumericalRangeValidator;
-import uk.ac.standrews.cs.trombone.math.ProbabilityDistribution;
-import uk.ac.standrews.cs.trombone.math.RandomNumberGenerator;
+import uk.ac.standrews.cs.trombone.util.DurationUtil;
 
 public abstract class UncorrelatedChurn implements Churn {
 
@@ -55,7 +55,7 @@ public abstract class UncorrelatedChurn implements Churn {
 
     protected Duration generateRandomDurationFromDistribution(final ProbabilityDistribution distribution) {
 
-        return RandomNumberGenerator.generateDurationInNanoseconds(distribution, uniform_random);
+        return DurationUtil.generateDurationInNanoseconds(distribution, uniform_random);
     }
 
     private void switchExposure() {

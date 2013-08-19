@@ -20,11 +20,11 @@ package uk.ac.standrews.cs.trombone.workload;
 
 import java.util.Random;
 import javax.inject.Provider;
+import org.mashti.sina.distribution.ProbabilityDistribution;
+import org.mashti.sina.util.NumericalRangeValidator;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.key.Key;
-import uk.ac.standrews.cs.trombone.math.NumericalRangeValidator;
-import uk.ac.standrews.cs.trombone.math.ProbabilityDistribution;
-import uk.ac.standrews.cs.trombone.math.RandomNumberGenerator;
+import uk.ac.standrews.cs.trombone.util.DurationUtil;
 
 /**
  * Presents a synthetic workload.
@@ -58,7 +58,7 @@ public class ConstantRateWorkload implements Workload {
     private Duration getNextInterval() {
 
         synchronized (intervals_distribution) {
-            return RandomNumberGenerator.generateDurationInNanoseconds(intervals_distribution, uniform_random);
+            return DurationUtil.generateDurationInNanoseconds(intervals_distribution, uniform_random);
         }
     }
 

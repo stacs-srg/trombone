@@ -20,15 +20,12 @@ package uk.ac.standrews.cs.trombone.churn;
 
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import org.mashti.sina.distribution.ProbabilityDistribution;
+import org.mashti.sina.util.RandomNumberGenerator;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.trombone.math.ProbabilityDistribution;
-import uk.ac.standrews.cs.trombone.math.RandomNumberGenerator;
+import uk.ac.standrews.cs.trombone.util.DurationUtil;
 
 public class CorrelatedChurn implements Churn {
-
-    private enum State {
-        WAIT, ON, REST
-    }
 
     private final ProbabilityDistribution arrival_preference;
     private final ProbabilityDistribution session_lengths;
@@ -65,7 +62,7 @@ public class CorrelatedChurn implements Churn {
 
     public synchronized Duration nextSessionLength() {
 
-        final Duration next_session_length = RandomNumberGenerator.generateDurationInNanoseconds(session_lengths, uniform_random);
+        final Duration next_session_length = DurationUtil.generateDurationInNanoseconds(session_lengths, uniform_random);
         session_duration = next_session_length;
         System.out.println("next session : " + session_duration);
         return next_session_length;
@@ -76,7 +73,7 @@ public class CorrelatedChurn implements Churn {
         final Duration next_downtime;
         switch (next_state) {
             case WAIT:
-                next_downtime = RandomNumberGenerator.generateDurationInNanoseconds(arrival_preference, uniform_random);
+                next_downtime = DurationUtil.generateDurationInNanoseconds(arrival_preference, uniform_random);
                 wait_duration = next_downtime;
                 next_state = State.ON;
                 break;
@@ -95,12 +92,19 @@ public class CorrelatedChurn implements Churn {
         return next_downtime;
     }
 
+    @Override
+    public Availability getAvailabilityAt(final long time) {
+
+        // TODO Auto-generated method stub
+        return null;
+    }
+
     private Duration nextCorelatedDowntime() {
 
         final int downtime_bin_count = nextDowntimeBinCount();
         final Duration elapsed = wait_duration.add(session_duration);
         final Duration offset = calculateBinOffset(elapsed);
-        wait_duration = RandomNumberGenerator.generateDurationInNanoseconds(arrival_preference, uniform_random);
+        wait_duration = DurationUtil.generateDurationInNanoseconds(arrival_preference, uniform_random);
         return bin_length.times(downtime_bin_count).add(offset).add(wait_duration);
 
     }
@@ -118,10 +122,7 @@ public class CorrelatedChurn implements Churn {
         return bin_length.subtract(passed_since_last_bin); //time until the next bin starts
     }
 
-    @Override
-    public Availability getAvailabilityAt(final long time) {
-
-        // TODO Auto-generated method stub
-        return null;
+    private enum State {
+        WAIT, ON, REST
     }
 }

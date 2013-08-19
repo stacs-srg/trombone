@@ -8,10 +8,10 @@ import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import org.mashti.sina.distribution.statistic.Statistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.trombone.math.Statistics;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class CsvReporter extends ScheduledReporter {

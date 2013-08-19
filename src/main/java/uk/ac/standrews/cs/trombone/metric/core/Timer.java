@@ -1,7 +1,7 @@
 package uk.ac.standrews.cs.trombone.metric.core;
 
 import java.util.concurrent.TimeUnit;
-import uk.ac.standrews.cs.trombone.math.Statistics;
+import org.mashti.sina.distribution.statistic.Statistics;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class Timer implements Metric {

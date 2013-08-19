@@ -20,9 +20,9 @@ package uk.ac.standrews.cs.trombone.util;
 
 import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
+import org.mashti.sina.util.NumericalRangeValidator;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.trombone.math.NumericalRangeValidator;
 
 public class TimeoutSupport implements Timeoutable, Serializable {
 

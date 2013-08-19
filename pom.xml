@@ -28,9 +28,9 @@
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-math3</artifactId>
-            <version>3.2</version>
+            <groupId>org.mashti.sina</groupId>
+            <artifactId>sina</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>

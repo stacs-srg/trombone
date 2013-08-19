@@ -4,7 +4,7 @@ import com.google.common.collect.Multiset;
 import com.google.common.collect.TreeMultiset;
 import java.util.Random;
 import javax.inject.Provider;
-import uk.ac.standrews.cs.trombone.math.ZipfDistribution;
+import org.mashti.sina.distribution.ZipfDistribution;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class ZipfIntegerKeyProvider implements Provider<Key> {
@@ -15,6 +15,7 @@ public class ZipfIntegerKeyProvider implements Provider<Key> {
     private final int elements_count;
 
     public ZipfIntegerKeyProvider(int elements_count, double exponent, long seed) {
+
         this.elements_count = elements_count;
 
         distribution = new ZipfDistribution(elements_count, exponent);
@@ -24,6 +25,7 @@ public class ZipfIntegerKeyProvider implements Provider<Key> {
     }
 
     public static void main(String[] args) {
+
         ZipfIntegerKeyProvider provider = new ZipfIntegerKeyProvider(1000, 1, 88);
         long time = System.nanoTime();
         TreeMultiset<Integer> m = TreeMultiset.create();
@@ -48,6 +50,7 @@ public class ZipfIntegerKeyProvider implements Provider<Key> {
     }
 
     private int nextIndex() {
+
         int rank;
         double friquency;
         double dice;
@@ -55,7 +58,8 @@ public class ZipfIntegerKeyProvider implements Provider<Key> {
             rank = random.nextInt(elements_count) + 1;
             friquency = distribution.probability(rank).doubleValue();
             dice = random.nextDouble();
-        } while (!(dice < friquency));
+        }
+        while (!(dice < friquency));
 
         return rank - 1;
     }

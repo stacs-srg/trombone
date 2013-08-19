@@ -18,8 +18,8 @@
  */
 package uk.ac.standrews.cs.trombone.evaluation.provider;
 
+import org.mashti.sina.distribution.ProbabilityDistribution;
 import uk.ac.standrews.cs.trombone.key.RandomIntegerKeyProvider;
-import uk.ac.standrews.cs.trombone.math.ProbabilityDistribution;
 import uk.ac.standrews.cs.trombone.workload.ConstantRateWorkload;
 import uk.ac.standrews.cs.trombone.workload.Workload;
 

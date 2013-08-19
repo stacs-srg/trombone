@@ -7,22 +7,22 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.inject.Provider;
 import org.junit.Before;
 import org.junit.Test;
+import org.mashti.sina.distribution.ExponentialDistribution;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.churn.Churn;
 import uk.ac.standrews.cs.trombone.churn.ConstantRateUncorrelatedChurn;
 import uk.ac.standrews.cs.trombone.evaluation.provider.PortNumberProvider;
 import uk.ac.standrews.cs.trombone.key.Key;
 import uk.ac.standrews.cs.trombone.key.RandomIntegerKeyProvider;
-import uk.ac.standrews.cs.trombone.math.ExponentialDistribution;
 import uk.ac.standrews.cs.trombone.workload.ConstantRateWorkload;
 import uk.ac.standrews.cs.trombone.workload.Workload;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class EventGeneratorTest {
 
-    private static final ExponentialDistribution session_length_distribution = ExponentialDistribution.byMean(new Duration(10, TimeUnit.SECONDS));
-    private static final ExponentialDistribution downtime_distribution = ExponentialDistribution.byMean(new Duration(10, TimeUnit.SECONDS));
-    private static final ExponentialDistribution workload_intervals_distribution = ExponentialDistribution.byMean(new Duration(500, TimeUnit.MILLISECONDS));
+    private static final ExponentialDistribution session_length_distribution = ExponentialDistribution.byMean(new Duration(10, TimeUnit.SECONDS).getLength(TimeUnit.NANOSECONDS));
+    private static final ExponentialDistribution downtime_distribution = ExponentialDistribution.byMean(new Duration(10, TimeUnit.SECONDS).getLength(TimeUnit.NANOSECONDS));
+    private static final ExponentialDistribution workload_intervals_distribution = ExponentialDistribution.byMean(new Duration(500, TimeUnit.MILLISECONDS).getLength(TimeUnit.NANOSECONDS));
     private static final Duration experiemnt_duration = new Duration(20, TimeUnit.MINUTES);
     private final AtomicInteger next_port = new AtomicInteger(45000);
     private Scenario scenario;

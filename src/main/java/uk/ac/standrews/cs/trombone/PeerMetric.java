@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.mashti.jetson.WrittenByteCountListenner;
 import org.mashti.jetson.exception.RPCException;
-import uk.ac.standrews.cs.trombone.math.Statistics;
+import org.mashti.sina.distribution.statistic.Statistics;
 import uk.ac.standrews.cs.trombone.metric.PeerExposureChangeMeter;
 import uk.ac.standrews.cs.trombone.metric.PeerMembershipChangeMeter;
 import uk.ac.standrews.cs.trombone.metric.core.Metric;

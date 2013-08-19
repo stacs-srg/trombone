@@ -19,9 +19,9 @@
 package uk.ac.standrews.cs.trombone.evaluation.provider;
 
 import java.util.Random;
+import org.mashti.sina.distribution.ProbabilityDistribution;
 import uk.ac.standrews.cs.trombone.churn.Churn;
 import uk.ac.standrews.cs.trombone.churn.ConstantRateUncorrelatedChurn;
-import uk.ac.standrews.cs.trombone.math.ProbabilityDistribution;
 
 public class ConstantRateUncorrelatedUniformChurnProvider implements SerializableProvider<Churn> {
 

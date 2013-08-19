@@ -22,17 +22,18 @@ public class Maintenance {
     private static final ScheduledExecutorService SCHEDULER = Executors.newScheduledThreadPool(100);
     private static final Method PUSH;
     private static final Method PULL;
+    private static final String PUSH_METHOD_NAME = "push";
+    private static final String PULL_METHOD_NAME = "pull";
 
     static {
         try {
-            PUSH = PeerRemote.class.getDeclaredMethod("push", PeerReference[].class);
-            PULL = PeerRemote.class.getDeclaredMethod("pull", Selector.class, Integer.TYPE);
+            PUSH = PeerRemote.class.getDeclaredMethod(PUSH_METHOD_NAME, PeerReference[].class);
+            PULL = PeerRemote.class.getDeclaredMethod(PULL_METHOD_NAME, Selector.class, Integer.TYPE);
         }
         catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
     }
-
     private final List<NonOpportunisticGossip> non_opportunistic_gossips;
     private final List<OpportunisticGossip> opportunistic_gossips;
     private final List<ScheduledFuture<?>> scheduled_non_opportunistic_gossips;
@@ -110,7 +111,7 @@ public class Maintenance {
         private final Method method;
         private final Object[] pull_arguments;
 
-        public OpportunisticGossip(Selector selector, boolean push, int max_size) {
+        OpportunisticGossip(Selector selector, boolean push, int max_size) {
 
             this.selector = selector;
             this.push = push;
@@ -156,7 +157,7 @@ public class Maintenance {
         private final OpportunisticGossip gossip;
         private final Duration interval;
 
-        public NonOpportunisticGossip(final Selector recipient_selector, OpportunisticGossip gossip, Duration interval) {
+        NonOpportunisticGossip(final Selector recipient_selector, OpportunisticGossip gossip, Duration interval) {
 
             this.recipient_selector = recipient_selector;
             this.gossip = gossip;
