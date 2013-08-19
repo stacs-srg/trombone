@@ -7,7 +7,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.gossip.NonOpportunisticGossip;
 import uk.ac.standrews.cs.trombone.gossip.OpportunisticGossip;
@@ -19,38 +18,39 @@ public class Maintenance {
     private final List<NonOpportunisticGossip> non_opportunistic_gossips;
     private final List<OpportunisticGossip> opportunistic_gossips;
     private final List<ScheduledFuture<?>> scheduled_non_opportunistic_gossips;
-    private final AtomicBoolean started;
+    private volatile boolean started;
 
     public Maintenance() {
 
         non_opportunistic_gossips = new ArrayList<NonOpportunisticGossip>();
         opportunistic_gossips = new ArrayList<OpportunisticGossip>();
         scheduled_non_opportunistic_gossips = new ArrayList<ScheduledFuture<?>>();
-        started = new AtomicBoolean();
     }
 
     public synchronized void start() {
 
-        if (started.compareAndSet(false, true)) {
+        if (!isStarted()) {
             for (NonOpportunisticGossip gossip : non_opportunistic_gossips) {
                 schedule(gossip);
             }
+            started = true;
         }
     }
 
     public synchronized void stop() {
 
-        if (started.compareAndSet(true, false)) {
+        if (isStarted()) {
             for (ScheduledFuture<?> future : scheduled_non_opportunistic_gossips) {
                 future.cancel(true);
             }
             scheduled_non_opportunistic_gossips.clear();
+            started = false;
         }
     }
 
-    public boolean isStarted() {
+    public synchronized boolean isStarted() {
 
-        return started.get();
+        return started;
     }
 
     private boolean schedule(final NonOpportunisticGossip gossip) {
@@ -74,11 +74,11 @@ public class Maintenance {
 
     protected List<OpportunisticGossip> getOpportunisticGossips() {
 
-        return new CopyOnWriteArrayList(opportunistic_gossips);
+        return new CopyOnWriteArrayList<OpportunisticGossip>(opportunistic_gossips);
     }
 
     protected List<NonOpportunisticGossip> getNonOpportunisticGossips() {
 
-        return new CopyOnWriteArrayList(non_opportunistic_gossips);
+        return new CopyOnWriteArrayList<NonOpportunisticGossip>(non_opportunistic_gossips);
     }
 }

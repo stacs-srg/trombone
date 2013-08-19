@@ -5,39 +5,39 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.mashti.jetson.WrittenByteCountListenner;
 import org.mashti.jetson.exception.RPCException;
 import uk.ac.standrews.cs.trombone.math.Statistics;
-import uk.ac.standrews.cs.trombone.metric.LookupFailureRateMeter;
-import uk.ac.standrews.cs.trombone.metric.LookupSuccessDelayTimer;
-import uk.ac.standrews.cs.trombone.metric.LookupSuccessHopCountHistogram;
-import uk.ac.standrews.cs.trombone.metric.LookupSuccessRetryCountHistogram;
 import uk.ac.standrews.cs.trombone.metric.PeerExposureChangeMeter;
 import uk.ac.standrews.cs.trombone.metric.PeerMembershipChangeMeter;
-import uk.ac.standrews.cs.trombone.metric.PeerStateSizeGauge;
-import uk.ac.standrews.cs.trombone.metric.SentBytesMeter;
 import uk.ac.standrews.cs.trombone.metric.core.Metric;
+import uk.ac.standrews.cs.trombone.metric.core.Rate;
+import uk.ac.standrews.cs.trombone.metric.core.Sampler;
 import uk.ac.standrews.cs.trombone.metric.core.Timer;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class PeerMetric implements Metric, WrittenByteCountListenner {
 
-    private final PeerStateSizeGauge state_size_gauge;
-    private final SentBytesMeter sent_bytes_meter;
-    private final LookupSuccessDelayTimer lookup_success_delay_timer;
-    private final LookupSuccessHopCountHistogram lookup_success_hop_count_histogram;
-    private final LookupSuccessRetryCountHistogram lookup_success_retry_count_histogram;
-    private final LookupFailureRateMeter lookup_failure_rate_meter;
+    private static final Rate GLOBAL_SENT_BYTES_RATE = new Rate();
+    private final Rate sent_bytes_meter;
+    private final Timer lookup_success_delay_timer;
+    private final Sampler lookup_success_hop_count_histogram;
+    private final Sampler lookup_success_retry_count_histogram;
+    private final Rate lookup_failure_rate_meter;
     private final PeerMembershipChangeMeter membership_change_meter;
     private final PeerExposureChangeMeter exposure_change_meter;
 
     public PeerMetric(final Peer peer) {
 
-        state_size_gauge = new PeerStateSizeGauge(peer);
-        sent_bytes_meter = new SentBytesMeter();
-        lookup_success_delay_timer = new LookupSuccessDelayTimer();
-        lookup_success_hop_count_histogram = new LookupSuccessHopCountHistogram();
-        lookup_success_retry_count_histogram = new LookupSuccessRetryCountHistogram();
-        lookup_failure_rate_meter = new LookupFailureRateMeter();
+        sent_bytes_meter = new Rate();
+        lookup_success_delay_timer = new Timer();
+        lookup_success_hop_count_histogram = new Sampler();
+        lookup_success_retry_count_histogram = new Sampler();
+        lookup_failure_rate_meter = new Rate();
         membership_change_meter = new PeerMembershipChangeMeter(peer);
         exposure_change_meter = new PeerExposureChangeMeter(peer);
+    }
+
+    public static Rate getGlobalSentBytesRate() {
+
+        return GLOBAL_SENT_BYTES_RATE;
     }
 
     public Timer getLookupSuccessDelayTimer() {
@@ -66,6 +66,7 @@ public class PeerMetric implements Metric, WrittenByteCountListenner {
     public void notifyWrittenByteCount(final int byte_count) {
 
         sent_bytes_meter.mark(byte_count);
+        GLOBAL_SENT_BYTES_RATE.mark(byte_count);
     }
 
     public final class LookupMeasurement {
@@ -152,14 +153,17 @@ public class PeerMetric implements Metric, WrittenByteCountListenner {
         }
 
         public long getHopCout() {
+
             return hop_count;
         }
 
         public long getRetryCount() {
+
             return retry_count;
         }
 
         public long getDurationInNanos() {
+
             return duration_in_nanos;
         }
 

@@ -40,7 +40,6 @@ public class OpportunisticGossip {
         if (push) {
             method = PUSH;
             pull_arguments = null;
-
         }
         else {
             method = PULL;

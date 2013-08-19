@@ -107,6 +107,7 @@ public class EventGenerator {
     }
 
     private void persistTargetKeys() throws IOException {
+
         final File hosts_csv = new File(scenario_home_dir, "lookup_targets.csv");
         final CSVWriter writer = new CSVWriter(new FileWriter(hosts_csv));
         try {
@@ -121,10 +122,12 @@ public class EventGenerator {
     }
 
     private Future<Void> startPersistor(final Future<Void> persistor, final NavigableSet<Event> events, final NavigableMap<Key, Participant> alive_peers) {
+
         return event_generation_executor.submit(new Callable<Void>() {
 
             @Override
             public Void call() throws Exception {
+
                 try {
                     if (persistor != null) {
                         persistor.get();
@@ -185,6 +188,7 @@ public class EventGenerator {
     }
 
     private void writeOracleRow(long time, final Collection<Participant> participants) throws IOException {
+
         StringBuilder sb = new StringBuilder();
         for (Participant participant : new TreeSet<Participant>(participants)) {
             sb.append(participant.getId());
@@ -196,6 +200,7 @@ public class EventGenerator {
     }
 
     private void init() throws IOException {
+
         final Set<String> hosts = scenario.getHostNames();
         FileUtils.forceMkdir(scenario_home_dir);
         persistHosts();
@@ -271,15 +276,18 @@ public class EventGenerator {
         private boolean arrived_at_least_once;
 
         EventGeneratorDeligate(String host) {
+
             this.host = host;
             init();
         }
 
         String getHost() {
+
             return host;
         }
 
         private void init() {
+
             participant = newPeerReference(host);
             churn = participant.getChurn();
             workload = participant.getWorkload();
@@ -287,10 +295,12 @@ public class EventGenerator {
         }
 
         long getTimeInNanos() {
+
             return time_nanos.get();
         }
 
         synchronized Event getNextEvent() {
+
             final long current_time = getTimeInNanos();
             if (isBeyondExperimentationTime(current_time)) {
                 if (current_availability.isAvailable()) {
@@ -300,9 +310,7 @@ public class EventGenerator {
                 return null;
             }
 
-            if (current_availability == null) {
-                return getChurnEventAt(current_time);
-            }
+            if (current_availability == null) { return getChurnEventAt(current_time); }
 
             if (!current_availability.isAvailable()) {
 
@@ -351,6 +359,7 @@ public class EventGenerator {
         }
 
         private ChurnEvent getChurnEventAt(final long time) {
+
             if (isBeyondExperimentationTime(time)) {
                 current_availability = new ChurnEvent(participant, experiment_duration_nanos, false);
                 current_availability.setDurationInNanos(0L);
@@ -368,14 +377,17 @@ public class EventGenerator {
         }
 
         boolean isBeyondExperimentationTime(long time_nanos) {
+
             return experiment_duration_nanos <= time_nanos;
         }
 
         long remainingExperimentTime(long time_nanos) {
+
             return experiment_duration_nanos - time_nanos;
         }
 
         private synchronized Integer getLookupTargetIndex(Key target) {
+
             final Integer index;
             if (lookup_targets_index.containsKey(target)) {
                 index = lookup_targets_index.get(target);

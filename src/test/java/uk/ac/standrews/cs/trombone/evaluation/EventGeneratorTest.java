@@ -9,6 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.churn.Churn;
+import uk.ac.standrews.cs.trombone.churn.ConstantRateUncorrelatedChurn;
 import uk.ac.standrews.cs.trombone.evaluation.provider.PortNumberProvider;
 import uk.ac.standrews.cs.trombone.key.Key;
 import uk.ac.standrews.cs.trombone.key.RandomIntegerKeyProvider;
@@ -22,10 +23,9 @@ public class EventGeneratorTest {
     private static final ExponentialDistribution session_length_distribution = ExponentialDistribution.byMean(new Duration(10, TimeUnit.SECONDS));
     private static final ExponentialDistribution downtime_distribution = ExponentialDistribution.byMean(new Duration(10, TimeUnit.SECONDS));
     private static final ExponentialDistribution workload_intervals_distribution = ExponentialDistribution.byMean(new Duration(500, TimeUnit.MILLISECONDS));
-    private static final Duration experiemnt_duration = new Duration(1, TimeUnit.MINUTES);
-    private Scenario scenario;
-
+    private static final Duration experiemnt_duration = new Duration(20, TimeUnit.MINUTES);
     private final AtomicInteger next_port = new AtomicInteger(45000);
+    private Scenario scenario;
 
     @Before
     public void setUp() throws Exception {
@@ -39,8 +39,8 @@ public class EventGeneratorTest {
 
             public Churn getChurn() {
 
-                //                return new ConstantRateUncorrelatedChurn(session_length_distribution, downtime_distribution, generateSeed());
-                return Churn.NONE;
+                return new ConstantRateUncorrelatedChurn(session_length_distribution, downtime_distribution, generateSeed());
+                //                return Churn.NONE;
             }
 
             public Workload getWorkload() {
@@ -49,11 +49,13 @@ public class EventGeneratorTest {
             }
 
             Participant newParticipantOnHost(String host) {
+
                 return new Participant(key_provider.get(), new InetSocketAddress(host, next_port.incrementAndGet()), getChurn(), getWorkload());
             }
         };
+
         for (int i = 0; i < 1; i++) {
-            scenario.setPeersPerHost("localhost", 1000);
+            scenario.setPeersPerHost("localhost", 100);
         }
 
     }

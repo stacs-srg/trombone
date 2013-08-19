@@ -45,7 +45,6 @@ public class Peer implements PeerRemote {
         metric = new PeerMetric(this);
         remote_factory = new PeerRemoteFactory(this, PeerFactory.CLIENT_FACTORY);
         server = SERVER_FACTORY.createServer(this);
-
         server.setBindAddress(address);
         server.setWrittenByteCountListenner(metric);
         refreshSelfReference();
@@ -183,7 +182,8 @@ public class Peer implements PeerRemote {
             finally {
                 measurement.incrementRetryCount();
             }
-        } while (!Thread.currentThread().isInterrupted() && !measurement.isDone());
+        }
+        while (!Thread.currentThread().isInterrupted() && !measurement.isDone());
 
         return measurement;
     }

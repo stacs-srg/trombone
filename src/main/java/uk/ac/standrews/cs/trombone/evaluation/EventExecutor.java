@@ -15,7 +15,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 import org.apache.commons.io.FileUtils;
 import org.mashti.jetson.exception.RPCException;
 import org.slf4j.Logger;
@@ -25,7 +24,6 @@ import uk.ac.standrews.cs.trombone.Peer;
 import uk.ac.standrews.cs.trombone.PeerFactory;
 import uk.ac.standrews.cs.trombone.PeerMetric;
 import uk.ac.standrews.cs.trombone.PeerReference;
-import uk.ac.standrews.cs.trombone.metric.SentBytesMeter;
 import uk.ac.standrews.cs.trombone.metric.core.Counter;
 import uk.ac.standrews.cs.trombone.metric.core.CsvReporter;
 import uk.ac.standrews.cs.trombone.metric.core.MetricRegistry;
@@ -36,7 +34,7 @@ import uk.ac.standrews.cs.trombone.metric.core.Timer;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class EventExecutor {
 
-    public static final Integer[] NO_INDECIES = new Integer[0];
+    private static final Integer[] NO_INDECIES = new Integer[0];
     private static final int MAX_BUFFERED_EVENTS = 20000;
     private static final Logger LOGGER = LoggerFactory.getLogger(EventExecutor.class);
     private final Rate lookup_execution_rate = new Rate();
@@ -64,7 +62,6 @@ public class EventExecutor {
     private final EventCsvReader event_reader;
     private final MetricRegistry metric_registry;
     private final CsvReporter csv_reporter;
-    private final AtomicLong max_loaded_oracle_time = new AtomicLong();
     private final ConcurrentSkipListMap<Long, Integer[]> oracle = new ConcurrentSkipListMap<Long, Integer[]>();
     private final Random random = new Random(65465);
     private int lookup_retry_count;
@@ -94,7 +91,7 @@ public class EventExecutor {
         metric_registry.register("available_peer_counter", available_peer_counter);
         metric_registry.register("peer_arrival_rate", peer_arrival_rate);
         metric_registry.register("peer_departure_rate", peer_departure_rate);
-        metric_registry.register("sent_bytes_rate", SentBytesMeter.getTotalSentBytesMeter());
+        metric_registry.register("sent_bytes_rate", PeerMetric.getGlobalSentBytesRate());
         metric_registry.register("event_execution_lag_sampler", event_execution_lag_sampler);
         metric_registry.register("event_execution_duration_timer", event_execution_duration_timer);
 
@@ -107,48 +104,38 @@ public class EventExecutor {
         LOGGER.info("loaded initial event queue population");
         startTaskQueuePopulator();
 
-        //        task_populator.submit(new Callable<Void>() {
-        //
-        //            @Override
-        //            public Void call() throws Exception {
+        task_populator.submit(new Callable<Void>() {
 
-        final CSVReader reader = new CSVReader(new FileReader(oracle_csv));
+            @Override
+            public Void call() throws Exception {
 
-        reader.readNext();
-        String[] line = reader.readNext();
-        while (line != null) {
+                final CSVReader reader = new CSVReader(new FileReader(oracle_csv));
 
-            final Long time = Long.valueOf(line[0]);
+                reader.readNext();
+                String[] line = reader.readNext();
+                while (line != null) {
 
-            final Integer[] peer_indecies;
-            if (line[1].equals("")) {
-                peer_indecies = NO_INDECIES;
-            }
-            else {
+                    final Long time = Long.valueOf(line[0]);
+                    final Integer[] peer_indecies;
+                    if (line[1].equals("")) {
+                        peer_indecies = NO_INDECIES;
+                    }
+                    else {
+                        final String[] peer_indecies_as_string = line[1].split(" ");
+                        final int indecies_count = peer_indecies_as_string.length;
+                        peer_indecies = new Integer[indecies_count];
 
-                final String[] peer_indecies_as_string = line[1].split(" ");
-
-                final int indecies_count = peer_indecies_as_string.length;
-                peer_indecies = new Integer[indecies_count];
-
-                for (int i = 0; i < indecies_count; i++) {
-                    peer_indecies[i] = Integer.parseInt(peer_indecies_as_string[i]);
+                        for (int i = 0; i < indecies_count; i++) {
+                            peer_indecies[i] = Integer.parseInt(peer_indecies_as_string[i]);
+                        }
+                    }
+                    oracle.put(time, peer_indecies);
+                    line = reader.readNext();
                 }
+                return null;
             }
-            oracle.put(time, peer_indecies);
-            line = reader.readNext();
-        }
-        System.out.println("loaded oracle");
-        //                return null;
-        //            }
-        //        });
+        });
 
-    }
-
-    public static void main(String[] args) throws IOException {
-
-        EventExecutor eventExecutor = new EventExecutor(new File("/Users/masih/Desktop/test/peers.csv"), new File("/Users/masih/Desktop/test/1/events.csv"), new File("/Users/masih/Desktop/test/lookup_targets.csv"), new File("/Users/masih/Desktop/test/oracle.csv"));
-        eventExecutor.start();
     }
 
     public long getCurrentTimeInNanos() {
@@ -157,6 +144,7 @@ public class EventExecutor {
     }
 
     public synchronized void start() {
+
         if (!isStarted()) {
 
             start_time = System.nanoTime();
@@ -165,6 +153,7 @@ public class EventExecutor {
 
                 @Override
                 public Object call() throws Exception {
+
                     try {
                         while (!Thread.currentThread().isInterrupted() && !runnable_events.isEmpty()) {
                             final RunnableExperimentEvent runnable = runnable_events.take();
@@ -185,6 +174,7 @@ public class EventExecutor {
     }
 
     public synchronized boolean isStarted() {
+
         return task_scheduler_future != null && !task_scheduler_future.isDone();
     }
 
@@ -196,8 +186,11 @@ public class EventExecutor {
     }
 
     private void loadInitialEvents() throws IOException {
+
         for (int i = 0; i < MAX_BUFFERED_EVENTS; i++) {
-            if (event_reader.hasNext()) { queueNextEvent(); }
+            if (event_reader.hasNext()) {
+                queueNextEvent();
+            }
             else {
                 break;
             }
@@ -205,10 +198,12 @@ public class EventExecutor {
     }
 
     private Future<Void> startTaskQueuePopulator() {
+
         return task_populator.submit(new Callable<Void>() {
 
             @Override
             public Void call() throws Exception {
+
                 try {
                     while (!Thread.currentThread().isInterrupted() && event_reader.hasNext()) {
 
@@ -228,6 +223,7 @@ public class EventExecutor {
     }
 
     private void queueNextEvent() throws IOException {
+
         final Event event = event_reader.next();
         final PeerReference event_source = event.getSource();
         final Peer peer = getPeerByReference(event_source);
@@ -259,11 +255,14 @@ public class EventExecutor {
     }
 
     private void joinWithTimeout(final Peer peer, final long timeout_nanos) {
+
         try {
+            //FIXME optimize; threadpool for joins, use the same thread to retry
             TimeoutExecutorService.awaitCompletion(new Callable<Boolean>() {
 
                 @Override
                 public Boolean call() throws Exception {
+
                     boolean successful;
                     do {
                         try {
@@ -274,32 +273,33 @@ public class EventExecutor {
                         catch (RPCException e) {
                             successful = false;
                         }
-                    } while (!Thread.currentThread().isInterrupted() && !successful);
+                    }
+                    while (!Thread.currentThread().isInterrupted() && !successful);
 
                     return successful;
                 }
             }, timeout_nanos, TimeUnit.NANOSECONDS);
         }
-        catch (Exception e) {
-            e.printStackTrace();
+        catch (final Exception e) {
+            LOGGER.error("failed to join", e);
         }
     }
 
     private PeerReference getRandomAlivePeer() {
-        //FIXME
-        final Map.Entry<Long, Integer[]> floor = oracle.floorEntry(getCurrentTimeInNanos());
-        if (floor == null) {
-            LOGGER.error("no node to join");
-            throw new IllegalStateException("peer joining when there is no node alive");
+
+        final long time_through_experiment = getCurrentTimeInNanos();
+        final Map.Entry<Long, Integer[]> floor = oracle.floorEntry(time_through_experiment);
+        if (floor != null) {
+            final Integer[] candidate_indecies = floor.getValue();
+            final int candidate_index = random.nextInt(candidate_indecies.length);
+            return event_reader.getPeerReferenceByIndex(candidate_indecies[candidate_index]);
         }
-        else {
-            final Integer[] candidates = floor.getValue();
-            final int candidate = random.nextInt(candidates.length);
-            return event_reader.getPeerReferenceByIndex(candidate);
-        }
+        LOGGER.error("no peer is alive to join to");
+        throw new IllegalStateException("peer joining when there is no node alive");
     }
 
     synchronized Peer getPeerByReference(PeerReference reference) {
+
         final Peer peer;
         if (!peers_map.containsKey(reference)) {
             peer = PeerFactory.createPeer(reference);
@@ -317,6 +317,7 @@ public class EventExecutor {
         private final Event event;
 
         private RunnableExperimentEvent(Peer peer, Event event) {
+
             this.peer = peer;
             this.event = event;
         }
@@ -342,6 +343,7 @@ public class EventExecutor {
 
         @Override
         public final void run() {
+
             event_execution_lag_sampler.update(getCurrentTimeInNanos() - event.getTimeInNanos());
             final Timer.Time time = event_execution_duration_timer.time();
             try {

@@ -4,14 +4,9 @@ import java.util.Map;
 import uk.ac.standrews.cs.trombone.PeerReference;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public final class Events {
+public class OracleCsvReader {
 
-    private Events() {
+    public OracleCsvReader(Map<Integer, PeerReference> peer_index) {
 
     }
-
-    public static Event decode(String[] csv_row, Map<Integer, PeerReference> peers) {
-        return null;
-    }
-
 }
