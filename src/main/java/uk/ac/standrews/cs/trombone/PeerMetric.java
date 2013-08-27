@@ -1,5 +1,7 @@
 package uk.ac.standrews.cs.trombone;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.mashti.gauge.Metric;
@@ -9,8 +11,6 @@ import org.mashti.gauge.Timer;
 import org.mashti.jetson.WrittenByteCountListenner;
 import org.mashti.jetson.exception.RPCException;
 import org.mashti.sina.distribution.statistic.Statistics;
-import uk.ac.standrews.cs.trombone.metric.PeerExposureChangeMeter;
-import uk.ac.standrews.cs.trombone.metric.PeerMembershipChangeMeter;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class PeerMetric implements Metric, WrittenByteCountListenner {
@@ -21,8 +21,8 @@ public class PeerMetric implements Metric, WrittenByteCountListenner {
     private final Sampler lookup_success_hop_count_histogram;
     private final Sampler lookup_success_retry_count_histogram;
     private final Rate lookup_failure_rate_meter;
-    private final PeerMembershipChangeMeter membership_change_meter;
-    private final PeerExposureChangeMeter exposure_change_meter;
+    private final Rate unexposure_rate;
+    private final Rate exposure_rate;
 
     public PeerMetric(final Peer peer) {
 
@@ -31,8 +31,23 @@ public class PeerMetric implements Metric, WrittenByteCountListenner {
         lookup_success_hop_count_histogram = new Sampler();
         lookup_success_retry_count_histogram = new Sampler();
         lookup_failure_rate_meter = new Rate();
-        membership_change_meter = new PeerMembershipChangeMeter(peer);
-        exposure_change_meter = new PeerExposureChangeMeter(peer);
+        unexposure_rate = new Rate();
+        exposure_rate = new Rate();
+
+        peer.addExposureChangeListener(new PropertyChangeListener() {
+
+            @Override
+            public void propertyChange(final PropertyChangeEvent event) {
+
+                final Boolean arrived = (Boolean) event.getNewValue();
+                if (arrived) {
+                    exposure_rate.mark();
+                }
+                else {
+                    unexposure_rate.mark();
+                }
+            }
+        });
     }
 
     public static Rate getGlobalSentBytesRate() {
