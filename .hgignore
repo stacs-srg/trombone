@@ -3,3 +3,4 @@ syntax: regexp
 
 syntax: glob
 .DS_Store
+.iml
