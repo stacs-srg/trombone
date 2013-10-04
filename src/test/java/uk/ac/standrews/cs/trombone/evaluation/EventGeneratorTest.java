@@ -20,9 +20,9 @@ import uk.ac.standrews.cs.trombone.workload.Workload;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class EventGeneratorTest {
 
-    private static final ExponentialDistribution session_length_distribution = ExponentialDistribution.byMean(new Duration(10, TimeUnit.SECONDS).getLength(TimeUnit.NANOSECONDS));
-    private static final ExponentialDistribution downtime_distribution = ExponentialDistribution.byMean(new Duration(10, TimeUnit.SECONDS).getLength(TimeUnit.NANOSECONDS));
-    private static final ExponentialDistribution workload_intervals_distribution = ExponentialDistribution.byMean(new Duration(500, TimeUnit.MILLISECONDS).getLength(TimeUnit.NANOSECONDS));
+    private static final ExponentialDistribution session_length_distribution = ExponentialDistribution.byMean(Double.valueOf(new Duration(10, TimeUnit.SECONDS).getLength(TimeUnit.NANOSECONDS)));
+    private static final ExponentialDistribution downtime_distribution = ExponentialDistribution.byMean(Double.valueOf(new Duration(10, TimeUnit.SECONDS).getLength(TimeUnit.NANOSECONDS)));
+    private static final ExponentialDistribution workload_intervals_distribution = ExponentialDistribution.byMean(Double.valueOf(new Duration(500, TimeUnit.MILLISECONDS).getLength(TimeUnit.NANOSECONDS)));
     private static final Duration experiemnt_duration = new Duration(20, TimeUnit.MINUTES);
     private final AtomicInteger next_port = new AtomicInteger(45000);
     private Scenario scenario;
