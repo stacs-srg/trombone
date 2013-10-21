@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Trombone.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.trombone.recovery;
 
 import java.beans.PropertyChangeListener;
@@ -25,10 +26,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.mashti.jetson.exception.RPCException;
 import org.slf4j.LoggerFactory;
-import uk.ac.standrews.cs.shabdiz.AbstractScanner;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
+import uk.ac.standrews.cs.shabdiz.Scanner;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.PeerFactory;
 import uk.ac.standrews.cs.trombone.PeerReference;
@@ -36,7 +37,7 @@ import uk.ac.standrews.cs.trombone.PeerRemote;
 import uk.ac.standrews.cs.trombone.gossip.selector.First;
 import uk.ac.standrews.cs.trombone.gossip.selector.Last;
 
-class RingSizeScanner extends AbstractScanner {
+class RingSizeScanner extends Scanner {
 
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(RingSizeScanner.class);
     private static final String RING_SIZE_PROPERTY_NAME = "ring_size";
