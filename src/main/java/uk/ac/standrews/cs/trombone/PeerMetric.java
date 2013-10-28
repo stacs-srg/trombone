@@ -8,12 +8,12 @@ import org.mashti.gauge.Metric;
 import org.mashti.gauge.Rate;
 import org.mashti.gauge.Sampler;
 import org.mashti.gauge.Timer;
-import org.mashti.jetson.WrittenByteCountListenner;
+import org.mashti.jetson.WrittenByteCountListener;
 import org.mashti.jetson.exception.RPCException;
 import org.mashti.sina.distribution.statistic.Statistics;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class PeerMetric implements Metric, WrittenByteCountListenner {
+public class PeerMetric implements Metric, WrittenByteCountListener {
 
     private static final Rate GLOBAL_SENT_BYTES_RATE = new Rate();
     private final Rate sent_bytes_meter;
