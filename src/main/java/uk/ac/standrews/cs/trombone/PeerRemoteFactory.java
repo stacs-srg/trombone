@@ -57,7 +57,7 @@ public class PeerRemoteFactory extends LeanClientFactory<PeerRemote> {
         protected PeerClient(final InetSocketAddress address, final ChannelPool pool) {
 
             super(address, dispatch, pool);
-            setWrittenByteCountListenner(peer_metric);
+            setWrittenByteCountListener(peer_metric);
         }
 
         @Override
@@ -104,7 +104,7 @@ public class PeerRemoteFactory extends LeanClientFactory<PeerRemote> {
         }
 
         @Override
-        protected List<FutureResponse> getExtraRequrests() throws RPCException {
+        protected List<FutureResponse> getExtraRequests() throws RPCException {
 
             final List<FutureResponse> responses = new ArrayList<FutureResponse>();
             final List<Maintenance.OpportunisticGossip> gossips = peer_maintenance.getOpportunisticGossips();
