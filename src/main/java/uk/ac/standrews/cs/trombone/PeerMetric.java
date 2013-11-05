@@ -21,8 +21,8 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
     private final Sampler lookup_success_hop_count_histogram;
     private final Sampler lookup_success_retry_count_histogram;
     private final Rate lookup_failure_rate_meter;
-    private final Rate unexposure_rate;
-    private final Rate exposure_rate;
+    private final Rate departure_rate;
+    private final Rate arrival_rate;
 
     public PeerMetric(final Peer peer) {
 
@@ -31,8 +31,8 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
         lookup_success_hop_count_histogram = new Sampler();
         lookup_success_retry_count_histogram = new Sampler();
         lookup_failure_rate_meter = new Rate();
-        unexposure_rate = new Rate();
-        exposure_rate = new Rate();
+        departure_rate = new Rate();
+        arrival_rate = new Rate();
 
         peer.addExposureChangeListener(new PropertyChangeListener() {
 
@@ -41,10 +41,10 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
 
                 final Boolean arrived = (Boolean) event.getNewValue();
                 if (arrived) {
-                    exposure_rate.mark();
+                    arrival_rate.mark();
                 }
                 else {
-                    unexposure_rate.mark();
+                    departure_rate.mark();
                 }
             }
         });
@@ -167,7 +167,7 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
             return result;
         }
 
-        public long getHopCout() {
+        public long getHopCount() {
 
             return hop_count;
         }

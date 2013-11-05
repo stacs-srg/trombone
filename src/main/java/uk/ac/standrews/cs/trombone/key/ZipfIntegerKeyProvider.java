@@ -34,7 +34,7 @@ public class ZipfIntegerKeyProvider implements Provider<Key> {
         double dice;
         do {
             rank = random.nextInt(elements_count) + 1;
-            friquency = distribution.probability(rank).doubleValue();
+            friquency = distribution.density(rank).doubleValue();
             dice = random.nextDouble();
         }
         while (!(dice < friquency));

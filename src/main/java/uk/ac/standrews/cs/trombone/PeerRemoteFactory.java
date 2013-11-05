@@ -64,7 +64,7 @@ public class PeerRemoteFactory extends LeanClientFactory<PeerRemote> {
         public Object invoke(final Object proxy, final Method method, final Object[] params) throws Throwable {
 
             if (!peer.isExposed()) {
-                LOGGER.warn("repote procedure {} was invoked while the peer is unexposed", method);
+                LOGGER.warn("remote procedure {} was invoked while the peer is unexposed", method);
                 throw new RPCException("peer is unexposed; cannot invoke remote procedure");
             }
             return super.invoke(proxy, method, params);
@@ -92,8 +92,8 @@ public class PeerRemoteFactory extends LeanClientFactory<PeerRemote> {
                 @Override
                 public void onFailure(final Throwable t) {
 
-                    //TODO the filure may be due to internal error; the reference might not be unreachable.
-                    LOGGER.debug("failure occured on future", t);
+                    //TODO the failure may be due to internal error; the reference might not be unreachable.
+                    LOGGER.debug("failure occurred on future", t);
                     if (t instanceof RPCException) {
                         reference.setReachable(false);
                     }

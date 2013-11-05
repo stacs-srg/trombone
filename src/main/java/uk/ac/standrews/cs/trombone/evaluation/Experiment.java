@@ -65,7 +65,7 @@ public class Experiment implements Callable<File> {
             awaitCompletion();
         }
         catch (final Exception e) {
-            LOGGER.error("error occured while waiting for experiment to compelete", e);
+            LOGGER.error("error occurred while waiting for experiment to compelete", e);
         }
         finally {
             tearDown();
