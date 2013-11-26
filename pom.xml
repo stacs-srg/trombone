@@ -4,6 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
+    
+    <modules>
+        <module>core</module>
+        <module>evaluation</module>
+        <module>churn</module>
+        <module>workload</module>
+    </modules>
 
     <parent>
         <groupId>uk.ac.standrews.cs</groupId>
@@ -13,52 +20,7 @@
 
     <artifactId>t3</artifactId>
     <version>1.0-SNAPSHOT</version>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.mashti</groupId>
-            <artifactId>jetson</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>uk.ac.standrews.cs</groupId>
-            <artifactId>shabdiz-core</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>uk.ac.standrews.cs</groupId>
-            <artifactId>shabdiz-job</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.mashti</groupId>
-            <artifactId>sina</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.mashti</groupId>
-            <artifactId>gauge</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>net.sf.opencsv</groupId>
-            <artifactId>opencsv</artifactId>
-            <version>2.3</version>
-        </dependency>
-
-        <dependency>
-            <groupId>javax.inject</groupId>
-            <artifactId>javax.inject</artifactId>
-            <version>1</version>
-        </dependency>
-        <!--<dependency>-->
-        <!--<groupId>com.googlecode.jcsv</groupId>-->
-        <!--<artifactId>jcsv</artifactId>-->
-        <!--<version>1.4.0</version>-->
-        <!--</dependency>-->
-
-    </dependencies>
+    <packaging>pom</packaging>
 
     <repositories>
         <repository>
@@ -78,5 +40,4 @@
             </snapshots>
         </repository>
     </repositories>
-
 </project>
