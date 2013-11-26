@@ -22,9 +22,8 @@ import java.util.Random;
 import javax.inject.Provider;
 import org.mashti.sina.distribution.ProbabilityDistribution;
 import org.mashti.sina.util.NumericalRangeValidator;
-import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.trombone.key.Key;
-import uk.ac.standrews.cs.trombone.util.DurationUtil;
+import org.mashti.sina.util.RandomNumberGenerator;
+import uk.ac.standrews.cs.trombone.core.key.Key;
 
 /**
  * Presents a synthetic workload.
@@ -50,15 +49,15 @@ public class ConstantRateWorkload implements Workload {
     @Override
     public Lookup getLookupAt(final long time) {
 
-        final Duration interval = getNextInterval();
+        final long interval = getNextInterval();
         final Key target = getNextTarget();
         return new Lookup(interval, target, retry_threshold);
     }
 
-    private Duration getNextInterval() {
+    private long getNextInterval() {
 
         synchronized (intervals_distribution) {
-            return DurationUtil.generateDurationInNanoseconds(intervals_distribution, uniform_random);
+            return RandomNumberGenerator.generate(intervals_distribution, uniform_random).longValue();
         }
     }
 

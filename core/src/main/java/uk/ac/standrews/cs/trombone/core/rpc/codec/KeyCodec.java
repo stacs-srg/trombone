@@ -1,4 +1,4 @@
-package uk.ac.standrews.cs.trombone.codec;
+package uk.ac.standrews.cs.trombone.core.rpc.codec;
 
 import io.netty.buffer.ByteBuf;
 import java.lang.reflect.Type;
@@ -8,8 +8,8 @@ import org.mashti.jetson.exception.RPCException;
 import org.mashti.jetson.exception.UnknownTypeException;
 import org.mashti.jetson.lean.codec.Codec;
 import org.mashti.jetson.lean.codec.Codecs;
-import uk.ac.standrews.cs.trombone.key.IntegerKey;
-import uk.ac.standrews.cs.trombone.key.Key;
+import uk.ac.standrews.cs.trombone.core.key.IntegerKey;
+import uk.ac.standrews.cs.trombone.core.key.Key;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class KeyCodec implements Codec {

@@ -1,4 +1,4 @@
-package uk.ac.standrews.cs.trombone;
+package uk.ac.standrews.cs.trombone.core;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -8,9 +8,9 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import uk.ac.standrews.cs.trombone.gossip.selector.Self;
-import uk.ac.standrews.cs.trombone.key.IntegerKey;
-import uk.ac.standrews.cs.trombone.key.RandomIntegerKeyProvider;
+import uk.ac.standrews.cs.trombone.core.gossip.selector.Self;
+import uk.ac.standrews.cs.trombone.core.key.IntegerKey;
+import uk.ac.standrews.cs.trombone.core.key.RandomIntegerKeyProvider;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class PeerTest {
