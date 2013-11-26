@@ -20,12 +20,11 @@ package uk.ac.standrews.cs.trombone.evaluation;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
-import org.apache.commons.math3.random.RandomGenerator;
-import org.apache.commons.math3.random.Well19937c;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 
 public class Scenario implements Serializable {
@@ -35,15 +34,16 @@ public class Scenario implements Serializable {
     private final String name;
     private final long master_seed;
     private final Duration experiment_duration;
-    private final RandomGenerator random;
+    private final Random random;
     private final ConcurrentHashMap<String, Integer> peers_per_host;
     private int lookup_retry_count = DEFAULT_LOOKUP_RETRY_COUNT;
 
     protected Scenario(String name, long master_seed, final Duration experiment_duration) {
+
         this.name = name;
         this.master_seed = master_seed;
         this.experiment_duration = experiment_duration;
-        random = newRandomGenerator(master_seed);
+        random = new Random(master_seed);
         peers_per_host = new ConcurrentHashMap<String, Integer>();
     }
 
@@ -100,6 +100,7 @@ public class Scenario implements Serializable {
     }
 
     public String getName() {
+
         return name;
     }
 
@@ -116,12 +117,7 @@ public class Scenario implements Serializable {
     }
 
     Participant newParticipantOnHost(String host) {
+
         return null;
     }
-
-    protected RandomGenerator newRandomGenerator(long seed) {
-
-        return new Well19937c(seed);
-    }
-
 }
