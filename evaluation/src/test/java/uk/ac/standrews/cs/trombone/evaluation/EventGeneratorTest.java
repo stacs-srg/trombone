@@ -12,7 +12,7 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.churn.Churn;
 import uk.ac.standrews.cs.trombone.churn.ConstantRateUncorrelatedChurn;
 import uk.ac.standrews.cs.trombone.core.key.Key;
-import uk.ac.standrews.cs.trombone.core.key.RandomIntegerKeyProvider;
+import uk.ac.standrews.cs.trombone.core.key.RandomKeyProvider;
 import uk.ac.standrews.cs.trombone.evaluation.provider.PortNumberProvider;
 import uk.ac.standrews.cs.trombone.workload.ConstantRateWorkload;
 import uk.ac.standrews.cs.trombone.workload.Workload;
@@ -33,9 +33,9 @@ public class EventGeneratorTest {
         scenario = new Scenario("test", 123456, experiemnt_duration) {
 
             final PortNumberProvider port_provider = new PortNumberProvider(45000);
-            final Provider<Key> key_provider = new RandomIntegerKeyProvider(generateSeed());
+            final Provider<Key> key_provider = new RandomKeyProvider(generateSeed());
             //            final Provider<Key> target_key_provider = new ZipfIntegerKeyProvider(20000, 1, generateSeed());
-            final Provider<Key> target_key_provider = new RandomIntegerKeyProvider(generateSeed());
+            final Provider<Key> target_key_provider = new RandomKeyProvider(generateSeed());
 
             public Churn getChurn() {
 

@@ -2,15 +2,18 @@ package uk.ac.standrews.cs.trombone.core;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class PeerReference implements Comparable<PeerReference> {
 
     private static final boolean DEFAULT_REACHABILITY = true;
+    
     private final Key key;
     private final InetSocketAddress address;
     private final AtomicBoolean reachable;
+    private final int hashcode;
 
     public PeerReference(final Key key, final InetSocketAddress address) {
 
@@ -22,6 +25,7 @@ public class PeerReference implements Comparable<PeerReference> {
         this.key = key;
         this.address = address;
         this.reachable = new AtomicBoolean(reachable);
+        hashcode = new HashCodeBuilder(93,47).append(key).append(address).toHashCode();
     }
 
     public boolean isReachable() {
@@ -42,7 +46,7 @@ public class PeerReference implements Comparable<PeerReference> {
     @Override
     public int hashCode() {
 
-        return 31 * key.hashCode() + address.hashCode();
+        return hashcode;
     }
 
     @Override

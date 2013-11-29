@@ -2,32 +2,33 @@ package uk.ac.standrews.cs.trombone.core.key;
 
 import java.util.Random;
 import javax.inject.Provider;
+import uk.ac.standrews.cs.trombone.core.util.BinaryUtils;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class RandomIntegerKeyProvider implements Provider<Key>, KeyDistribution {
+public class RandomKeyProvider implements Provider<Key>, KeyDistribution {
 
     private final Random random;
 
-    public RandomIntegerKeyProvider() {
+    public RandomKeyProvider() {
 
         random = new Random();
     }
 
-    public RandomIntegerKeyProvider(final long seed) {
+    public RandomKeyProvider(final long seed) {
 
         random = new Random(seed);
     }
 
     @Override
-    public synchronized IntegerKey get() {
+    public synchronized Key get() {
 
-        return new IntegerKey(random.nextInt());
+        return new Key(BinaryUtils.toBytes(random.nextInt()));
     }
 
     @Override
-    public IntegerKey[] generate(final int count) {
+    public Key[] generate(final int count) {
 
-        final IntegerKey[] keys = new IntegerKey[count];
+        final Key[] keys = new Key[count];
         for (int i = 0; i < count; i++) {
             keys[i] = get();
         }

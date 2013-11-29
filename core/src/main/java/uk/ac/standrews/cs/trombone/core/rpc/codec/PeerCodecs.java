@@ -9,9 +9,8 @@ public class PeerCodecs extends Codecs {
 
     private PeerCodecs() {
 
-        register(0, new IntegerKeyCodec());
-        register(1, new KeyCodec());
-        register(2, new PeerReferenceCodec());
+        register(0, new KeyCodec());
+        register(1, new PeerReferenceCodec());
     }
 
 }

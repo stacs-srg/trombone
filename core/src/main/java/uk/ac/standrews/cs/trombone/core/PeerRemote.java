@@ -11,7 +11,7 @@ public interface PeerRemote {
 
     void join(PeerReference member) throws RPCException;
 
-    void push(PeerReference... reference) throws RPCException;
+    void push(PeerReference... references) throws RPCException;
 
     PeerReference[] pull(Selector selector, int size) throws RPCException;
 

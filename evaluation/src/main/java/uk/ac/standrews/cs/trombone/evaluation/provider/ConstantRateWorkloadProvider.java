@@ -19,7 +19,7 @@
 package uk.ac.standrews.cs.trombone.evaluation.provider;
 
 import org.mashti.sina.distribution.ProbabilityDistribution;
-import uk.ac.standrews.cs.trombone.core.key.RandomIntegerKeyProvider;
+import uk.ac.standrews.cs.trombone.core.key.RandomKeyProvider;
 import uk.ac.standrews.cs.trombone.workload.ConstantRateWorkload;
 import uk.ac.standrews.cs.trombone.workload.Workload;
 
@@ -28,14 +28,14 @@ public class ConstantRateWorkloadProvider implements SerializableProvider<Worklo
     private final ProbabilityDistribution intervals_dsitribution;
     private final int retry_threshold;
     private final SerializableProvider<Long> seed_provider;
-    private final RandomIntegerKeyProvider key_provider;
+    private final RandomKeyProvider key_provider;
 
     public ConstantRateWorkloadProvider(final ProbabilityDistribution intervals_dsitribution, final int retry_threshold, final SerializableProvider<Long> seed_provider) {
 
         this.intervals_dsitribution = intervals_dsitribution;
         this.retry_threshold = retry_threshold;
         this.seed_provider = seed_provider;
-        key_provider = new RandomIntegerKeyProvider(seed_provider.get());
+        key_provider = new RandomKeyProvider(seed_provider.get());
     }
 
     @Override

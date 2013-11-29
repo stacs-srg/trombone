@@ -6,16 +6,16 @@ import uk.ac.standrews.cs.trombone.core.key.Key;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class RelativeRingDistanceComparator implements Comparator<Key> {
 
-    private final Key key;
+    private final Key start;
 
-    public RelativeRingDistanceComparator(Key key) {
+    public RelativeRingDistanceComparator(Key start) {
 
-        this.key = key;
+        this.start = start;
     }
 
     @Override
-    public int compare(final Key k1, final Key k2) {
+    public int compare(final Key first, final Key second) {
 
-        return key.compareRingDistance(k1, k2);
+        return start.compareRingDistance(first, second);
     }
 }

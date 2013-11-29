@@ -2,23 +2,15 @@ package uk.ac.standrews.cs.trombone.core.rpc.codec;
 
 import io.netty.buffer.ByteBuf;
 import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.Map;
 import org.mashti.jetson.exception.RPCException;
-import org.mashti.jetson.exception.UnknownTypeException;
 import org.mashti.jetson.lean.codec.Codec;
 import org.mashti.jetson.lean.codec.Codecs;
-import uk.ac.standrews.cs.trombone.core.key.IntegerKey;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class KeyCodec implements Codec {
 
-    private static final Map<Byte, Class<? extends Key>> KEY_TYPE_MAP = new HashMap<Byte, Class<? extends Key>>();
-    private static final Byte INTEGER_KEY_TYPE_ID = 0x0;
-    static {
-        KEY_TYPE_MAP.put(INTEGER_KEY_TYPE_ID, IntegerKey.class);
-    }
+    public static final int MAX_KEY_VALUE_LENGTH = 256;
 
     @Override
     public boolean isSupported(final Type type) {
@@ -29,25 +21,41 @@ public class KeyCodec implements Codec {
     @Override
     public void encode(final Object value, final ByteBuf out, final Codecs codecs, final Type type) throws RPCException {
 
-        for (Map.Entry<Byte, Class<? extends Key>> key_type_entry : KEY_TYPE_MAP.entrySet()) {
-            final Class<? extends Key> key_type = key_type_entry.getValue();
-
-            if (key_type.isInstance(value)) {
-
-                out.writeByte(key_type_entry.getKey());
-                codecs.encodeAs(value, out, key_type);
-                return;
-            }
+        if (value == null) {
+            out.writeBoolean(true);
         }
+        else {
+            out.writeBoolean(false);
 
-        throw new UnknownTypeException("no codec is registered for type: " + value.getClass());
+            final Key key = (Key) value;
+            final byte[] key_value = key.getValue();
+            final int length = key_value.length;
+            writeKeyLength(out, length);
+            out.writeBytes(key_value);
+        }
     }
 
     @Override
-    public <Value> Value decode(final ByteBuf in, final Codecs codecs, final Type type) throws RPCException {
+    public Key decode(final ByteBuf in, final Codecs codecs, final Type type) throws RPCException {
 
-        final Byte key_type_code = in.readByte();
-        if (KEY_TYPE_MAP.containsKey(key_type_code)) { return codecs.decodeAs(in, KEY_TYPE_MAP.get(key_type_code)); }
-        throw new UnknownTypeException("unknown key type code " + key_type_code);
+        final Boolean is_null = in.readBoolean();
+        if (is_null) { return null; }
+
+        final int length = readKeyLength(in);
+        final byte[] key_value = new byte[length];
+        in.readBytes(key_value);
+
+        return new Key(key_value);
+    }
+
+    private static int readKeyLength(final ByteBuf in) {
+
+        return in.readUnsignedByte();
+    }
+
+    private static void writeKeyLength(final ByteBuf out, final int length) {
+
+        if (length > MAX_KEY_VALUE_LENGTH) { throw new UnsupportedOperationException("Key codec cannot handle keys longer than " + MAX_KEY_VALUE_LENGTH + " bytes"); }
+        out.writeByte((byte) length);
     }
 }

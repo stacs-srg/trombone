@@ -10,12 +10,12 @@ import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
-import uk.ac.standrews.cs.trombone.core.key.RandomIntegerKeyProvider;
+import uk.ac.standrews.cs.trombone.core.key.RandomKeyProvider;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class SingleProcessPeerManager implements ApplicationManager {
 
-    private static final RandomIntegerKeyProvider KEY_PROVIDER = new RandomIntegerKeyProvider(1222);
+    private static final RandomKeyProvider KEY_PROVIDER = new RandomKeyProvider(1222);
     private static final AttributeKey<Peer> PEER_KEY = new AttributeKey<Peer>();
     private static final Random RANDOM = new Random(545454);
     private final Set<PeerReference> joined_peers = new HashSet<PeerReference>();
