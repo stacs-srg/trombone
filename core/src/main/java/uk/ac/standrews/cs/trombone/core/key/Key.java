@@ -8,11 +8,11 @@ import java.util.Arrays;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class Key implements Comparable<Key>, Serializable {
 
+    public static final BigInteger TWO = BigInteger.valueOf(2);
     private static final int SHORT_SIZE_IN_BYTES = Short.SIZE / Byte.SIZE;
     private static final int INTEGER_SIZE_IN_BYTES = Integer.SIZE / Byte.SIZE;
     private static final int LONG_SIZE_IN_BYTES = Long.SIZE / Byte.SIZE;
     private static final long serialVersionUID = -9022058863275074475L;
-    public static final BigInteger TWO = BigInteger.valueOf(2);
     private final byte[] value;
     private final int length;
     private Integer hashcode;
@@ -102,14 +102,6 @@ public class Key implements Comparable<Key>, Serializable {
             hashcode = Arrays.hashCode(getValue());
         }
         return hashcode;
-    }
-
-    @Override
-    public String toString() {
-
-        final ByteBuffer wrap = ByteBuffer.wrap(value);
-        //        wrap.flip();
-        return String.valueOf(wrap.getInt());
     }
 
     private static int compareTo(final byte[] first, final byte[] second) {

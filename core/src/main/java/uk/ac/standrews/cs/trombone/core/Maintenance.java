@@ -19,14 +19,13 @@ public class Maintenance {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Maintenance.class);
     private static final ScheduledExecutorService SCHEDULER = Executors.newScheduledThreadPool(100);
+    
     private static final Method PUSH;
     private static final Method PULL;
-    private static final String PUSH_METHOD_NAME = "push";
-    private static final String PULL_METHOD_NAME = "pull";
     static {
         try {
-            PUSH = PeerRemote.class.getDeclaredMethod(PUSH_METHOD_NAME, PeerReference[].class);
-            PULL = PeerRemote.class.getDeclaredMethod(PULL_METHOD_NAME, Selector.class, Integer.TYPE);
+            PUSH = PeerRemote.class.getDeclaredMethod("push", PeerReference[].class);
+            PULL = PeerRemote.class.getDeclaredMethod("pull", Selector.class, Integer.TYPE);
         }
         catch (NoSuchMethodException e) {
             throw new RuntimeException(e);

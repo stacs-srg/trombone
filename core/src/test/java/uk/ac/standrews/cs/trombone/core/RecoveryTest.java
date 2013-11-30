@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -54,6 +55,7 @@ public class RecoveryTest {
     }
 
     @Test
+    @Ignore
     public void testStabilization() throws Exception {
 
         awaitRingSize(network.getSize());

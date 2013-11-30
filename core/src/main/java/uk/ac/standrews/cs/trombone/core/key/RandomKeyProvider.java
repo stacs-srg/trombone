@@ -2,11 +2,11 @@ package uk.ac.standrews.cs.trombone.core.key;
 
 import java.util.Random;
 import javax.inject.Provider;
-import uk.ac.standrews.cs.trombone.core.util.BinaryUtils;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class RandomKeyProvider implements Provider<Key>, KeyDistribution {
 
+    private static final int DEFAULT_KEY_LENGTH_IN_BITS = 32;
     private final Random random;
 
     public RandomKeyProvider() {
@@ -22,7 +22,9 @@ public class RandomKeyProvider implements Provider<Key>, KeyDistribution {
     @Override
     public synchronized Key get() {
 
-        return new Key(BinaryUtils.toBytes(random.nextInt()));
+        final byte[] key_value = new byte[DEFAULT_KEY_LENGTH_IN_BITS];
+        random.nextBytes(key_value);
+        return new Key(key_value);
     }
 
     @Override
