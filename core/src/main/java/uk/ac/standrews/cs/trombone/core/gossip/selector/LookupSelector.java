@@ -8,6 +8,7 @@ import uk.ac.standrews.cs.trombone.core.key.Key;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class LookupSelector implements Selector {
 
+    private static final long serialVersionUID = -478170113699920480L;
     private final Key[] targets;
 
     public LookupSelector(Key... targets) {

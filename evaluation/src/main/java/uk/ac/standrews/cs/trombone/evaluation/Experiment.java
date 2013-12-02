@@ -33,7 +33,7 @@ import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.job.Worker;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
-import uk.ac.standrews.cs.trombone.core.util.TimeoutSupport;
+import uk.ac.standrews.cs.trombone.evaluation.util.TimeoutSupport;
 
 public class Experiment implements Callable<File> {
 

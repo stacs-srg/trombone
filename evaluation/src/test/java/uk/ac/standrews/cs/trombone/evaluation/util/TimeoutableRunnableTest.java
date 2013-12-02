@@ -1,4 +1,4 @@
-package uk.ac.standrews.cs.trombone.core.util;
+package uk.ac.standrews.cs.trombone.evaluation.util;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;

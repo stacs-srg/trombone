@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Trombone.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.standrews.cs.trombone.core.util;
+package uk.ac.standrews.cs.trombone.evaluation.util;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;

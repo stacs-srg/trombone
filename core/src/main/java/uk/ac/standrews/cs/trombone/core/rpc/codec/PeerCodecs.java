@@ -12,5 +12,4 @@ public class PeerCodecs extends Codecs {
         register(0, new KeyCodec());
         register(1, new PeerReferenceCodec());
     }
-
 }

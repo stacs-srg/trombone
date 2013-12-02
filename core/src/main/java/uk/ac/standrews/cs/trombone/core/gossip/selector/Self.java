@@ -7,6 +7,7 @@ import uk.ac.standrews.cs.trombone.core.PeerReference;
 public final class Self implements Selector {
 
     private static final Self SELF_SELECTOR_INSTANCE = new Self();
+    private static final long serialVersionUID = 5755937814923183362L;
 
     private Self() {
 

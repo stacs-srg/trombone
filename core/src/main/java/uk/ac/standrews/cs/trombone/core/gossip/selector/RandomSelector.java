@@ -11,6 +11,7 @@ public class RandomSelector implements Selector {
 
     private static final int SEED = 6546545;
     private static final Random RANDOM = new Random(SEED);
+    private static final long serialVersionUID = -2686666721712477700L;
 
     @Override
     public PeerReference[] select(final Peer peer, final int size) throws RPCException {

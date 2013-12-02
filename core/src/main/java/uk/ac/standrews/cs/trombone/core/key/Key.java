@@ -67,16 +67,10 @@ public class Key implements Comparable<Key>, Serializable {
         final int this_to_first = compareTo(first);
         final int this_to_second = compareTo(second);
 
-        if (first_to_second == 0) {
-            assert first.equals(second) && this_to_first == this_to_second;
-            return 0;
-        }
-
-        assert !first.equals(second);
-
+        if (first_to_second == 0) { return 0; }
         if (this_to_first == 0) { return -1; }
         if (this_to_second == 0) { return 1; }
-        if (this_to_first == this_to_second) { return first_to_second > 0 ? 1 : -1; }
+        if (this_to_first * this_to_second > 0) { return first_to_second > 0 ? 1 : -1; }
         return first_to_second > 0 ? -1 : 1;
     }
 
@@ -111,8 +105,10 @@ public class Key implements Comparable<Key>, Serializable {
 
         if (first_length == second_length) {
             for (int i = 0; i < first_length; i++) {
-                final int ith_byte_comparison = Byte.compare(first[i], second[i]);
-                if (ith_byte_comparison != 0) { return ith_byte_comparison > 0 ? 1 : -1; }
+                final Byte first_ith = Byte.valueOf(first[i]);
+                final Byte second_ith = Byte.valueOf(second[i]);
+                final int ith_byte_comparison = first_ith.compareTo(second_ith);
+                if (ith_byte_comparison != 0) { return ith_byte_comparison; }
             }
             return 0;
         }

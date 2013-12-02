@@ -15,7 +15,7 @@ public class KeyCodec implements Codec {
     @Override
     public boolean isSupported(final Type type) {
 
-        return type != null && type instanceof Class<?> && Key.class.isAssignableFrom((Class<?>) type);
+        return Class.class.isInstance(type) && Key.class.isAssignableFrom(Class.class.cast(type));
     }
 
     @Override
@@ -26,12 +26,9 @@ public class KeyCodec implements Codec {
         }
         else {
             out.writeBoolean(false);
-
             final Key key = (Key) value;
             final byte[] key_value = key.getValue();
-            final int length = key_value.length;
-            writeKeyLength(out, length);
-            out.writeBytes(key_value);
+            codecs.encodeAs(key_value, out, byte[].class);
         }
     }
 
@@ -41,21 +38,7 @@ public class KeyCodec implements Codec {
         final Boolean is_null = in.readBoolean();
         if (is_null) { return null; }
 
-        final int length = readKeyLength(in);
-        final byte[] key_value = new byte[length];
-        in.readBytes(key_value);
-
+        final byte[] key_value = codecs.decodeAs(in, byte[].class);
         return new Key(key_value);
-    }
-
-    private static int readKeyLength(final ByteBuf in) {
-
-        return in.readUnsignedByte();
-    }
-
-    private static void writeKeyLength(final ByteBuf out, final int length) {
-
-        if (length > MAX_KEY_VALUE_LENGTH) { throw new UnsupportedOperationException("Key codec cannot handle keys longer than " + MAX_KEY_VALUE_LENGTH + " bytes"); }
-        out.writeByte((byte) length);
     }
 }

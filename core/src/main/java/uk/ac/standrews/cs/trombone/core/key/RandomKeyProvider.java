@@ -6,7 +6,7 @@ import javax.inject.Provider;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class RandomKeyProvider implements Provider<Key>, KeyDistribution {
 
-    private static final int DEFAULT_KEY_LENGTH_IN_BITS = 32;
+    private static final int DEFAULT_KEY_LENGTH_IN_BYTES = 4;
     private final Random random;
 
     public RandomKeyProvider() {
@@ -22,7 +22,7 @@ public class RandomKeyProvider implements Provider<Key>, KeyDistribution {
     @Override
     public synchronized Key get() {
 
-        final byte[] key_value = new byte[DEFAULT_KEY_LENGTH_IN_BITS];
+        final byte[] key_value = new byte[DEFAULT_KEY_LENGTH_IN_BYTES];
         random.nextBytes(key_value);
         return new Key(key_value);
     }

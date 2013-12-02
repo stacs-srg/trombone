@@ -16,12 +16,11 @@ import static org.junit.Assert.assertTrue;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class KeyTest {
 
-    Key _5 = Key.valueOf(5);
-    Key _minus5 = Key.valueOf(-5);
-    Key _7 = Key.valueOf(7);
-    Key _1 = Key.valueOf(1);
-    Key _0 = Key.valueOf(0);
-    Random random = new Random(894156);
+    private static final Key _5 = Key.valueOf(5);
+    private static final Key _minus5 = Key.valueOf(-5);
+    private static final Key _7 = Key.valueOf(7);
+    private static final Key _0 = Key.valueOf(0);
+    private static final Random random = new Random(894156);
 
     @Test
     public void testGetValue() throws Exception {
@@ -68,7 +67,7 @@ public class KeyTest {
             keys.add(Key.valueOf(random.nextInt()));
         }
 
-        final List<Key> keys_as_list = new ArrayList<>(keys);
+        final List<Key> keys_as_list = new ArrayList<Key>(keys);
 
         for (int i = 0; i < keys_as_list.size() - 1; i++) {
             final Key ith = keys_as_list.get(i);
@@ -99,7 +98,7 @@ public class KeyTest {
         assertNotEquals(_5.hashCode(), Key.valueOf(555).hashCode());
     }
 
-    private Key newRandomKeyOfLengthInBits(int length) {
+    private static Key newRandomKeyOfLengthInBits(int length) {
 
         final byte[] bytes = new byte[length];
         random.nextBytes(bytes);

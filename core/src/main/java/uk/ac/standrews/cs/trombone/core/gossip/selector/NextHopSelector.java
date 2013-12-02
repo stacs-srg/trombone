@@ -7,6 +7,7 @@ import uk.ac.standrews.cs.trombone.core.key.Key;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class NextHopSelector implements Selector {
 
+    private static final long serialVersionUID = -5105443487433643022L;
     private final Key[] targets;
 
     public NextHopSelector(Key... targets) {

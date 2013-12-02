@@ -15,7 +15,6 @@ import org.mashti.jetson.util.CloseableUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
-import uk.ac.standrews.cs.trombone.core.key.IntegerKey;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
@@ -82,7 +81,7 @@ public class EventCsvReader implements Closeable, Iterator<Event> {
             String[] row = reader.readNext();
             do {
                 final Integer index = Integer.valueOf(row[0]);
-                final Key key = new IntegerKey(Integer.valueOf(row[1]));
+                final Key key = Key.valueOf(Integer.valueOf(row[1]));
                 final InetSocketAddress address = new InetSocketAddress(row[2], Integer.valueOf(row[3]));
                 peers.put(index, new PeerReference(key, address));
                 row = reader.readNext();
@@ -104,7 +103,7 @@ public class EventCsvReader implements Closeable, Iterator<Event> {
             String[] row = reader.readNext();
             do {
                 final Integer index = Integer.valueOf(row[0]);
-                final Key key = new IntegerKey(Integer.valueOf(row[1]));
+                final Key key = Key.valueOf(Integer.valueOf(row[1]));
                 lookup_targets.put(index, key);
                 row = reader.readNext();
             } while (row != null);

@@ -8,6 +8,7 @@ import uk.ac.standrews.cs.trombone.core.PeerReference;
 public class Last implements Selector {
 
     public static final Last LAST_SELECTOR_INSTANCE = new Last();
+    private static final long serialVersionUID = -2468932076649021046L;
 
     private Last() {
 
