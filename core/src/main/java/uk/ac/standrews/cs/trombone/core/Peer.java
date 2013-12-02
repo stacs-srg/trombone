@@ -17,7 +17,7 @@ import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
 public class Peer implements PeerRemote {
 
     private static final String EXPOSURE_PROPERTY_NAME = "exposure";
-    private static final String JOIN_PROPERTY_NAME = "joined";
+    private static final String JOINED_PROPERTY_NAME = "joined";
     private static final ServerFactory<PeerRemote> SERVER_FACTORY = new LeanServerFactory<PeerRemote>(PeerRemote.class, PeerCodecs.INSTANCE);
     private final PeerState state;
     private final Key key;
@@ -80,12 +80,15 @@ public class Peer implements PeerRemote {
     public synchronized void join(final PeerReference member) throws RPCException {
 
         if (isExposed() && !hasJoined() && member != null) {
-            final PeerRemote remote_member = getRemote(member);
-            final PeerReference successor = remote_member.lookup(key);
-            push(member);
-            remote_member.push(self);
-            getRemote(successor).push(self);
-            push(successor);
+            
+            final PeerRemote member_remote = getRemote(member);
+            final PeerReference successor = member_remote.lookup(key);
+            final PeerRemote successor_remote = getRemote(successor);
+            
+            // upon getting the remote proxy the member and successor will be added to state.
+            
+            member_remote.push(self);
+            successor_remote.push(self);
             setJoined(true);
         }
     }
@@ -149,6 +152,11 @@ public class Peer implements PeerRemote {
         return !self.equals(reference) ? remote_factory.get(reference) : this;
     }
 
+    public PeerMetric getPeerMetric() {
+
+        return metric;
+    }
+
     public void addExposureChangeListener(final PropertyChangeListener listener) {
 
         property_change_support.addPropertyChangeListener(EXPOSURE_PROPERTY_NAME, listener);
@@ -156,7 +164,7 @@ public class Peer implements PeerRemote {
 
     public void addMembershipChangeListener(final PropertyChangeListener listener) {
 
-        property_change_support.addPropertyChangeListener(JOIN_PROPERTY_NAME, listener);
+        property_change_support.addPropertyChangeListener(JOINED_PROPERTY_NAME, listener);
     }
 
     public boolean isExposed() {
@@ -182,13 +190,7 @@ public class Peer implements PeerRemote {
             }
         }
         while (!Thread.currentThread().isInterrupted() && !measurement.isDone());
-
         return measurement;
-    }
-
-    public PeerMetric getPeerMetric() {
-
-        return metric;
     }
 
     Maintenance getMaintenance() {
@@ -227,7 +229,7 @@ public class Peer implements PeerRemote {
     private void setJoined(boolean join) {
 
         if (joined.compareAndSet(!join, join)) {
-            property_change_support.firePropertyChange(JOIN_PROPERTY_NAME, !join, join);
+            property_change_support.firePropertyChange(JOINED_PROPERTY_NAME, !join, join);
         }
     }
 
