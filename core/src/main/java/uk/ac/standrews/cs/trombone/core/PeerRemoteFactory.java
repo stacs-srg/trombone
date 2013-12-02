@@ -39,8 +39,8 @@ public class PeerRemoteFactory extends LeanClientFactory<PeerRemote> {
     PeerRemote get(final PeerReference reference) {
 
         final PeerRemote remote = get(reference.getAddress());
-        final PeerClient invocationHandler = (PeerClient) Proxy.getInvocationHandler(remote);
-        invocationHandler.reference = peer_state.getInternalReference(reference);
+        final PeerClient handler = (PeerClient) Proxy.getInvocationHandler(remote);
+        handler.reference = peer_state.getInternalReference(reference);
         return remote;
     }
 

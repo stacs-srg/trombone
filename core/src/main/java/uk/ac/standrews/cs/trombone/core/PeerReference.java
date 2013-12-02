@@ -9,7 +9,6 @@ import uk.ac.standrews.cs.trombone.core.key.Key;
 public class PeerReference implements Comparable<PeerReference> {
 
     private static final boolean DEFAULT_REACHABILITY = true;
-    
     private final Key key;
     private final InetSocketAddress address;
     private final AtomicBoolean reachable;
@@ -25,7 +24,7 @@ public class PeerReference implements Comparable<PeerReference> {
         this.key = key;
         this.address = address;
         this.reachable = new AtomicBoolean(reachable);
-        hashcode = new HashCodeBuilder(93,47).append(key).append(address).toHashCode();
+        hashcode = new HashCodeBuilder(93, 47).append(key).append(address).toHashCode();
     }
 
     public boolean isReachable() {
@@ -56,16 +55,16 @@ public class PeerReference implements Comparable<PeerReference> {
         if (!(other instanceof PeerReference)) { return false; }
 
         final PeerReference that = (PeerReference) other;
-        return address.equals(that.address) && key.equals(that.key);
+        return key.equals(that.key) && address.equals(that.address) && isReachable() == that.isReachable();
     }
 
     @Override
     public String toString() {
 
         final StringBuilder sb = new StringBuilder("PeerReference{");
-        sb.append("key=").append(key);
-        sb.append(", address=").append(address);
-        sb.append(", reachable=").append(reachable.get());
+        sb.append("key=").append(getKey());
+        sb.append(", address=").append(getAddress());
+        sb.append(", reachable=").append(isReachable());
         sb.append('}');
         return sb.toString();
     }
