@@ -17,7 +17,7 @@ public class LookupSelector implements Selector {
     }
 
     @Override
-    public PeerReference[] select(final Peer peer, final int size) throws RPCException {
+    public PeerReference[] select(final Peer peer) throws RPCException {
 
         final PeerReference[] results = new PeerReference[targets.length];
         int index = 0;

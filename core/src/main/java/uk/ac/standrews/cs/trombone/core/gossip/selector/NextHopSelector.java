@@ -16,7 +16,7 @@ public class NextHopSelector implements Selector {
     }
 
     @Override
-    public PeerReference[] select(final Peer peer, final int size) {
+    public PeerReference[] select(final Peer peer) {
 
         final PeerReference[] next_hops = new PeerReference[targets.length];
         int index = 0;

@@ -9,12 +9,18 @@ import uk.ac.standrews.cs.trombone.core.PeerReference;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class RandomSelector implements Selector {
 
+    private static final long serialVersionUID = -2686666721712477700L;
     private static final int SEED = 6546545;
     private static final Random RANDOM = new Random(SEED);
-    private static final long serialVersionUID = -2686666721712477700L;
+    private final int size;
+
+    public RandomSelector(int size) {
+
+        this.size = size;
+    }
 
     @Override
-    public PeerReference[] select(final Peer peer, final int size) throws RPCException {
+    public PeerReference[] select(final Peer peer) throws RPCException {
 
         final List<PeerReference> references = peer.getPeerState().getReferences();
         final int references_size = references.size();

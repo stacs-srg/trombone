@@ -77,7 +77,7 @@ public class PeerTest {
     @Test
     public void testPull() throws Exception {
 
-        final PeerReference[] reference = peer.pull(Self.getInstance(), 1);
+        final PeerReference[] reference = peer.pull(Self.getInstance());
         assertEquals(peer_reference, reference[0]);
     }
 

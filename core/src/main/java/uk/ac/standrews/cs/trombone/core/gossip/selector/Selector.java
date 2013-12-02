@@ -8,5 +8,5 @@ import uk.ac.standrews.cs.trombone.core.PeerReference;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public interface Selector extends Serializable {
 
-    PeerReference[] select(Peer peer, int size) throws RPCException;
+    PeerReference[] select(Peer peer) throws RPCException;
 }

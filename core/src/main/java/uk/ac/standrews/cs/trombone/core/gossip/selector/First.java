@@ -20,8 +20,8 @@ public class First implements Selector {
     }
 
     @Override
-    public PeerReference[] select(final Peer peer, final int size) throws RPCException {
+    public PeerReference[] select(final Peer peer) throws RPCException {
 
-        return peer.getPeerState().top(size);
+        return peer.getPeerState().top(1);
     }
 }

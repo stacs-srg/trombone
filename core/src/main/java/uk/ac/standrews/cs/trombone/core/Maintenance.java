@@ -25,7 +25,7 @@ public class Maintenance {
     static {
         try {
             PUSH = PeerRemote.class.getDeclaredMethod("push", PeerReference[].class);
-            PULL = PeerRemote.class.getDeclaredMethod("pull", Selector.class, Integer.TYPE);
+            PULL = PeerRemote.class.getDeclaredMethod("pull", Selector.class);
         }
         catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
@@ -137,7 +137,7 @@ public class Maintenance {
 
             PeerReference[] selection;
             try {
-                selection = selector.select(peer, max_size);
+                selection = selector.select(peer);
             }
             catch (Exception e) {
                 LOGGER.error("failure occurred when constructing non-opportunistic maintenance", e);
@@ -166,7 +166,7 @@ public class Maintenance {
         public void run() {
 
             try {
-                final PeerReference[] select = recipient_selector.select(peer, 1);
+                final PeerReference[] select = recipient_selector.select(peer);
                 if (select != null && select.length > 0) {
                     final PeerReference recipient = select[0];
                     final PeerRemote remote = peer.getRemote(recipient);

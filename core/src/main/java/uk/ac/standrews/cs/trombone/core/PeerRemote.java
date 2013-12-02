@@ -13,7 +13,7 @@ public interface PeerRemote {
 
     void push(PeerReference... references) throws RPCException;
 
-    PeerReference[] pull(Selector selector, int size) throws RPCException;
+    PeerReference[] pull(Selector selector) throws RPCException;
 
     PeerReference lookup(Key target) throws RPCException;
 

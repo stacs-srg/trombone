@@ -99,9 +99,9 @@ public class Peer implements PeerRemote {
     }
 
     @Override
-    public PeerReference[] pull(final Selector selector, final int size) throws RPCException {
+    public PeerReference[] pull(final Selector selector) throws RPCException {
 
-        return selector.select(this, size);
+        return selector.select(this);
     }
 
     @Override

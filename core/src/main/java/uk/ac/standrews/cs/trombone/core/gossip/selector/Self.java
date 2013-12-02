@@ -19,7 +19,7 @@ public final class Self implements Selector {
     }
 
     @Override
-    public PeerReference[] select(final Peer peer, final int size) {
+    public PeerReference[] select(final Peer peer) {
 
         final PeerReference self_reference = peer.getSelfReference();
         return new PeerReference[]{self_reference};
