@@ -98,12 +98,12 @@ public class PeerTest {
     public void testGetPeerState() throws Exception {
 
         assertNotNull(peer_state);
-        assertNull(peer_state.first());
-        assertNull(peer_state.last());
+        assertNull(peer_state.firstReachable());
+        assertNull(peer_state.lastReachable());
         assertEquals(0, peer_state.getReferences().size());
         peer_state.add(peer_reference);
-        assertNull(peer_state.first());
-        assertNull(peer_state.last());
+        assertNull(peer_state.firstReachable());
+        assertNull(peer_state.lastReachable());
         assertEquals(0, peer_state.getReferences().size());
     }
 

@@ -32,8 +32,8 @@ import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.Scanner;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.trombone.core.gossip.selector.First;
-import uk.ac.standrews.cs.trombone.core.gossip.selector.Last;
+import uk.ac.standrews.cs.trombone.core.gossip.selector.FirstReachable;
+import uk.ac.standrews.cs.trombone.core.gossip.selector.LastReachable;
 
 class RingSizeScanner extends Scanner {
 
@@ -62,11 +62,11 @@ class RingSizeScanner extends Scanner {
             cycle_length++;
             final PeerRemote proxy = PeerFactory.bind(node);
             try {
-                node = forwards ? proxy.pull(First.getInstance())[0] : proxy.pull(Last.getInstance())[0];
+                node = forwards ? proxy.pull(FirstReachable.getInstance())[0] : proxy.pull(LastReachable.getInstance())[0];
             }
             catch (final RPCException e) {
 
-                LOGGER.info("error traversing the ring ", e);
+                LOGGER.debug("error traversing the ring ", e);
                 return 0; // Error traversing the ring, so it is broken.
             }
 

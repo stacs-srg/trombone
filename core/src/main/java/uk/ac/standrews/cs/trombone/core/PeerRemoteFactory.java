@@ -97,7 +97,6 @@ public class PeerRemoteFactory extends LeanClientFactory<PeerRemote> {
                     if (t instanceof RPCException) {
                         reference.setReachable(false);
                     }
-
                 }
             });
             return future_response;

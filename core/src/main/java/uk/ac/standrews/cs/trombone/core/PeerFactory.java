@@ -1,7 +1,6 @@
 package uk.ac.standrews.cs.trombone.core;
 
 import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 import org.mashti.jetson.exception.RPCException;
 import org.mashti.jetson.lean.LeanClientFactory;
 import uk.ac.standrews.cs.trombone.core.key.Key;
@@ -31,7 +30,7 @@ public final class PeerFactory {
         return createPeer(address, key, configurator);
     }
 
-    public static Peer createPeer(final Key key) throws UnknownHostException {
+    public static Peer createPeer(final Key key) {
 
         return new Peer(key);
     }

@@ -7,7 +7,6 @@ import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -33,7 +32,7 @@ public class RecoveryTest {
     @Parameterized.Parameters
     public static Collection<Object[]> getParameters() throws IOException {
 
-        return Combinations.generateArgumentCombinations(new Object[][]{{new SingleProcessLocalP2PNetwork(300)}});
+        return Combinations.generateArgumentCombinations(new Object[][]{{new SingleProcessLocalP2PNetwork(10)}});
     }
 
     @Before
@@ -55,10 +54,31 @@ public class RecoveryTest {
     }
 
     @Test
-    @Ignore
     public void testStabilization() throws Exception {
 
         awaitRingSize(network.getSize());
+        
+        int i = 0;
+        for(ApplicationDescriptor descriptor : network){
+            
+            if(i >=3){
+                break;
+            }
+            
+            network.kill(descriptor);
+            network.remove(descriptor);
+
+            System.out.println("killed " + descriptor);
+            
+            i++;
+        }
+
+        System.out.println("awaiting stabilized ring of size " + network.size());
+        
+        awaitRingSize(network.getSize());
+        
+        
+        
     }
 
     @After

@@ -5,23 +5,23 @@ import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class Last implements Selector {
+public class LastReachable implements Selector {
 
-    public static final Last LAST_SELECTOR_INSTANCE = new Last();
+    public static final LastReachable LAST_REACHABLE_SELECTOR_INSTANCE = new LastReachable();
     private static final long serialVersionUID = -2468932076649021046L;
 
-    private Last() {
+    private LastReachable() {
 
     }
 
-    public static Last getInstance() {
+    public static LastReachable getInstance() {
 
-        return LAST_SELECTOR_INSTANCE;
+        return LAST_REACHABLE_SELECTOR_INSTANCE;
     }
 
     @Override
     public PeerReference[] select(final Peer peer) throws RPCException {
 
-        return peer.getPeerState().bottom(1);
+        return new PeerReference[]{peer.getPeerState().lastReachable()};
     }
 }

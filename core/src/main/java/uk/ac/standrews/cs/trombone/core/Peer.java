@@ -80,13 +80,13 @@ public class Peer implements PeerRemote {
     public synchronized void join(final PeerReference member) throws RPCException {
 
         if (isExposed() && !hasJoined() && member != null) {
-            
+
             final PeerRemote member_remote = getRemote(member);
             final PeerReference successor = member_remote.lookup(key);
             final PeerRemote successor_remote = getRemote(successor);
-            
+
             // upon getting the remote proxy the member and successor will be added to state.
-            
+
             member_remote.push(self);
             successor_remote.push(self);
             setJoined(true);
@@ -117,18 +117,13 @@ public class Peer implements PeerRemote {
     public PeerReference nextHop(final Key target) {
 
         final PeerReference next_hop;
-
         if (state.inLocalKeyRange(target)) {
             next_hop = self;
         }
         else {
-            PeerReference ceiling = state.ceiling(target);
-            while (ceiling != null && !ceiling.isReachable()) {
-                ceiling = state.lower(ceiling.getKey());
-            }
+            final PeerReference ceiling = state.ceilingReachable(target);
             next_hop = ceiling != null ? ceiling : self;
         }
-
         return next_hop;
     }
 
@@ -188,8 +183,7 @@ public class Peer implements PeerRemote {
             finally {
                 measurement.incrementRetryCount();
             }
-        }
-        while (!Thread.currentThread().isInterrupted() && !measurement.isDone());
+        } while (!Thread.currentThread().isInterrupted() && !measurement.isDone());
         return measurement;
     }
 
