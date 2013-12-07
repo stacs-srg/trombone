@@ -2,15 +2,15 @@ package uk.ac.standrews.cs.trombone.core;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import io.netty.channel.Channel;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.List;
 import org.mashti.jetson.ChannelPool;
 import org.mashti.jetson.Client;
 import org.mashti.jetson.FutureResponse;
 import org.mashti.jetson.exception.RPCException;
+import org.mashti.jetson.exception.TransportException;
 import org.mashti.jetson.lean.LeanClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,16 +21,14 @@ public class PeerRemoteFactory extends LeanClientFactory<PeerRemote> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PeerRemoteFactory.class);
     private final Peer peer;
-    private final LeanClientFactory<PeerRemote> parent;
     private final PeerState peer_state;
     private final PeerMetric peer_metric;
     private final Maintenance peer_maintenance;
 
-    PeerRemoteFactory(final Peer peer, LeanClientFactory<PeerRemote> parent) {
+    PeerRemoteFactory(final Peer peer) {
 
         super(PeerRemote.class, PeerCodecs.INSTANCE);
         this.peer = peer;
-        this.parent = parent;
         peer_state = peer.getPeerState();
         peer_metric = peer.getPeerMetric();
         peer_maintenance = peer.getMaintenance();
@@ -47,12 +45,12 @@ public class PeerRemoteFactory extends LeanClientFactory<PeerRemote> {
     @Override
     protected Client createClient(final InetSocketAddress address) {
 
-        return new PeerClient(address, parent.getChannelPool(address));
+        return new PeerClient(address, getChannelPool(address));
     }
 
     public class PeerClient extends Client {
 
-        private volatile InternalPeerReference reference;
+        public volatile InternalPeerReference reference;
 
         protected PeerClient(final InetSocketAddress address, final ChannelPool pool) {
 
@@ -81,6 +79,7 @@ public class PeerRemoteFactory extends LeanClientFactory<PeerRemote> {
                 public void onSuccess(final Object result) {
 
                     reference.seen();
+
                     if (result instanceof PeerReference) {
                         peer.push((PeerReference) result);
                     }
@@ -92,9 +91,8 @@ public class PeerRemoteFactory extends LeanClientFactory<PeerRemote> {
                 @Override
                 public void onFailure(final Throwable t) {
 
-                    //TODO the failure may be due to internal error; the reference might not be unreachable.
                     LOGGER.debug("failure occurred on future", t);
-                    if (t instanceof RPCException) {
+                    if (t instanceof TransportException) {
                         reference.setReachable(false);
                     }
                 }
@@ -103,23 +101,15 @@ public class PeerRemoteFactory extends LeanClientFactory<PeerRemote> {
         }
 
         @Override
-        protected List<FutureResponse> getExtraRequests() throws RPCException {
+        protected void beforeFlush(final Channel channel, final FutureResponse future_response) throws RPCException {
 
-            final List<FutureResponse> responses = new ArrayList<FutureResponse>();
-            final List<Maintenance.OpportunisticGossip> gossips = peer_maintenance.getOpportunisticGossips();
-            if (gossips != null) {
-                for (Maintenance.OpportunisticGossip gossip : gossips) {
-                    final FutureResponse future_gossip = gossip.get(this);
-                    responses.add(future_gossip);
+            for (DisseminationStrategy strategy : peer_maintenance.getDisseminationStrategies()) {
+                if (strategy.isOpportunistic() && strategy.recipientsContain(peer, reference)) {
+                    final FutureResponse future_dissemination = newFutureResponse(strategy.getMethod(), strategy.getArguments(peer));
+                    channel.write(future_dissemination);
                 }
             }
-            return responses;
-        }
-
-        @Override
-        public FutureResponse writeRequest(final FutureResponse future_response) throws RPCException {
-
-            return super.writeRequest(future_response);
+            super.beforeFlush(channel, future_response);
         }
     }
 }

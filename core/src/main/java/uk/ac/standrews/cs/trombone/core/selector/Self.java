@@ -1,4 +1,4 @@
-package uk.ac.standrews.cs.trombone.core.gossip.selector;
+package uk.ac.standrews.cs.trombone.core.selector;
 
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;

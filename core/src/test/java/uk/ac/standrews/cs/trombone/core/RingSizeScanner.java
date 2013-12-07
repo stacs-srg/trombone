@@ -32,8 +32,8 @@ import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.Scanner;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.trombone.core.gossip.selector.FirstReachable;
-import uk.ac.standrews.cs.trombone.core.gossip.selector.LastReachable;
+import uk.ac.standrews.cs.trombone.core.selector.FirstReachable;
+import uk.ac.standrews.cs.trombone.core.selector.LastReachable;
 
 class RingSizeScanner extends Scanner {
 
@@ -67,6 +67,7 @@ class RingSizeScanner extends Scanner {
             catch (final RPCException e) {
 
                 LOGGER.debug("error traversing the ring ", e);
+                LOGGER.error("error traversing the ring - current size {}, forwards? {}", cycle_length, forwards);
                 return 0; // Error traversing the ring, so it is broken.
             }
 

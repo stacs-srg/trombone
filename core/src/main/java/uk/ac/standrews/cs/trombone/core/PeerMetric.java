@@ -77,6 +77,11 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
         return sent_bytes_meter.getCount();
     }
 
+    public double getLookupFailureRate() {
+
+        return lookup_failure_rate_meter.getRate();
+    }
+
     @Override
     public void notifyWrittenByteCount(final int byte_count) {
 

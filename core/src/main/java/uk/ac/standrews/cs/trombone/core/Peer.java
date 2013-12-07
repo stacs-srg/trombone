@@ -9,7 +9,7 @@ import org.mashti.jetson.Server;
 import org.mashti.jetson.ServerFactory;
 import org.mashti.jetson.exception.RPCException;
 import org.mashti.jetson.lean.LeanServerFactory;
-import uk.ac.standrews.cs.trombone.core.gossip.selector.Selector;
+import uk.ac.standrews.cs.trombone.core.selector.Selector;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
 
@@ -41,7 +41,7 @@ public class Peer implements PeerRemote {
         maintenance = new Maintenance(this);
         property_change_support = new PropertyChangeSupport(this);
         metric = new PeerMetric(this);
-        remote_factory = new PeerRemoteFactory(this, PeerFactory.CLIENT_FACTORY);
+        remote_factory = new PeerRemoteFactory(this);
         server = SERVER_FACTORY.createServer(this);
         server.setBindAddress(address);
         server.setWrittenByteCountListenner(metric);

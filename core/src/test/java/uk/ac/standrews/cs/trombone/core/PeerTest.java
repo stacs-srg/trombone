@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import uk.ac.standrews.cs.trombone.core.gossip.selector.Self;
+import uk.ac.standrews.cs.trombone.core.selector.Self;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.core.key.RandomKeyProvider;
 

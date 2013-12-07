@@ -1,4 +1,4 @@
-package uk.ac.standrews.cs.trombone.core.gossip.selector;
+package uk.ac.standrews.cs.trombone.core.selector;
 
 import org.mashti.jetson.exception.RPCException;
 import uk.ac.standrews.cs.trombone.core.Peer;

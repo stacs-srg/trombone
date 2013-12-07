@@ -16,7 +16,7 @@ public class InternalPeerReference extends PeerReference {
 
     InternalPeerReference(final PeerReference reference) {
 
-        super(reference.getKey(), reference.getAddress());
+        super(reference.getKey(), reference.getAddress(), reference.isReachable());
     }
 
     public boolean isContactedBefore() {

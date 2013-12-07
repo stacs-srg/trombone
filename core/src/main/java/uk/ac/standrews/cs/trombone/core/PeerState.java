@@ -35,10 +35,18 @@ public class PeerState implements Iterable<InternalPeerReference> {
 
     public boolean add(final PeerReference reference) {
 
+        if (reference == null) { return false; }
         final Key key = reference.getKey();
         if (key.equals(local_key)) { return false; }
         final InternalPeerReference internal_reference = toInternalPeerReference(reference);
-        return state.putIfAbsent(key, internal_reference) == null;
+        final InternalPeerReference existing_reference = state.putIfAbsent(key, internal_reference);
+
+        if (existing_reference != null) {
+
+            existing_reference.setReachable(reference.isReachable());
+        }
+
+        return existing_reference == null;
     }
 
     public PeerReference remove(PeerReference reference) {

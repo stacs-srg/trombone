@@ -1,8 +1,7 @@
-package uk.ac.standrews.cs.trombone.core.gossip.selector;
+package uk.ac.standrews.cs.trombone.core.selector;
 
 import java.util.List;
 import java.util.Random;
-import org.mashti.jetson.exception.RPCException;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 
@@ -20,7 +19,7 @@ public class RandomSelector implements Selector {
     }
 
     @Override
-    public PeerReference[] select(final Peer peer) throws RPCException {
+    public PeerReference[] select(final Peer peer) {
 
         final List<PeerReference> references = peer.getPeerState().getReferences();
         final int references_size = references.size();

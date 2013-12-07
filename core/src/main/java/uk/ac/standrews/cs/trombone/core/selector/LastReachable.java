@@ -1,6 +1,5 @@
-package uk.ac.standrews.cs.trombone.core.gossip.selector;
+package uk.ac.standrews.cs.trombone.core.selector;
 
-import org.mashti.jetson.exception.RPCException;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 
@@ -20,7 +19,7 @@ public class LastReachable implements Selector {
     }
 
     @Override
-    public PeerReference[] select(final Peer peer) throws RPCException {
+    public PeerReference[] select(final Peer peer) {
 
         return new PeerReference[]{peer.getPeerState().lastReachable()};
     }

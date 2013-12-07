@@ -1,4 +1,4 @@
-package uk.ac.standrews.cs.trombone.core.gossip.selector;
+package uk.ac.standrews.cs.trombone.core.selector;
 
 import java.io.Serializable;
 import org.mashti.jetson.exception.RPCException;
