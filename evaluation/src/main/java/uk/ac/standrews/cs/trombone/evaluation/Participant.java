@@ -89,7 +89,6 @@ public class Participant implements Comparable<Participant> {
 
         if (this == other) { return true; }
         if (!(other instanceof Participant)) { return false; }
-
         final Participant that = (Participant) other;
         return id.equals(that.id);
     }

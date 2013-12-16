@@ -32,7 +32,7 @@ public class RecoveryTest {
     @Parameterized.Parameters
     public static Collection<Object[]> getParameters() throws IOException {
 
-        return Combinations.generateArgumentCombinations(new Object[][]{{new SingleProcessLocalP2PNetwork(300)}});
+        return Combinations.generateArgumentCombinations(new Object[][]{{new SingleProcessLocalP2PNetwork(10)}});
     }
 
     @Before
@@ -61,7 +61,7 @@ public class RecoveryTest {
         int i = 0;
         for(ApplicationDescriptor descriptor : network){
             
-            if(i >=100){
+            if(i >=3){
                 break;
             }
             

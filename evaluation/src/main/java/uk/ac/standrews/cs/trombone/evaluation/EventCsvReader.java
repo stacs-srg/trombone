@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicReference;
+import org.apache.commons.codec.DecoderException;
 import org.mashti.jetson.util.CloseableUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,11 +28,11 @@ public class EventCsvReader implements Closeable, Iterator<Event> {
     private final Map<Integer, PeerReference> peers_index;
     private final AtomicReference<String[]> next_row_reference;
 
-    public EventCsvReader(File peers_csv, File events_csv, File lookup_targets_csv) throws IOException {
+    public EventCsvReader(File peers_csv, File events_csv, File lookup_targets_csv) throws IOException, DecoderException {
         this(peers_csv, events_csv, lookup_targets_csv, DEFAULT_SKIP_FIRST_ROW);
     }
 
-    public EventCsvReader(File peers_csv, File events_csv, File lookup_targets_csv, boolean skip_first_row) throws IOException {
+    public EventCsvReader(File peers_csv, File events_csv, File lookup_targets_csv, boolean skip_first_row) throws IOException, DecoderException {
 
         event_reader = new CSVReader(new FileReader(events_csv));
         lookup_targets_index = readLookupTargets(lookup_targets_csv);
@@ -70,7 +71,7 @@ public class EventCsvReader implements Closeable, Iterator<Event> {
         event_reader.close();
     }
 
-    private static Map<Integer, PeerReference> readPeers(final File peers_csv) throws IOException {
+    private static Map<Integer, PeerReference> readPeers(final File peers_csv) throws IOException, DecoderException {
 
         final Map<Integer, PeerReference> peers = new HashMap<Integer, PeerReference>();
         CSVReader reader = null;
@@ -81,7 +82,7 @@ public class EventCsvReader implements Closeable, Iterator<Event> {
             String[] row = reader.readNext();
             do {
                 final Integer index = Integer.valueOf(row[0]);
-                final Key key = Key.valueOf(Integer.valueOf(row[1]));
+                final Key key = Key.valueOf(row[1]);
                 final InetSocketAddress address = new InetSocketAddress(row[2], Integer.valueOf(row[3]));
                 peers.put(index, new PeerReference(key, address));
                 row = reader.readNext();
@@ -93,7 +94,7 @@ public class EventCsvReader implements Closeable, Iterator<Event> {
         }
     }
 
-    private static Map<Integer, Key> readLookupTargets(final File lookup_targets_csv) throws IOException {
+    private static Map<Integer, Key> readLookupTargets(final File lookup_targets_csv) throws IOException, DecoderException {
 
         final Map<Integer, Key> lookup_targets = new HashMap<Integer, Key>();
         CSVReader reader = null;
@@ -103,7 +104,7 @@ public class EventCsvReader implements Closeable, Iterator<Event> {
             String[] row = reader.readNext();
             do {
                 final Integer index = Integer.valueOf(row[0]);
-                final Key key = Key.valueOf(Integer.valueOf(row[1]));
+                final Key key = Key.valueOf(row[1]);
                 lookup_targets.put(index, key);
                 row = reader.readNext();
             } while (row != null);

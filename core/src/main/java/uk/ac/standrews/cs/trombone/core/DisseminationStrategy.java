@@ -5,6 +5,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.mashti.jetson.exception.RPCException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.uncommons.maths.binary.BitString;
 import org.uncommons.util.reflection.ReflectionUtils;
 import uk.ac.standrews.cs.trombone.core.selector.Selector;
 
@@ -29,6 +30,16 @@ public class DisseminationStrategy {
         this.data_selector = data_selector;
         this.recipient_selector = recipient_selector;
     }
+    
+    public BitString toBitString(){
+        
+        final BitString bit_string = new BitString(9);
+        bit_string.setBit(0, opportunistic);
+        bit_string.setBit(0, push);
+        bit_string.setBit(0, push);
+        
+        return null;
+    }
 
     public boolean isOpportunistic() {
 
@@ -40,8 +51,10 @@ public class DisseminationStrategy {
         final PeerReference[] recipients = recipient_selector.select(local);
         if (push) {
             final PeerReference[] data_to_push = pullQuietly(local, data_selector);
-            for (PeerReference recipient : recipients) {
-                local.getRemote(recipient).push(data_to_push);
+            if (data_to_push != null && data_to_push.length > 0) {
+                for (PeerReference recipient : recipients) {
+                    local.getRemote(recipient).push(data_to_push);
+                }
             }
         }
         else {

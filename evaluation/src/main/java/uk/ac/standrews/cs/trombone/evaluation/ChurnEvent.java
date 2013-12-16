@@ -4,7 +4,7 @@ import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 
 /**
- * Peresents the change of a peer's availability at {@code t} nanoseconds through an experiment.
+ * Presents the change of a peer's availability at {@code t} nanoseconds through an experiment.
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
@@ -63,7 +63,30 @@ public class ChurnEvent extends Event {
     }
 
     @Override
+    public String toString() {
+
+        final StringBuilder sb = new StringBuilder("ChurnEvent{");
+        sb.append("time=").append(getTimeInNanos());
+        sb.append(", peer=").append(getSource());
+        sb.append(", available=").append(available);
+        sb.append('}');
+        return sb.toString();
+    }
+
+    public boolean isWithin(final long time_nanos) {
+
+        return getTimeInNanos() <= time_nanos && time_nanos < getEndTimeNanos();
+
+    }
+
+    public long getEndTimeNanos() {
+
+        return getTimeInNanos() + getDurationInNanos();
+    }
+
+    @Override
     int getCode() {
+
         return !isAvailable() ? UNAVAILABLE_CODE : AVAILABLE_CODE;
     }
 
@@ -79,16 +102,6 @@ public class ChurnEvent extends Event {
             parameters = EMPTY_STRING;
         }
         return parameters;
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("ChurnEvent{");
-        sb.append("time=").append(getTimeInNanos());
-        sb.append(", peer=").append(getSource());
-        sb.append(", available=").append(available);
-        sb.append('}');
-        return sb.toString();
     }
 
     void setDurationInNanos(Long duration_nanos) {

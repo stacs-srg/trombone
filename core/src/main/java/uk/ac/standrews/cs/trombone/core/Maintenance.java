@@ -11,43 +11,41 @@ import org.mashti.jetson.exception.RPCException;
 import org.mashti.jetson.util.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.standrews.cs.trombone.core.selector.First;
+import uk.ac.standrews.cs.trombone.core.selector.FirstReachable;
+import uk.ac.standrews.cs.trombone.core.selector.Last;
+import uk.ac.standrews.cs.trombone.core.selector.LastReachable;
+import uk.ac.standrews.cs.trombone.core.selector.Self;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class Maintenance {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Maintenance.class);
     private static final ScheduledExecutorService SCHEDULER = Executors.newScheduledThreadPool(100, new NamedThreadFactory("maintenance_", true));
+    private static final int ACTIVE_MAINTENANCE_INTERVAL_MILLIS = 1500;
     private final List<DisseminationStrategy> dissemination_strategies;
     private final Peer local;
-    private Runnable non_opportunistic_disseminator = new Runnable() {
-
-        @Override
-        public void run() {
-
-            for (DisseminationStrategy dissemination_strategy : getDisseminationStrategies()) {
-                if (dissemination_strategy.isOpportunistic()) {
-                    try {
-                        dissemination_strategy.nonOpportunistically(local);
-                    }
-                    catch (RPCException e) {
-                        LOGGER.warn("failed to execute non opportunistic dissemination strategy", e);
-                    }
-                }
-            }
-        }
-    };
+    private final Runnable non_opportunistic_disseminator = new NonOpportunisticDisseminator();
     private ScheduledFuture<?> scheduled_non_deterministic_disseminator;
 
     public Maintenance(final Peer local) {
 
         this.local = local;
         dissemination_strategies = new ArrayList<DisseminationStrategy>();
+
+        //        final ByteBuf byteBuf = Unpooled.buffer().writeBytes(local.getKey().getValue());
+        //        add(new DisseminationStrategy(false, false, new LookupSelector(Key.valueOf(byteBuf.readInt() + 1)), First.getInstance()));
+        add(new DisseminationStrategy(false, false, Last.getInstance(), First.getInstance()));
+        add(new DisseminationStrategy(false, true, Self.getInstance(), First.getInstance()));
+        add(new DisseminationStrategy(false, false, LastReachable.getInstance(), FirstReachable.getInstance()));
+        add(new DisseminationStrategy(false, true, Self.getInstance(), FirstReachable.getInstance()));
+        //        add(new DisseminationStrategy(false, true, Self.getInstance(), Last.getInstance()));
     }
 
     public synchronized void start() {
 
         if (!isStarted()) {
-            scheduled_non_deterministic_disseminator = SCHEDULER.scheduleWithFixedDelay(non_opportunistic_disseminator, 3, 3, TimeUnit.SECONDS);
+            scheduled_non_deterministic_disseminator = SCHEDULER.scheduleWithFixedDelay(non_opportunistic_disseminator, ACTIVE_MAINTENANCE_INTERVAL_MILLIS, ACTIVE_MAINTENANCE_INTERVAL_MILLIS, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -79,6 +77,32 @@ public class Maintenance {
 
         synchronized (dissemination_strategies) {
             dissemination_strategies.clear();
+        }
+    }
+
+    public void addAll(final List<DisseminationStrategy> strategies) {
+
+        synchronized (dissemination_strategies) {
+            dissemination_strategies.addAll(strategies);
+        }
+
+    }
+
+    private class NonOpportunisticDisseminator implements Runnable {
+
+        @Override
+        public void run() {
+
+            for (DisseminationStrategy dissemination_strategy : getDisseminationStrategies()) {
+                if (!dissemination_strategy.isOpportunistic()) {
+                    try {
+                        dissemination_strategy.nonOpportunistically(local);
+                    }
+                    catch (RPCException e) {
+                        LOGGER.debug("failed to execute non opportunistic dissemination strategy", e);
+                    }
+                }
+            }
         }
     }
 }

@@ -90,7 +90,6 @@ public class PeerRemoteFactory extends LeanClientFactory<PeerRemote> {
 
                 @Override
                 public void onFailure(final Throwable t) {
-
                     LOGGER.debug("failure occurred on future", t);
                     if (t instanceof TransportException) {
                         reference.setReachable(false);

@@ -1,24 +1,54 @@
 package uk.ac.standrews.cs.trombone.core;
 
+import com.google.common.util.concurrent.ListeningExecutorService;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelHandlerContext;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.mashti.jetson.FutureResponse;
 import org.mashti.jetson.Server;
 import org.mashti.jetson.ServerFactory;
 import org.mashti.jetson.exception.RPCException;
 import org.mashti.jetson.lean.LeanServerFactory;
-import uk.ac.standrews.cs.trombone.core.selector.Selector;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
+import uk.ac.standrews.cs.trombone.core.selector.Selector;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class Peer implements PeerRemote {
 
     private static final String EXPOSURE_PROPERTY_NAME = "exposure";
     private static final String JOINED_PROPERTY_NAME = "joined";
-    private static final ServerFactory<PeerRemote> SERVER_FACTORY = new LeanServerFactory<PeerRemote>(PeerRemote.class, PeerCodecs.INSTANCE);
+    private static final ServerFactory<PeerRemote> SERVER_FACTORY = new LeanServerFactory<PeerRemote>(PeerRemote.class, PeerCodecs.INSTANCE) {
+
+        @Override
+        public Server createServer(final PeerRemote service) {
+
+            return new MyServer(server_bootstrap, service, request_executor) {
+
+            };
+        }
+
+        class MyServer extends Server {
+
+            private final Peer peer;
+            MyServer(final ServerBootstrap server_bootstrap, final Object service, final ListeningExecutorService executor) {
+
+                super(server_bootstrap, service, executor);
+                
+                peer = (Peer) service;
+            }
+
+            @Override
+            protected void handle(final ChannelHandlerContext context, final FutureResponse future_response) {
+                  // peer.getPeerMetric().notifyMethod(future_response.getMethod()); // record frequency of called methods
+                super.handle(context, future_response);
+            }
+        }
+    };
     private final PeerState state;
     private final Key key;
     private final PeerRemoteFactory remote_factory;
@@ -44,7 +74,7 @@ public class Peer implements PeerRemote {
         remote_factory = new PeerRemoteFactory(this);
         server = SERVER_FACTORY.createServer(this);
         server.setBindAddress(address);
-        server.setWrittenByteCountListenner(metric);
+        server.setWrittenByteCountListener(metric);
         refreshSelfReference();
     }
 
@@ -96,8 +126,10 @@ public class Peer implements PeerRemote {
     @Override
     public void push(final PeerReference... references) {
 
-        for (PeerReference reference : references) {
-            state.add(reference);
+        if (references != null) {
+            for (PeerReference reference : references) {
+                state.add(reference);
+            }
         }
     }
 
@@ -187,7 +219,7 @@ public class Peer implements PeerRemote {
         return measurement;
     }
 
-    Maintenance getMaintenance() {
+    public Maintenance getMaintenance() {
 
         return maintenance;
     }

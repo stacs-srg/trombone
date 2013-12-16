@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Trombone.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.trombone.evaluation;
 
 import java.io.Serializable;
@@ -27,7 +28,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 
-public class Scenario implements Serializable {
+public abstract class Scenario implements Serializable {
 
     private static final int DEFAULT_LOOKUP_RETRY_COUNT = 5;
     private static final long serialVersionUID = 5082585779371037794L;
@@ -116,8 +117,5 @@ public class Scenario implements Serializable {
         }
     }
 
-    Participant newParticipantOnHost(String host) {
-
-        return null;
-    }
+    abstract Participant newParticipantOnHost(String host);
 }

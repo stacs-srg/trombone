@@ -15,6 +15,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import org.apache.commons.codec.DecoderException;
 import org.apache.commons.io.FileUtils;
 import org.mashti.gauge.Counter;
 import org.mashti.gauge.MetricRegistry;
@@ -68,7 +69,7 @@ public class EventExecutor {
     private Future<Object> task_scheduler_future;
     private long start_time;
 
-    public EventExecutor(File peers_csv, final File events_csv, File lookup_targets_csv, final File oracle_csv) throws IOException {
+    public EventExecutor(File peers_csv, final File events_csv, File lookup_targets_csv, final File oracle_csv) throws IOException, DecoderException {
 
         event_reader = new EventCsvReader(peers_csv, events_csv, lookup_targets_csv);
         runnable_events = new DelayQueue<RunnableExperimentEvent>();
@@ -117,7 +118,7 @@ public class EventExecutor {
 
                     final Long time = Long.valueOf(line[0]);
                     final Integer[] peer_indecies;
-                    if (line[1].equals("")) {
+                    if (line[1].isEmpty()) {
                         peer_indecies = NO_INDECIES;
                     }
                     else {
@@ -162,7 +163,7 @@ public class EventExecutor {
                         }
                     }
                     catch (Exception e) {
-                        LOGGER.error("failure occured while executing events", e);
+                        LOGGER.error("failure occurred while executing events", e);
                     }
                     finally {
                         LOGGER.info("finished executing events");

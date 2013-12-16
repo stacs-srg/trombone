@@ -40,7 +40,6 @@ public class Experiment implements Callable<File> {
     private static final Logger LOGGER = LoggerFactory.getLogger(Experiment.class);
     private final String name;
     private final Scenario scenario;
-    private final ExperimentPeerManager manager;
     private final WorkerNetwork worker_network;
     private final Map<Host, Worker> host_worker_map;
     private final TimeoutSupport timing;
@@ -50,7 +49,6 @@ public class Experiment implements Callable<File> {
         this.name = name;
         this.scenario = scenario;
         timing = new TimeoutSupport();
-        manager = new ExperimentPeerManager(this);
         worker_network = new WorkerNetwork();
         host_worker_map = new HashMap<Host, Worker>();
     }

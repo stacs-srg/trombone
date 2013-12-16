@@ -23,14 +23,14 @@ public class EventGeneratorTest {
     private static final ExponentialDistribution session_length_distribution = new ExponentialDistribution(Double.valueOf(new Duration(10, TimeUnit.SECONDS).getLength(TimeUnit.NANOSECONDS)));
     private static final ExponentialDistribution downtime_distribution = new ExponentialDistribution(Double.valueOf(new Duration(10, TimeUnit.SECONDS).getLength(TimeUnit.NANOSECONDS)));
     private static final ExponentialDistribution workload_intervals_distribution = new ExponentialDistribution(Double.valueOf(new Duration(500, TimeUnit.MILLISECONDS).getLength(TimeUnit.NANOSECONDS)));
-    private static final Duration experiemnt_duration = new Duration(20, TimeUnit.MINUTES);
+    private static final Duration experiment_duration = new Duration(10, TimeUnit.MINUTES);
     private final AtomicInteger next_port = new AtomicInteger(45000);
     private Scenario scenario;
 
     @Before
     public void setUp() throws Exception {
 
-        scenario = new Scenario("test", 123456, experiemnt_duration) {
+        scenario = new Scenario("test", 123456, experiment_duration) {
 
             final PortNumberProvider port_provider = new PortNumberProvider(45000);
             final Provider<Key> key_provider = new RandomKeyProvider(generateSeed());
@@ -40,7 +40,7 @@ public class EventGeneratorTest {
             public Churn getChurn() {
 
                 return new ConstantRateUncorrelatedChurn(session_length_distribution, downtime_distribution, generateSeed());
-                //                return Churn.NONE;
+                //                                return Churn.NONE;
             }
 
             public Workload getWorkload() {
@@ -55,7 +55,7 @@ public class EventGeneratorTest {
         };
 
         for (int i = 0; i < 1; i++) {
-            scenario.setPeersPerHost("localhost", 100);
+            scenario.setPeersPerHost("localhost", 50);
         }
 
     }
@@ -63,7 +63,16 @@ public class EventGeneratorTest {
     @Test
     public void testGeneration() throws Exception {
 
-        final EventGenerator generator = new EventGenerator(scenario, new File("/Users/masih/Desktop"));
+        final File events_home = new File("/Users/masih/Desktop");
+        final long now = System.currentTimeMillis();
+        final EventGenerator generator = new EventGenerator(scenario, events_home);
         generator.generate();
+
+        System.out.println("TOOK " + (System.currentTimeMillis() - now) + " ms");
+
+        EventExecutor executor = new EventExecutor(new File(events_home, "test/peers.csv"), new File(events_home, "test/1/events.csv"), new File(events_home, "test/lookup_targets.csv"), new File(events_home, "test/oracle.csv"));
+        executor.start();
+        experiment_duration.sleep();
+        executor.stop();
     }
 }

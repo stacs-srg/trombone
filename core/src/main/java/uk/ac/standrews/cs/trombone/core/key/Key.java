@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class Key implements Comparable<Key>, Serializable {
@@ -33,22 +35,33 @@ public class Key implements Comparable<Key>, Serializable {
         return TWO.pow(key_length);
     }
 
-    public static Key valueOf(final long value) {
+    public static Key valueOf(short value) {
 
-        final byte[] key_value = ByteBuffer.allocate(LONG_SIZE_IN_BYTES).putLong(value).array();
-        return new Key(key_value);
-    }
-
-    public static Key valueOf(final short value) {
-
+        if (value == Short.MAX_VALUE) {value = Short.MIN_VALUE;}
+        if (value == Short.MIN_VALUE) {value = Short.MAX_VALUE;}
         final byte[] key_value = ByteBuffer.allocate(SHORT_SIZE_IN_BYTES).putShort(value).array();
         return new Key(key_value);
     }
 
-    public static Key valueOf(final int value) {
+    public static Key valueOf(int value) {
 
+        if (value == Integer.MAX_VALUE) {value = Integer.MIN_VALUE;}
+        if (value == Integer.MIN_VALUE) {value = Integer.MAX_VALUE;}
         final byte[] key_value = ByteBuffer.allocate(INTEGER_SIZE_IN_BYTES).putInt(value).array();
         return new Key(key_value);
+    }
+
+    public static Key valueOf(long value) {
+
+        if (value == Long.MAX_VALUE) {value = Long.MIN_VALUE;}
+        if (value == Long.MIN_VALUE) {value = Long.MAX_VALUE;}
+        final byte[] key_value = ByteBuffer.allocate(LONG_SIZE_IN_BYTES).putLong(value).array();
+        return new Key(key_value);
+    }
+
+    public static Key valueOf(String hex_encoded_value) throws DecoderException {
+
+        return new Key(Hex.decodeHex(hex_encoded_value.toCharArray()));
     }
 
     public byte[] getValue() {
@@ -96,6 +109,12 @@ public class Key implements Comparable<Key>, Serializable {
             hashcode = Arrays.hashCode(getValue());
         }
         return hashcode;
+    }
+
+    @Override
+    public String toString() {
+
+        return Hex.encodeHexString(getValue());
     }
 
     private static int compareTo(final byte[] first, final byte[] second) {
