@@ -8,6 +8,7 @@ import java.util.concurrent.CountDownLatch;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.slf4j.Logger;
@@ -15,11 +16,13 @@ import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
+import uk.ac.standrews.cs.test.category.Ignore;
 
 import static org.junit.Assert.assertEquals;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 @RunWith(Parameterized.class)
+@Category(Ignore.class)
 public class RecoveryTest {
 
     private final P2PNetwork network;
@@ -32,7 +35,7 @@ public class RecoveryTest {
     @Parameterized.Parameters
     public static Collection<Object[]> getParameters() throws IOException {
 
-        return Combinations.generateArgumentCombinations(new Object[][]{{new SingleProcessLocalP2PNetwork(10)}});
+        return Combinations.generateArgumentCombinations(new Object[][] {{new SingleProcessLocalP2PNetwork(10)}});
     }
 
     @Before
@@ -57,28 +60,26 @@ public class RecoveryTest {
     public void testStabilization() throws Exception {
 
         awaitRingSize(network.getSize());
-        
+
         int i = 0;
-        for(ApplicationDescriptor descriptor : network){
-            
-            if(i >=3){
+        for (ApplicationDescriptor descriptor : network) {
+
+            if (i >= 3) {
                 break;
             }
-            
+
             network.kill(descriptor);
             network.remove(descriptor);
 
             System.out.println("killed " + descriptor);
-            
+
             i++;
         }
 
         System.out.println("awaiting stabilized ring of size " + network.size());
-        
+
         awaitRingSize(network.getSize());
-        
-        
-        
+
     }
 
     @After

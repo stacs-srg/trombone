@@ -11,9 +11,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.inject.Provider;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mashti.sina.distribution.ExponentialDistribution;
 import org.mashti.sina.distribution.ProbabilityDistribution;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
+import uk.ac.standrews.cs.test.category.Ignore;
 import uk.ac.standrews.cs.trombone.churn.Churn;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.core.key.RandomKeyProvider;
@@ -23,6 +25,7 @@ import uk.ac.standrews.cs.trombone.workload.ConstantRateWorkload;
 import uk.ac.standrews.cs.trombone.workload.Workload;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
+@Category(Ignore.class)
 public class EventGeneratorTest {
 
     private static final ProbabilityDistribution session_length_distribution = new ExponentialDistribution(Double.valueOf(new Duration(100, TimeUnit.SECONDS).getLength(TimeUnit.NANOSECONDS)));
