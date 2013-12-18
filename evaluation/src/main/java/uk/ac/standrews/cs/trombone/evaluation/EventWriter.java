@@ -1,9 +1,12 @@
 package uk.ac.standrews.cs.trombone.evaluation;
 
 import java.io.Closeable;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystem;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,7 +15,6 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.apache.commons.io.FileUtils;
 import org.supercsv.io.CsvListWriter;
 import org.supercsv.prefs.CsvPreference;
 import uk.ac.standrews.cs.trombone.core.key.Key;
@@ -20,10 +22,9 @@ import uk.ac.standrews.cs.trombone.core.key.Key;
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class EventCsvWriter implements Closeable {
+public class EventWriter implements Closeable {
 
     private final ConcurrentHashMap<Key, Integer> lookup_targets_index;
-    private final File events_home;
     private final AtomicInteger next_target_index = new AtomicInteger();
     private final HashMap<String, CsvListWriter> host_event_writers;
     private final TreeMap<String, Integer> host_indices;
@@ -33,20 +34,22 @@ public class EventCsvWriter implements Closeable {
     private final CsvListWriter peers_csv_writer;
     private final CsvListWriter lookup_targets_csv_writer;
     private final CsvListWriter oracle_csv_writer;
+    private final FileSystem events_home;
 
-    public EventCsvWriter(File events_home) throws IOException {
+    public EventWriter(FileSystem events_home) throws IOException {
 
         this.events_home = events_home;
         lookup_targets_index = new ConcurrentHashMap<Key, Integer>();
         host_event_writers = new HashMap<>();
         host_indices = new TreeMap<>();
-        hosts_csv_writer = new CsvListWriter(new FileWriter(new File(events_home, "hosts.csv")), CsvPreference.STANDARD_PREFERENCE);
+        hosts_csv_writer = new CsvListWriter(Files.newBufferedWriter(events_home.getPath("hosts.csv"), StandardCharsets.UTF_8, StandardOpenOption.CREATE), CsvPreference.STANDARD_PREFERENCE);
+        peers_csv_writer = new CsvListWriter(Files.newBufferedWriter(events_home.getPath("peers.csv"), StandardCharsets.UTF_8, StandardOpenOption.CREATE), CsvPreference.STANDARD_PREFERENCE);
+        lookup_targets_csv_writer = new CsvListWriter(Files.newBufferedWriter(events_home.getPath("lookup_targets.csv"), StandardCharsets.UTF_8, StandardOpenOption.CREATE), CsvPreference.STANDARD_PREFERENCE);
+        oracle_csv_writer = new CsvListWriter(Files.newBufferedWriter(events_home.getPath("oracle.csv"), StandardCharsets.UTF_8, StandardOpenOption.CREATE), CsvPreference.STANDARD_PREFERENCE);
+
         hosts_csv_writer.writeHeader("index", "host_name");
-        peers_csv_writer = new CsvListWriter(new FileWriter(new File(events_home, "peers.csv")), CsvPreference.STANDARD_PREFERENCE);
         peers_csv_writer.writeHeader("index", "peer_key", "host_name", "port");
-        lookup_targets_csv_writer = new CsvListWriter(new FileWriter(new File(events_home, "lookup_targets.csv")), CsvPreference.STANDARD_PREFERENCE);
         lookup_targets_csv_writer.writeHeader("index", "key");
-        oracle_csv_writer = new CsvListWriter(new FileWriter(new File(events_home, "oracle.csv")), CsvPreference.STANDARD_PREFERENCE);
         oracle_csv_writer.writeHeader("time", "alive_peer_indices");
     }
 
@@ -64,7 +67,7 @@ public class EventCsvWriter implements Closeable {
         writer.flush();
 
         if (participants.add(participant)) {
-            peers_csv_writer.write(participant.getId(), participant.getKey(),participant.getHostName(), participant.getPort());
+            peers_csv_writer.write(participant.getId(), participant.getKey(), participant.getHostName(), participant.getPort());
             peers_csv_writer.flush();
         }
     }
@@ -100,6 +103,8 @@ public class EventCsvWriter implements Closeable {
 
         lookup_targets_csv_writer.flush();
         lookup_targets_csv_writer.close();
+
+        events_home.close();
     }
 
     private synchronized CsvListWriter getWriterByParticipant(Participant participant) throws IOException {
@@ -108,7 +113,7 @@ public class EventCsvWriter implements Closeable {
         final CsvListWriter writer;
         if (!host_event_writers.containsKey(host_name)) {
             final int host_index = getHostIndex(host_name);
-            writer = new CsvListWriter(new FileWriter(getHostEventCsv(host_index)), CsvPreference.STANDARD_PREFERENCE);
+            writer = new CsvListWriter(Files.newBufferedWriter(getHostEventCsv(host_index), StandardCharsets.UTF_8, StandardOpenOption.CREATE), CsvPreference.STANDARD_PREFERENCE);
             writer.writeHeader("time", "peer_index", "event_code", "event_params");
             host_event_writers.put(host_name, writer);
         }
@@ -118,18 +123,10 @@ public class EventCsvWriter implements Closeable {
         return writer;
     }
 
-    private File getHostEventCsv(final int host_index) throws IOException {
+    private Path getHostEventCsv(final int host_index) throws IOException {
 
-        final File hostEventHome = getHostEventHome(host_index);
-        if (!hostEventHome.isDirectory()) {
-            FileUtils.forceMkdir(hostEventHome);
-        }
-        return new File(hostEventHome, "events.csv");
-    }
-
-    private File getHostEventHome(final int host_index) {
-
-        return new File(events_home, String.valueOf(host_index));
+        Files.createDirectory(events_home.getPath(String.valueOf(host_index)));
+        return events_home.getPath(String.valueOf(host_index), "events.csv");
     }
 
     private synchronized int getHostIndex(final String host_name) throws IOException {
@@ -138,14 +135,19 @@ public class EventCsvWriter implements Closeable {
         if (!host_indices.containsKey(host_name)) {
             index = next_host_index.incrementAndGet();
             host_indices.put(host_name, index);
-            hosts_csv_writer.write(index, host_name);
-            hosts_csv_writer.flush();
+            writeHosts(index, host_name);
         }
         else {
             index = host_indices.get(host_name);
         }
 
         return index;
+    }
+
+    private void writeHosts(final int index, final String host_name) throws IOException {
+
+        hosts_csv_writer.write(index, host_name);
+        hosts_csv_writer.flush();
     }
 
     private synchronized Integer getLookupTargetIndex(Key target) throws IOException {

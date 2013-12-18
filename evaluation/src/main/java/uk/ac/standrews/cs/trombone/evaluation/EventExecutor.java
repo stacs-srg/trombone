@@ -1,9 +1,11 @@
 package uk.ac.standrews.cs.trombone.evaluation;
 
-import au.com.bytecode.opencsv.CSVReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystem;
+import java.nio.file.Files;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.Callable;
@@ -24,8 +26,12 @@ import org.mashti.gauge.Sampler;
 import org.mashti.gauge.Timer;
 import org.mashti.gauge.reporter.CsvReporter;
 import org.mashti.jetson.exception.RPCException;
+import org.mashti.jetson.util.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.supercsv.io.CsvListReader;
+import org.supercsv.prefs.CsvPreference;
+import org.uncommons.maths.random.MersenneTwisterRNG;
 import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerFactory;
@@ -35,9 +41,10 @@ import uk.ac.standrews.cs.trombone.core.PeerReference;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class EventExecutor {
 
-    private static final Integer[] NO_INDECIES = new Integer[0];
+    private static final Integer[] NO_INDICES = new Integer[0];
     private static final int MAX_BUFFERED_EVENTS = 20000;
     private static final Logger LOGGER = LoggerFactory.getLogger(EventExecutor.class);
+    public static final int LOOKUP_RETRY_COUNT = 5;
     private final Rate lookup_execution_rate = new Rate();
     private final Rate lookup_failure_rate = new Rate();
     private final Rate lookup_correctness_rate = new Rate();
@@ -60,22 +67,24 @@ public class EventExecutor {
     private final ExecutorService task_executor;
     private final Semaphore event_queue_semaphore;
     private final Map<PeerReference, Peer> peers_map = new ConcurrentSkipListMap<PeerReference, Peer>();
-    private final EventCsvReader event_reader;
+    private final EventReader event_reader;
     private final MetricRegistry metric_registry;
     private final CsvReporter csv_reporter;
     private final ConcurrentSkipListMap<Long, Integer[]> oracle = new ConcurrentSkipListMap<Long, Integer[]>();
-    private final Random random = new Random(65465);
-    private int lookup_retry_count;
+    private final Random random = new MersenneTwisterRNG("65465".getBytes(StandardCharsets.UTF_8));
     private Future<Object> task_scheduler_future;
     private long start_time;
 
-    public EventExecutor(File peers_csv, final File events_csv, File lookup_targets_csv, final File oracle_csv) throws IOException, DecoderException {
+    public EventExecutor(final FileSystem events_home) throws IOException, DecoderException {
 
-        event_reader = new EventCsvReader(peers_csv, events_csv, lookup_targets_csv);
+        //FIXME get host index
+        //FIXME get lookup retry count from scenario
+        
+        event_reader = new EventReader(events_home);
         runnable_events = new DelayQueue<RunnableExperimentEvent>();
-        task_populator = Executors.newCachedThreadPool();
-        task_scheduler = Executors.newSingleThreadExecutor();
-        task_executor = Executors.newCachedThreadPool();
+        task_populator = Executors.newCachedThreadPool(new NamedThreadFactory("task_populator_"));
+        task_scheduler = Executors.newSingleThreadExecutor(new NamedThreadFactory("task_scheduler_"));
+        task_executor = Executors.newFixedThreadPool(500, new NamedThreadFactory("task_executor_"));
         event_queue_semaphore = new Semaphore(0, true);
 
         metric_registry = new MetricRegistry("test");
@@ -96,7 +105,7 @@ public class EventExecutor {
         metric_registry.register("event_execution_lag_sampler", event_execution_lag_sampler);
         metric_registry.register("event_execution_duration_timer", event_execution_duration_timer);
 
-        final File observations = new File(events_csv.getParent(), "observations");
+        final File observations = new File("/Users/masih/Desktop/observations");
         FileUtils.deleteDirectory(observations);
         FileUtils.forceMkdir(observations);
         csv_reporter = new CsvReporter(metric_registry, observations);
@@ -110,28 +119,29 @@ public class EventExecutor {
             @Override
             public Void call() throws Exception {
 
-                final CSVReader reader = new CSVReader(new FileReader(oracle_csv));
-
-                reader.readNext();
-                String[] line = reader.readNext();
+                // TODO get rid of the oracle if you can: use a list of alive nodes for when a node joins
+                
+                final CsvListReader reader = new CsvListReader(Files.newBufferedReader(events_home.getPath("oracle.csv"), StandardCharsets.UTF_8), CsvPreference.STANDARD_PREFERENCE);
+                reader.getHeader(true);
+                List<String> line = reader.read();
                 while (line != null) {
 
-                    final Long time = Long.valueOf(line[0]);
-                    final Integer[] peer_indecies;
-                    if (line[1].isEmpty()) {
-                        peer_indecies = NO_INDECIES;
+                    final Long time = Long.valueOf(line.get(0));
+                    final Integer[] peer_indices;
+                    if (line.get(1).isEmpty()) {
+                        peer_indices = NO_INDICES;
                     }
                     else {
-                        final String[] peer_indecies_as_string = line[1].split(" ");
-                        final int indecies_count = peer_indecies_as_string.length;
-                        peer_indecies = new Integer[indecies_count];
+                        final String[] peer_indices_as_string = line.get(1).split(" ");
+                        final int indices_count = peer_indices_as_string.length;
+                        peer_indices = new Integer[indices_count];
 
-                        for (int i = 0; i < indecies_count; i++) {
-                            peer_indecies[i] = Integer.parseInt(peer_indecies_as_string[i]);
+                        for (int i = 0; i < indices_count; i++) {
+                            peer_indices[i] = Integer.parseInt(peer_indices_as_string[i]);
                         }
                     }
-                    oracle.put(time, peer_indecies);
-                    line = reader.readNext();
+                    oracle.put(time, peer_indices);
+                    line = reader.read();
                 }
                 return null;
             }
@@ -186,6 +196,43 @@ public class EventExecutor {
         }
     }
 
+    void execute(Peer peer, final Event event) throws IOException {
+
+        if (event instanceof ChurnEvent) {
+            execute(peer, (ChurnEvent) event);
+        }
+        else if (event instanceof LookupEvent) {
+            execute(peer, (LookupEvent) event);
+
+        }
+        else {
+            throw new IllegalArgumentException("unknown event type: " + event);
+        }
+    }
+
+    void execute(Peer peer, final ChurnEvent event) throws IOException {
+
+        runnable_events.add(new RunnableChurnEvent(peer, event));
+    }
+
+    void execute(Peer peer, final LookupEvent event) {
+
+        runnable_events.add(new RunnableWorkloadEvent(peer, event));
+    }
+
+    synchronized Peer getPeerByReference(PeerReference reference) {
+
+        final Peer peer;
+        if (!peers_map.containsKey(reference)) {
+            peer = PeerFactory.createPeer(reference, null);
+            peers_map.put(reference, peer);
+        }
+        else {
+            peer = peers_map.get(reference);
+        }
+        return peer;
+    }
+
     private void loadInitialEvents() throws IOException {
 
         for (int i = 0; i < MAX_BUFFERED_EVENTS; i++) {
@@ -213,7 +260,7 @@ public class EventExecutor {
                     }
                 }
                 catch (Exception e) {
-                    LOGGER.error("failure occured while queuing events", e);
+                    LOGGER.error("failure occurred while queuing events", e);
                 }
                 finally {
                     LOGGER.info("finished queueing events");
@@ -229,30 +276,6 @@ public class EventExecutor {
         final PeerReference event_source = event.getSource();
         final Peer peer = getPeerByReference(event_source);
         execute(peer, event);
-    }
-
-    void execute(Peer peer, final Event event) throws IOException {
-
-        if (event instanceof ChurnEvent) {
-            execute(peer, (ChurnEvent) event);
-        }
-        else if (event instanceof LookupEvent) {
-            execute(peer, (LookupEvent) event);
-
-        }
-        else {
-            throw new IllegalArgumentException("unknown event type: " + event);
-        }
-    }
-
-    void execute(Peer peer, final ChurnEvent event) throws IOException {
-
-        runnable_events.add(new RunnableChurnEvent(peer, event));
-    }
-
-    void execute(Peer peer, final LookupEvent event) {
-
-        runnable_events.add(new RunnableWorkloadEvent(peer, event));
     }
 
     private void joinWithTimeout(final Peer peer, final long timeout_nanos) {
@@ -274,8 +297,7 @@ public class EventExecutor {
                         catch (RPCException e) {
                             successful = false;
                         }
-                    }
-                    while (!Thread.currentThread().isInterrupted() && !successful);
+                    } while (!Thread.currentThread().isInterrupted() && !successful);
 
                     return successful;
                 }
@@ -291,25 +313,12 @@ public class EventExecutor {
         final long time_through_experiment = getCurrentTimeInNanos();
         final Map.Entry<Long, Integer[]> floor = oracle.floorEntry(time_through_experiment);
         if (floor != null) {
-            final Integer[] candidate_indecies = floor.getValue();
-            final int candidate_index = random.nextInt(candidate_indecies.length);
-            return event_reader.getPeerReferenceByIndex(candidate_indecies[candidate_index]);
+            final Integer[] candidate_indices = floor.getValue();
+            final int candidate_index = random.nextInt(candidate_indices.length);
+            return event_reader.getPeerReferenceByIndex(candidate_indices[candidate_index]);
         }
         LOGGER.error("no peer is alive to join to");
         throw new IllegalStateException("peer joining when there is no node alive");
-    }
-
-    synchronized Peer getPeerByReference(PeerReference reference) {
-
-        final Peer peer;
-        if (!peers_map.containsKey(reference)) {
-            peer = PeerFactory.createPeer(reference, null);
-            peers_map.put(reference, peer);
-        }
-        else {
-            peer = peers_map.get(reference);
-        }
-        return peer;
     }
 
     private abstract class RunnableExperimentEvent implements Runnable, Delayed {
@@ -400,7 +409,7 @@ public class EventExecutor {
                 }
             }
             catch (final IOException e) {
-                LOGGER.error("failure occured when executing churn event", e);
+                LOGGER.error("failure occurred when executing churn event", e);
             }
         }
     }
@@ -418,7 +427,7 @@ public class EventExecutor {
             final LookupEvent event = (LookupEvent) getEvent();
 
             try {
-                final PeerMetric.LookupMeasurement measurement = peer.lookup(event.getTarget(), lookup_retry_count);
+                final PeerMetric.LookupMeasurement measurement = peer.lookup(event.getTarget(), LOOKUP_RETRY_COUNT);
                 final PeerReference expected_result = event.getExpectedResult();
                 final long hop_count = measurement.getHopCount();
                 final long retry_count = measurement.getRetryCount();

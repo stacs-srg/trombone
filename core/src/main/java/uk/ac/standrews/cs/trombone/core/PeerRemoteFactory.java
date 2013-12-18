@@ -6,6 +6,7 @@ import io.netty.channel.Channel;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.InetSocketAddress;
+import java.util.concurrent.ConcurrentHashMap;
 import org.mashti.jetson.ChannelPool;
 import org.mashti.jetson.Client;
 import org.mashti.jetson.FutureResponse;
@@ -18,7 +19,7 @@ import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class PeerRemoteFactory extends LeanClientFactory<PeerRemote> {
-
+    private static final ConcurrentHashMap<InetSocketAddress, ChannelPool> channel_pool_map = new ConcurrentHashMap<InetSocketAddress, ChannelPool>();
     private static final Logger LOGGER = LoggerFactory.getLogger(PeerRemoteFactory.class);
     private final Peer peer;
     private final PeerState peer_state;

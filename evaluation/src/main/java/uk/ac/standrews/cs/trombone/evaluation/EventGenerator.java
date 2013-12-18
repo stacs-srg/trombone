@@ -2,6 +2,10 @@ package uk.ac.standrews.cs.trombone.evaluation;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
@@ -12,7 +16,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
-import org.apache.commons.io.FileUtils;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
@@ -23,7 +26,7 @@ public class EventGenerator {
     private final TreeSet<ParticipantEventIterator> event_iterators;
     private final ConcurrentSkipListSet<Event> events = new ConcurrentSkipListSet<Event>();
     private final AtomicLong min_event_time = new AtomicLong();
-    private final EventCsvWriter event_csv_writer;
+    private final EventWriter event_csv_writer;
     private final ExecutorService executor;
     private Future<?> event_generator_task;
 
@@ -32,11 +35,16 @@ public class EventGenerator {
         this.scenario = scenario;
         this.event_home = event_home;
         event_iterators = new TreeSet<>();
-        final File events_home = new File(event_home, scenario.getName());
-        FileUtils.forceMkdir(events_home);
-        event_csv_writer = new EventCsvWriter(events_home);
+        final File events_home = new File(event_home, scenario.getName() + ".zip");
+        URI uri = URI.create("jar:" + events_home.toURI().toString());
+        System.out.println(uri.toString());
+        Map<String, String> env = new HashMap<>();
+        env.put("create", "true");
+        FileSystem fs = FileSystems.newFileSystem(uri, env);
+        event_csv_writer = new EventWriter(fs);
         init(scenario);
         executor = Executors.newCachedThreadPool();
+
     }
 
     public void generate() throws ExecutionException, InterruptedException, IOException {

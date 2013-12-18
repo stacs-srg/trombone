@@ -1,43 +1,50 @@
 package uk.ac.standrews.cs.trombone.evaluation;
 
-import au.com.bytecode.opencsv.CSVReader;
 import java.io.Closeable;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystem;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Pattern;
 import org.apache.commons.codec.DecoderException;
 import org.mashti.jetson.util.CloseableUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.supercsv.io.CsvListReader;
+import org.supercsv.prefs.CsvPreference;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class EventCsvReader implements Closeable, Iterator<Event> {
+public class EventReader implements Closeable, Iterator<Event> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(EventCsvReader.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(EventReader.class);
     private static final boolean DEFAULT_SKIP_FIRST_ROW = true;
-    private final CSVReader event_reader;
+    private static final Pattern LOOKUP_EVENT_PARAM_PATTERN = Pattern.compile(":");
+    private final CsvListReader event_reader;
     private final Map<Integer, Key> lookup_targets_index;
     private final Map<Integer, PeerReference> peers_index;
-    private final AtomicReference<String[]> next_row_reference;
+    private final AtomicReference<List<String>> next_row_reference;
 
-    public EventCsvReader(File peers_csv, File events_csv, File lookup_targets_csv) throws IOException, DecoderException {
-        this(peers_csv, events_csv, lookup_targets_csv, DEFAULT_SKIP_FIRST_ROW);
+    public EventReader(FileSystem events_home) throws IOException, DecoderException {
+
+        this(events_home, DEFAULT_SKIP_FIRST_ROW);
     }
 
-    public EventCsvReader(File peers_csv, File events_csv, File lookup_targets_csv, boolean skip_first_row) throws IOException, DecoderException {
+    public EventReader(FileSystem events_home, boolean skip_first_row) throws IOException, DecoderException {
 
-        event_reader = new CSVReader(new FileReader(events_csv));
-        lookup_targets_index = readLookupTargets(lookup_targets_csv);
-        peers_index = readPeers(peers_csv);
-        next_row_reference = new AtomicReference<String[]>();
+        event_reader = new CsvListReader(Files.newBufferedReader(events_home.getPath("1", "events.csv"), StandardCharsets.UTF_8), CsvPreference.STANDARD_PREFERENCE);
+        lookup_targets_index = readLookupTargets(Files.newBufferedReader(events_home.getPath("lookup_targets.csv"), StandardCharsets.UTF_8));
+        peers_index = readPeers(Files.newBufferedReader(events_home.getPath("peers.csv"), StandardCharsets.UTF_8));
+        next_row_reference = new AtomicReference<>();
 
         if (skip_first_row) {
             skipFirstRow();
@@ -53,7 +60,7 @@ public class EventCsvReader implements Closeable, Iterator<Event> {
     @Override
     public synchronized Event next() {
 
-        final String[] next_row = next_row_reference.getAndSet(null);
+        final List<String> next_row = next_row_reference.getAndSet(null);
         if (next_row != null) {
             return decode(next_row);
         }
@@ -62,6 +69,7 @@ public class EventCsvReader implements Closeable, Iterator<Event> {
 
     @Override
     public void remove() {
+
         throw new UnsupportedOperationException();
     }
 
@@ -71,21 +79,26 @@ public class EventCsvReader implements Closeable, Iterator<Event> {
         event_reader.close();
     }
 
-    private static Map<Integer, PeerReference> readPeers(final File peers_csv) throws IOException, DecoderException {
+    PeerReference getPeerReferenceByIndex(final Integer peer_id) {
+
+        return peers_index.get(peer_id);
+    }
+
+    private static Map<Integer, PeerReference> readPeers(final Reader peers_csv) throws IOException, DecoderException {
 
         final Map<Integer, PeerReference> peers = new HashMap<Integer, PeerReference>();
-        CSVReader reader = null;
+        CsvListReader reader = null;
 
         try {
-            reader = new CSVReader(new FileReader(peers_csv));
-            reader.readNext();  //skip header
-            String[] row = reader.readNext();
+            reader = new CsvListReader(peers_csv, CsvPreference.STANDARD_PREFERENCE);
+            reader.getHeader(true);  //skip header
+            List<String> row = reader.read();
             do {
-                final Integer index = Integer.valueOf(row[0]);
-                final Key key = Key.valueOf(row[1]);
-                final InetSocketAddress address = new InetSocketAddress(row[2], Integer.valueOf(row[3]));
+                final Integer index = Integer.valueOf(row.get(0));
+                final Key key = Key.valueOf(row.get(1));
+                final InetSocketAddress address = new InetSocketAddress(row.get(2), Integer.valueOf(row.get(3)));
                 peers.put(index, new PeerReference(key, address));
-                row = reader.readNext();
+                row = reader.read();
             } while (row != null);
             return peers;
         }
@@ -94,19 +107,19 @@ public class EventCsvReader implements Closeable, Iterator<Event> {
         }
     }
 
-    private static Map<Integer, Key> readLookupTargets(final File lookup_targets_csv) throws IOException, DecoderException {
+    private static Map<Integer, Key> readLookupTargets(final Reader lookup_targets_csv) throws IOException, DecoderException {
 
         final Map<Integer, Key> lookup_targets = new HashMap<Integer, Key>();
-        CSVReader reader = null;
+        CsvListReader reader = null;
         try {
-            reader = new CSVReader(new FileReader(lookup_targets_csv));
-            reader.readNext();  //skip header
-            String[] row = reader.readNext();
+            reader = new CsvListReader(lookup_targets_csv, CsvPreference.STANDARD_PREFERENCE);
+            reader.getHeader(true); //skip header
+            List<String> row = reader.read();
             do {
-                final Integer index = Integer.valueOf(row[0]);
-                final Key key = Key.valueOf(row[1]);
+                final Integer index = Integer.valueOf(row.get(0));
+                final Key key = Key.valueOf(row.get(1));
                 lookup_targets.put(index, key);
-                row = reader.readNext();
+                row = reader.read();
             } while (row != null);
             return lookup_targets;
         }
@@ -115,25 +128,25 @@ public class EventCsvReader implements Closeable, Iterator<Event> {
         }
     }
 
-    private Event decode(String[] next_row) {
+    private Event decode(List<String> next_row) {
 
         assert next_row != null;
 
-        final long time = Long.valueOf(next_row[0]);
-        final Integer peer_id = Integer.valueOf(next_row[1]);
+        final long time = Long.valueOf(next_row.get(0));
+        final Integer peer_id = Integer.valueOf(next_row.get(1));
         final PeerReference peer = getPeerReferenceByIndex(peer_id);
-        final int code = Integer.valueOf(next_row[2]);
+        final int code = Integer.valueOf(next_row.get(2));
         switch (code) {
             case ChurnEvent.UNAVAILABLE_CODE:
                 return new ChurnEvent(peer, peer_id, time, false);
 
             case ChurnEvent.AVAILABLE_CODE:
                 final ChurnEvent event = new ChurnEvent(peer, peer_id, time, true);
-                event.setDurationInNanos(Long.valueOf(next_row[3]));
+                event.setDurationInNanos(Long.valueOf(next_row.get(3)));
                 return event;
 
             case LookupEvent.LOOKUP_EVENT_CODE:
-                final String[] params = next_row[3].split(":");
+                final String[] params = LOOKUP_EVENT_PARAM_PATTERN.split(next_row.get(3));
                 final Key target = getLookupTargetByIndex(Integer.valueOf(params[0]));
                 final Integer expected_result_id = Integer.valueOf(params[1]);
                 final PeerReference expected_result = getPeerReferenceByIndex(expected_result_id);
@@ -147,26 +160,24 @@ public class EventCsvReader implements Closeable, Iterator<Event> {
     }
 
     private Key getLookupTargetByIndex(final Integer index) {
+
         return lookup_targets_index.get(index);
     }
 
-    PeerReference getPeerReferenceByIndex(final Integer peer_id) {
-        return peers_index.get(peer_id);
-    }
-
     private void skipFirstRow() throws IOException {
-        event_reader.readNext();
+
+        event_reader.getHeader(true);
     }
 
     private boolean setNextRow() {
 
-        String[] next_row;
+        List<String> next_row;
         try {
-            next_row = event_reader.readNext();
+            next_row = event_reader.read();
         }
         catch (final IOException e) {
             next_row = null;
-            LOGGER.error("failure occured while reading next row from event CSV file", e);
+            LOGGER.error("failure occurred while reading next row from event CSV file", e);
         }
         next_row_reference.set(next_row);
         return next_row != null;
