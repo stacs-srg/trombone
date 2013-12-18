@@ -10,7 +10,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>${project.parent.groupId}.${project.parent.artifactId}</groupId>
+    <groupId>uk.ac.standrews.cs.t3</groupId>
     <artifactId>evaluation</artifactId>
 
     <dependencies>

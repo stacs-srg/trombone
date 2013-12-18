@@ -1,8 +1,6 @@
 package uk.ac.standrews.cs.trombone.evaluation;
 
 import java.io.File;
-import java.io.Serializable;
-import java.lang.management.ManagementFactory;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Future;
@@ -14,10 +12,10 @@ import net.schmizz.sshj.userauth.password.Resource;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mashti.sina.distribution.statistic.Statistics;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.SSHHost;
-import uk.ac.standrews.cs.shabdiz.job.Job;
 import uk.ac.standrews.cs.shabdiz.job.Worker;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
@@ -28,9 +26,13 @@ import uk.ac.standrews.cs.shabdiz.util.Input;
  */
 public class DelayExperiment {
 
-    private static final AuthPublickey SSHJ_AUTH;
+    private static AuthPublickey public_key_authenticator;
+    private Set<Host> hosts;
+    private WorkerNetwork workerNetwork;
 
-    static {
+    @Before
+    public void setUp() throws Exception {
+
         final OpenSSHKeyFile key_provider = new OpenSSHKeyFile();
         key_provider.init(new File(System.getProperty("user.home") + File.separator + ".ssh", "id_rsa"), new PasswordFinder() {
 
@@ -46,30 +48,21 @@ public class DelayExperiment {
                 return false;
             }
         });
-        SSHJ_AUTH = new AuthPublickey(key_provider);
-    }
-
-    private Set<Host> hosts;
-    private WorkerNetwork workerNetwork;
-
-    @Before
-    public void setUp() throws Exception {
+        public_key_authenticator = new AuthPublickey(key_provider);
 
         System.out.println(System.getProperty("java.io.tmpdir"));
-        
-        hosts = new HashSet<>();
-//        hosts.add(new SSHHost("masih.host.cs.st-andrews.ac.uk", SSHJ_AUTH));
-        hosts.add(new SSHHost("blub.cs.st-andrews.ac.uk", SSHJ_AUTH));
 
+        hosts = new HashSet<>();
+        hosts.add(new SSHHost("blub.cs.st-andrews.ac.uk", public_key_authenticator));
+
+        //                        hosts.add(new SSHHost("masih.host.cs.st-andrews.ac.uk", public_key_authenticator));
         //        hosts.add(new LocalHost());
 
-        workerNetwork = new WorkerNetwork();
+        workerNetwork = new WorkerNetwork(49958);
         workerNetwork.getWorkerManager().setWorkerDeploymentTimeout(new Duration(2, TimeUnit.MINUTES));
         for (Host host : hosts) {
             workerNetwork.add(host);
         }
-
-        workerNetwork.setScanEnabled(false);
         workerNetwork.addCurrentJVMClasspath();
         workerNetwork.deployAll();
     }
@@ -77,14 +70,36 @@ public class DelayExperiment {
     @Test
     public void testDelay() throws Exception {
 
+        HashSet<String> hosts_to_ping = new HashSet<>();
+        hosts_to_ping.add("blub.cs.st-andrews.ac.uk");
+        //        hosts_to_ping.add("compute-0-1.local");
+        //        hosts_to_ping.add("compute-0-2.local");
+        //        hosts_to_ping.add("compute-0-3.local");
+
         for (ApplicationDescriptor descriptor : workerNetwork) {
 
             Worker worker = descriptor.getApplicationReference();
             System.out.println("submitting job...");
-            final Future<Serializable> submit = worker.submit(new aa());
+
+            Future<HashSet<Statistics>> submit = null;
+            try {
+                submit = worker.submit(new RoundTripDelayMeasurementJob(hosts_to_ping, new Duration(1, TimeUnit.SECONDS), 5, new Duration(1, TimeUnit.SECONDS)));
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
             System.out.println("awaiting result...");
-            System.out.println(" >>> " + submit.get());
+            for (Statistics statistics : submit.get()) {
+                System.out.println(" >>> " + statistics.getMean());
+            }
         }
+
+        //        final LeanClientFactory<WorkerRemote> proxy_factory = new LeanClientFactory<>(WorkerRemote.class);
+        //        final WorkerRemote workerRemote = proxy_factory.get(new InetSocketAddress("138.251.6.157", 35997));
+        //        final UUID submit = workerRemote.submit(new RoundTripDelayMeasurementJob(hosts_to_ping, new Duration(1, TimeUnit.SECONDS), 5, new Duration(1, TimeUnit.SECONDS)));
+        //        System.out.println(submit);
+        //        Thread.sleep(1000);
+
         //        final Timer timer = new Timer();
         //        System.out.println(InetAddress.getLocalHost().getHostName());
         //        for (int i = 0; i < 30; i++) {
@@ -104,16 +119,5 @@ public class DelayExperiment {
     public void tearDown() throws Exception {
 
         workerNetwork.shutdown();
-    }
-
-    public static class aa implements Job<Serializable> {
-
-        private static final long serialVersionUID = -2763435033698416932L;
-
-        @Override
-        public Serializable call() throws Exception {
-
-            return ManagementFactory.getOperatingSystemMXBean().getName();
-        }
     }
 }
