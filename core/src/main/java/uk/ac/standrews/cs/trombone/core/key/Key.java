@@ -21,7 +21,7 @@ public class Key implements Comparable<Key>, Serializable {
 
     public Key(final byte[] value) {
 
-        this.value = value;
+        this.value = copy(value);
         length = value.length * Byte.SIZE;
     }
 
@@ -66,7 +66,7 @@ public class Key implements Comparable<Key>, Serializable {
 
     public byte[] getValue() {
 
-        return Arrays.copyOf(value, value.length);
+        return copy(value);
     }
 
     public int getLength() {
@@ -115,6 +115,11 @@ public class Key implements Comparable<Key>, Serializable {
     public String toString() {
 
         return Hex.encodeHexString(getValue());
+    }
+
+    private byte[] copy(final byte[] value) {
+
+        return Arrays.copyOf(value, value.length);
     }
 
     private static int compareTo(final byte[] first, final byte[] second) {
