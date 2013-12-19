@@ -66,7 +66,7 @@ public class Key implements Comparable<Key>, Serializable {
 
     public byte[] getValue() {
 
-        return Arrays.copyOf(value, length);
+        return Arrays.copyOf(value, value.length);
     }
 
     public int getLength() {
