@@ -30,7 +30,7 @@ public class ParticipantEventIterator implements Iterator<Event>, Comparable<Par
     @Override
     public synchronized boolean hasNext() {
 
-        return !isTimeUp() ; //&& !last_availability.isAvailable();
+        return !isTimeUp(); //&& !last_availability.isAvailable();
     }
 
     @Override
@@ -92,6 +92,24 @@ public class ParticipantEventIterator implements Iterator<Event>, Comparable<Par
     }
 
     @Override
+    public boolean equals(final Object other) {
+
+        if (this == other) { return true; }
+        if (!(other instanceof ParticipantEventIterator)) { return false; }
+
+        final ParticipantEventIterator that = (ParticipantEventIterator) other;
+        if (!participant.equals(that.participant)) { return false; }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+
+        return 31 * participant.hashCode();
+    }
+
+    @Override
     public String toString() {
 
         return "generator " + participant.getId();
@@ -99,8 +117,8 @@ public class ParticipantEventIterator implements Iterator<Event>, Comparable<Par
 
     private ChurnEvent getChurnEventAt(final long time) {
 
-        if(time >= experiment_duration_nanos){
-           return new ChurnEvent(participant, experiment_duration_nanos, false); 
+        if (time >= experiment_duration_nanos) {
+            return new ChurnEvent(participant, experiment_duration_nanos, false);
         }
 
         Churn.Availability availability = churn.getAvailabilityAt(time);

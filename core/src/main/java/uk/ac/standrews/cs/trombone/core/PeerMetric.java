@@ -4,6 +4,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.mashti.gauge.Metric;
 import org.mashti.gauge.Rate;
 import org.mashti.gauge.Sampler;
@@ -94,8 +95,8 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
         private final int retry_threshold;
         private final Timer.Time time;
         private final AtomicBoolean done;
-        private volatile int retry_count;
-        private volatile int hop_count;
+        private final AtomicInteger retry_count = new AtomicInteger();
+        private final AtomicInteger hop_count = new AtomicInteger();
         private volatile PeerReference result;
         private volatile RPCException error;
         private long duration_in_nanos;
@@ -110,27 +111,27 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
         public synchronized void incrementRetryCount() {
 
             if (!isDone()) {
-                retry_count++;
+                retry_count.getAndIncrement();
             }
         }
 
         public synchronized void incrementHopCount() {
 
             if (!isDone()) {
-                hop_count++;
+                hop_count.getAndIncrement();
             }
         }
 
         public synchronized void resetHopCount() {
 
             if (!isDone()) {
-                hop_count = 0;
+                hop_count.set(0);
             }
         }
 
         public synchronized boolean hasRetryThresholdReached() {
 
-            return retry_count > retry_threshold;
+            return retry_count.get() > retry_threshold;
         }
 
         public synchronized void stop(PeerReference result) {
@@ -138,8 +139,8 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
             if (doneIfUndone()) {
                 this.result = result;
                 duration_in_nanos = time.stop();
-                lookup_success_hop_count_histogram.update(hop_count);
-                lookup_success_retry_count_histogram.update(retry_count);
+                lookup_success_hop_count_histogram.update(hop_count.get());
+                lookup_success_retry_count_histogram.update(retry_count.get());
             }
         }
 
@@ -174,12 +175,12 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
 
         public long getHopCount() {
 
-            return hop_count;
+            return hop_count.get();
         }
 
         public long getRetryCount() {
 
-            return retry_count;
+            return retry_count.get();
         }
 
         public long getDurationInNanos() {

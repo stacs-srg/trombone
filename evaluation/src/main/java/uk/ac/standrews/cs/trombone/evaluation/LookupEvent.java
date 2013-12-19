@@ -10,7 +10,7 @@ public class LookupEvent extends Event {
     static final int LOOKUP_EVENT_CODE = 2;
     private static final long serialVersionUID = 8171231149854930079L;
     private final Key target;
-    private PeerReference expected_result;
+    private transient PeerReference expected_result;
     private Integer expected_result_id;
     private Integer target_id;
 
@@ -58,7 +58,7 @@ public class LookupEvent extends Event {
     public boolean equals(final Object other) {
 
         if (this == other) { return true; }
-        if (!(other instanceof ChurnEvent)) { return false; }
+        if (!(other instanceof LookupEvent)) { return false; }
         final LookupEvent that = (LookupEvent) other;
         return super.equals(other) && target.equals(that.target) && expected_result.equals(that.expected_result);
     }
