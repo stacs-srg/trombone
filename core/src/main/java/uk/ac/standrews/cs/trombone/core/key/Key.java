@@ -37,26 +37,25 @@ public class Key implements Comparable<Key>, Serializable {
 
     public static Key valueOf(short value) {
 
-        if (value == Short.MAX_VALUE) {value = Short.MIN_VALUE;}
-        if (value == Short.MIN_VALUE) {value = Short.MAX_VALUE;}
         final byte[] key_value = ByteBuffer.allocate(SHORT_SIZE_IN_BYTES).putShort(value).array();
-        return new Key(key_value);
+        return valueOf(key_value);
     }
 
     public static Key valueOf(int value) {
 
-        if (value == Integer.MAX_VALUE) {value = Integer.MIN_VALUE;}
-        if (value == Integer.MIN_VALUE) {value = Integer.MAX_VALUE;}
         final byte[] key_value = ByteBuffer.allocate(INTEGER_SIZE_IN_BYTES).putInt(value).array();
-        return new Key(key_value);
+        return valueOf(key_value);
     }
 
     public static Key valueOf(long value) {
 
-        if (value == Long.MAX_VALUE) {value = Long.MIN_VALUE;}
-        if (value == Long.MIN_VALUE) {value = Long.MAX_VALUE;}
         final byte[] key_value = ByteBuffer.allocate(LONG_SIZE_IN_BYTES).putLong(value).array();
-        return new Key(key_value);
+        return valueOf(key_value);
+    }
+
+    public static Key valueOf(final byte[] value) {
+
+        return new Key(value);
     }
 
     public static Key valueOf(String hex_encoded_value) throws DecoderException {
@@ -117,7 +116,7 @@ public class Key implements Comparable<Key>, Serializable {
         return Hex.encodeHexString(getValue());
     }
 
-    private byte[] copy(final byte[] value) {
+    private static byte[] copy(final byte[] value) {
 
         return Arrays.copyOf(value, value.length);
     }

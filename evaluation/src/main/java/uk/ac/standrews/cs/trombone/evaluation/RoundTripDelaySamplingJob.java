@@ -14,20 +14,20 @@ import uk.ac.standrews.cs.shabdiz.job.Job;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 
 /**
- * Measures the round trip delay from this host to a set of given hosts in nanoseconds.
+ * Samples the round trip delay from this host to a set of given host names in nanoseconds using {@link InetAddress#isReachable(int)} for a number of times.
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class RoundTripDelayMeasurementJob implements Job<HashSet<Statistics>> {
+public class RoundTripDelaySamplingJob implements Job<HashMap<InetAddress, Statistics>> {
 
-    private static final long serialVersionUID = 216423340101673216L;
-    private static final Logger LOGGER = LoggerFactory.getLogger(RoundTripDelayMeasurementJob.class);
+    private static final long serialVersionUID = 4397208965390000447L;
+    private static final Logger LOGGER = LoggerFactory.getLogger(RoundTripDelaySamplingJob.class);
     private final HashSet<String> host_names;
     private final long ping_interval_millis;
     private final int ping_count;
     private final int ping_timeout_millis;
 
-    public RoundTripDelayMeasurementJob(HashSet<String> host_names, Duration ping_interval, int ping_count, Duration ping_timeout) {
+    public RoundTripDelaySamplingJob(HashSet<String> host_names, Duration ping_interval, int ping_count, Duration ping_timeout) {
 
         if (ping_count < 1) { throw new IllegalArgumentException("ping count must be at least 1"); }
 
@@ -38,30 +38,39 @@ public class RoundTripDelayMeasurementJob implements Job<HashSet<Statistics>> {
     }
 
     @Override
-    public HashSet<Statistics> call() throws Exception {
+    public HashMap<InetAddress, Statistics> call() throws InterruptedException, IOException {
 
-        final Map<InetAddress, Statistics> host_statistics = initHostStatistics();
+        final HashMap<InetAddress, Statistics> host_statistics = initHostStatistics();
 
         for (int i = 0; i < ping_count; i++) {
 
             Thread.sleep(ping_interval_millis);
-            pingHosts(host_statistics);
+            updateRoundTripDelaySamples(host_statistics);
         }
 
-        return new HashSet<>(host_statistics.values());
+        return host_statistics;
     }
 
-    private void pingHosts(final Map<InetAddress, Statistics> host_statistics) throws IOException {
+    private HashMap<InetAddress, Statistics> initHostStatistics() throws UnknownHostException {
+
+        final HashMap<InetAddress, Statistics> host_statistics = new HashMap<>();
+        for (String host_name : host_names) {
+            host_statistics.put(InetAddress.getByName(host_name), new Statistics());
+        }
+        return host_statistics;
+    }
+
+    private void updateRoundTripDelaySamples(final Map<InetAddress, Statistics> host_statistics) throws IOException {
 
         for (Map.Entry<InetAddress, Statistics> host_statistics_entry : host_statistics.entrySet()) {
 
             final InetAddress host = host_statistics_entry.getKey();
             final Statistics statistics = host_statistics_entry.getValue();
-            pingHost(host, statistics);
+            updateRoundTripDelaySample(host, statistics);
         }
     }
 
-    private void pingHost(final InetAddress host, final Statistics statistics) throws IOException {
+    private void updateRoundTripDelaySample(final InetAddress host, final Statistics statistics) throws IOException {
 
         final long now = System.nanoTime();
         if (host.isReachable(ping_timeout_millis)) {
@@ -69,16 +78,7 @@ public class RoundTripDelayMeasurementJob implements Job<HashSet<Statistics>> {
             statistics.addSample(elapsed);
         }
         else {
-            LOGGER.debug("host {} did not appear to be reachable", host);
+            LOGGER.debug("host {} does not appear to be reachable. Skipped from delay samples", host);
         }
-    }
-
-    private Map<InetAddress, Statistics> initHostStatistics() throws UnknownHostException {
-
-        final Map<InetAddress, Statistics> host_statistics = new HashMap<>();
-        for (String host_name : host_names) {
-            host_statistics.put(InetAddress.getByName(host_name), new Statistics());
-        }
-        return host_statistics;
     }
 }
