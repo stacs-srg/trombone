@@ -6,6 +6,10 @@
         </encoder>
     </appender>
 
+    <!--SSHJ error logs only-->
+    <logger name="net.schmizz" level="ERROR"/>
+    <logger name="io.netty" level="ERROR"/>
+
     <root level="info">
         <appender-ref ref="STDOUT"/>
     </root>
