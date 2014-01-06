@@ -36,7 +36,7 @@ public class BlubRoundTripDelayExperiment {
         }
     }
 
-    public static final int PING_COUNT = 100;
+    public static final int PING_COUNT = 200;
     private static final Logger LOGGER = LoggerFactory.getLogger(BlubRoundTripDelayExperiment.class);
     private WorkerNetwork network;
 
