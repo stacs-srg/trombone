@@ -3,6 +3,7 @@ package uk.ac.standrews.cs.trombone.evaluation.util;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Comparator;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 import org.mashti.sina.distribution.statistic.Statistics;
@@ -51,7 +52,14 @@ public class MeanRoundTripDelaySamplingJob implements Job<Double> {
 
     private TreeSet<InetAddress> initHostAddresses() throws UnknownHostException {
 
-        final TreeSet<InetAddress> addresses = new TreeSet<>();
+        final TreeSet<InetAddress> addresses = new TreeSet<>(new Comparator<InetAddress>() {
+
+            @Override
+            public int compare(final InetAddress one, final InetAddress other) {
+
+                return one.getHostName().compareTo(other.getHostName());
+            }
+        });
         for (String host_name : host_names) {
             addresses.add(InetAddress.getByName(host_name));
         }
