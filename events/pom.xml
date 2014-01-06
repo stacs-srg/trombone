@@ -20,21 +20,13 @@
             <artifactId>core</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>churn</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>workload</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+        
         <dependency>
             <groupId>javax.inject</groupId>
             <artifactId>javax.inject</artifactId>
             <version>1</version>
         </dependency>
+        
         <dependency>
             <groupId>net.sf.opencsv</groupId>
             <artifactId>opencsv</artifactId>
@@ -55,12 +47,6 @@
             <groupId>uk.ac.standrews.cs.shabdiz</groupId>
             <artifactId>job</artifactId>
             <version>1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>uk.ac.standrews.cs.shabdiz</groupId>
-            <artifactId>job</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <type>test-jar</type>
         </dependency>
     </dependencies>
 

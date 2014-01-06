@@ -43,7 +43,7 @@ public class DelayExperiment {
         hosts.add(blub);
         network = new WorkerNetwork();
         network.addCurrentJVMClasspath();
-        network.getWorkerManager().setWorkerDeploymentTimeout(new Duration(2, TimeUnit.MINUTES));     
+        network.getWorkerManager().setWorkerDeploymentTimeout(new Duration(2, TimeUnit.MINUTES));
         for (Host host : hosts) {
             network.add(host);
         }
