@@ -9,15 +9,18 @@ import net.schmizz.sshj.userauth.method.AuthPublickey;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mashti.jetson.lean.LeanClientFactory;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.integrity.TestJobRemoteFactory;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
 import uk.ac.standrews.cs.shabdiz.job.WorkerRemote;
+import uk.ac.standrews.cs.test.category.Ignore;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
+@Category(Ignore.class)
 public class TestJobSubmission {
 
     private static AuthPublickey public_key_authenticator;
@@ -29,7 +32,7 @@ public class TestJobSubmission {
 
         System.out.println(System.getProperty("java.io.tmpdir"));
 
-//        workerNetwork = new WorkerNetwork(49958);
+        //        workerNetwork = new WorkerNetwork(49958);
     }
 
     @Test
@@ -42,13 +45,12 @@ public class TestJobSubmission {
         //        hosts_to_ping.add("compute-0-3.local");
 
         final LeanClientFactory<WorkerRemote> proxy_factory = new LeanClientFactory<>(WorkerRemote.class);
-//        final WorkerRemote workerRemote = proxy_factory.get(new InetSocketAddress(InetAddress.getByName("blub.cs.st-andrews.ac.uk"), 56407));
+        //        final WorkerRemote workerRemote = proxy_factory.get(new InetSocketAddress(InetAddress.getByName("blub.cs.st-andrews.ac.uk"), 56407));
         final WorkerRemote workerRemote = proxy_factory.get(new InetSocketAddress(InetAddress.getByName("blub.cs.st-andrews.ac.uk"), 44837));
         final UUID submit = workerRemote.submit(TestJobRemoteFactory.makeEchoJob("SSS"));
-//        final UUID submit = workerRemote.submit(new RoundTripDelayMeasurementJob(hosts_to_ping, new Duration(1, TimeUnit.SECONDS), 5, new Duration(1, TimeUnit.SECONDS)));
+        //        final UUID submit = workerRemote.submit(new RoundTripDelayMeasurementJob(hosts_to_ping, new Duration(1, TimeUnit.SECONDS), 5, new Duration(1, TimeUnit.SECONDS)));
         System.out.println(submit);
         Thread.sleep(10000);
-
 
     }
 
