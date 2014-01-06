@@ -16,16 +16,18 @@
  * You should have received a copy of the GNU General Public License
  * along with Trombone.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.trombone.evaluation.util;
 
 import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
 import org.mashti.sina.util.NumericalRangeValidator;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TimeoutSupport implements Timeoutable, Serializable {
 
-    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(TimeoutSupport.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TimeoutSupport.class);
     private static final long serialVersionUID = 8490654599271676242L;
     private volatile long timeout_in_nanos;
     private volatile long start_time_in_nanos;
