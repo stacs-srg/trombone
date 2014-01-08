@@ -34,6 +34,7 @@ import org.supercsv.prefs.CsvPreference;
 import org.uncommons.maths.random.MersenneTwisterRNG;
 import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
 import uk.ac.standrews.cs.trombone.core.Peer;
+import uk.ac.standrews.cs.trombone.core.PeerConfigurator;
 import uk.ac.standrews.cs.trombone.core.PeerFactory;
 import uk.ac.standrews.cs.trombone.core.PeerMetric;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
@@ -41,10 +42,10 @@ import uk.ac.standrews.cs.trombone.core.PeerReference;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class EventExecutor {
 
+    public static final int LOOKUP_RETRY_COUNT = 5;
     private static final Integer[] NO_INDICES = new Integer[0];
     private static final int MAX_BUFFERED_EVENTS = 20000;
     private static final Logger LOGGER = LoggerFactory.getLogger(EventExecutor.class);
-    public static final int LOOKUP_RETRY_COUNT = 5;
     private final Rate lookup_execution_rate = new Rate();
     private final Rate lookup_failure_rate = new Rate();
     private final Rate lookup_correctness_rate = new Rate();
@@ -58,7 +59,6 @@ public class EventExecutor {
     private final Counter available_peer_counter = new Counter();
     private final Rate peer_arrival_rate = new Rate();
     private final Rate peer_departure_rate = new Rate();
-    private final Rate sent_bytes_rate = new Rate();
     private final Sampler event_execution_lag_sampler = new Sampler();
     private final Timer event_execution_duration_timer = new Timer();
     private final DelayQueue<RunnableExperimentEvent> runnable_events;
@@ -71,16 +71,15 @@ public class EventExecutor {
     private final MetricRegistry metric_registry;
     private final CsvReporter csv_reporter;
     private final ConcurrentSkipListMap<Long, Integer[]> oracle = new ConcurrentSkipListMap<Long, Integer[]>();
-    private final Random random = new MersenneTwisterRNG("65465".getBytes(StandardCharsets.UTF_8));
+    private final Random random = new MersenneTwisterRNG();
     private Future<Object> task_scheduler_future;
     private long start_time;
 
-    public EventExecutor(final FileSystem events_home) throws IOException, DecoderException {
+    public EventExecutor(final FileSystem events_home, int index) throws IOException, DecoderException {
 
-        //FIXME get host index
         //FIXME get lookup retry count from scenario
-        
-        event_reader = new EventReader(events_home);
+
+        event_reader = new EventReader(events_home, index);
         runnable_events = new DelayQueue<RunnableExperimentEvent>();
         task_populator = Executors.newCachedThreadPool(new NamedThreadFactory("task_populator_"));
         task_scheduler = Executors.newSingleThreadExecutor(new NamedThreadFactory("task_scheduler_"));
@@ -105,7 +104,7 @@ public class EventExecutor {
         metric_registry.register("event_execution_lag_sampler", event_execution_lag_sampler);
         metric_registry.register("event_execution_duration_timer", event_execution_duration_timer);
 
-        final File observations = new File("/Users/masih/Desktop/observations");
+        final File observations = new File("observations");
         FileUtils.deleteDirectory(observations);
         FileUtils.forceMkdir(observations);
         csv_reporter = new CsvReporter(metric_registry, observations);
@@ -120,7 +119,7 @@ public class EventExecutor {
             public Void call() throws Exception {
 
                 // TODO get rid of the oracle if you can: use a list of alive nodes for when a node joins
-                
+
                 final CsvListReader reader = new CsvListReader(Files.newBufferedReader(events_home.getPath("oracle.csv"), StandardCharsets.UTF_8), CsvPreference.STANDARD_PREFERENCE);
                 reader.getHeader(true);
                 List<String> line = reader.read();
@@ -146,7 +145,6 @@ public class EventExecutor {
                 return null;
             }
         });
-
     }
 
     public long getCurrentTimeInNanos() {
@@ -196,13 +194,13 @@ public class EventExecutor {
         }
     }
 
-    void execute(Peer peer, final Event event) throws IOException {
+    void queue(Peer peer, final Event event) throws IOException {
 
         if (event instanceof ChurnEvent) {
-            execute(peer, (ChurnEvent) event);
+            queue(peer, (ChurnEvent) event);
         }
         else if (event instanceof LookupEvent) {
-            execute(peer, (LookupEvent) event);
+            queue(peer, (LookupEvent) event);
 
         }
         else {
@@ -210,21 +208,21 @@ public class EventExecutor {
         }
     }
 
-    void execute(Peer peer, final ChurnEvent event) throws IOException {
+    void queue(Peer peer, final ChurnEvent event) throws IOException {
 
         runnable_events.add(new RunnableChurnEvent(peer, event));
     }
 
-    void execute(Peer peer, final LookupEvent event) {
+    void queue(Peer peer, final LookupEvent event) {
 
         runnable_events.add(new RunnableWorkloadEvent(peer, event));
     }
 
-    synchronized Peer getPeerByReference(PeerReference reference) {
+    synchronized Peer getPeerByReference(PeerReference reference, PeerConfigurator configurator) {
 
         final Peer peer;
         if (!peers_map.containsKey(reference)) {
-            peer = PeerFactory.createPeer(reference, null);
+            peer = PeerFactory.createPeer(reference, configurator);
             peers_map.put(reference, peer);
         }
         else {
@@ -274,8 +272,8 @@ public class EventExecutor {
 
         final Event event = event_reader.next();
         final PeerReference event_source = event.getSource();
-        final Peer peer = getPeerByReference(event_source);
-        execute(peer, event);
+        final Peer peer = getPeerByReference(event_source, event.getParticipant().getPeerConfigurator());
+        queue(peer, event);
     }
 
     private void joinWithTimeout(final Peer peer, final long timeout_nanos) {

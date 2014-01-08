@@ -11,11 +11,6 @@ import org.mashti.jetson.exception.RPCException;
 import org.mashti.jetson.util.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.standrews.cs.trombone.core.selector.First;
-import uk.ac.standrews.cs.trombone.core.selector.FirstReachable;
-import uk.ac.standrews.cs.trombone.core.selector.Last;
-import uk.ac.standrews.cs.trombone.core.selector.LastReachable;
-import uk.ac.standrews.cs.trombone.core.selector.Self;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class Maintenance {
@@ -32,14 +27,6 @@ public class Maintenance {
 
         this.local = local;
         dissemination_strategies = new ArrayList<DisseminationStrategy>();
-
-        //        final ByteBuf byteBuf = Unpooled.buffer().writeBytes(local.getKey().getValue());
-        //        add(new DisseminationStrategy(false, false, new LookupSelector(Key.valueOf(byteBuf.readInt() + 1)), First.getInstance()));
-        add(new DisseminationStrategy(false, false, Last.getInstance(), First.getInstance()));
-        add(new DisseminationStrategy(false, true, Self.getInstance(), First.getInstance()));
-        add(new DisseminationStrategy(false, false, LastReachable.getInstance(), FirstReachable.getInstance()));
-        add(new DisseminationStrategy(false, true, Self.getInstance(), FirstReachable.getInstance()));
-        //        add(new DisseminationStrategy(false, true, Self.getInstance(), Last.getInstance()));
     }
 
     public synchronized void start() {

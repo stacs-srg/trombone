@@ -5,7 +5,6 @@ import org.apache.commons.lang.ArrayUtils;
 import org.mashti.jetson.exception.RPCException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.uncommons.maths.binary.BitString;
 import org.uncommons.util.reflection.ReflectionUtils;
 import uk.ac.standrews.cs.trombone.core.selector.Selector;
 
@@ -30,16 +29,6 @@ public class DisseminationStrategy {
         this.data_selector = data_selector;
         this.recipient_selector = recipient_selector;
     }
-    
-    public BitString toBitString(){
-        
-        final BitString bit_string = new BitString(9);
-        bit_string.setBit(0, opportunistic);
-        bit_string.setBit(0, push);
-        bit_string.setBit(0, push);
-        
-        return null;
-    }
 
     public boolean isOpportunistic() {
 
@@ -48,9 +37,9 @@ public class DisseminationStrategy {
 
     public void nonOpportunistically(final Peer local) throws RPCException {
 
-        final PeerReference[] recipients = recipient_selector.select(local);
+        final PeerReference[] recipients = getRecipients(local);
         if (push) {
-            final PeerReference[] data_to_push = pullQuietly(local, data_selector);
+            final PeerReference[] data_to_push = getPushData(local);
             if (data_to_push != null && data_to_push.length > 0) {
                 for (PeerReference recipient : recipients) {
                     local.getRemote(recipient).push(data_to_push);
@@ -63,6 +52,11 @@ public class DisseminationStrategy {
                 local.push(pulled_data);
             }
         }
+    }
+
+     PeerReference[] getPushData(final Peer local) {
+
+        return pullQuietly(local, data_selector);
     }
 
     public boolean recipientsContain(Peer local, final PeerReference recipient) {
@@ -78,7 +72,12 @@ public class DisseminationStrategy {
 
     Object[] getArguments(Peer local) {
 
-        return push ? new Object[] {pullQuietly(local, data_selector)} : new Object[] {data_selector};
+        return push ? new Object[] {getPushData(local)} : new Object[] {data_selector};
+    }
+
+    PeerReference[] getRecipients(final Peer local) throws RPCException {
+
+        return recipient_selector.select(local);
     }
 
     private static PeerReference[] pullQuietly(final Peer local, Selector selector) {

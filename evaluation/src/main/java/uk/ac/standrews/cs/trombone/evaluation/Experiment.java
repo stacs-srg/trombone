@@ -5,7 +5,28 @@ package uk.ac.standrews.cs.trombone.evaluation;
  */
 public abstract class Experiment {
 
-    protected abstract void run() throws Exception;
+    private final Scenario scenario;
+
+    protected Experiment(Scenario scenario) {
+
+        this.scenario = scenario;
+    }
+
+    public final void run() throws Exception {
+
+        setup();
+        try {
+            
+            
+            
+            execute();
+        }
+        finally {
+            tearDown();
+        }
+    }
+
+    protected abstract void execute() throws Exception;
 
     protected void setup() throws Exception {
 

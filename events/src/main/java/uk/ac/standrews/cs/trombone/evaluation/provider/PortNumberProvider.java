@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.inject.Provider;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class PortNumberProvider implements Provider<Integer>, Cloneable, Serializable {
+public class PortNumberProvider implements Provider<Integer>, Serializable {
 
     private static final long serialVersionUID = -7586002873803828004L;
     private final int start;
@@ -24,8 +24,7 @@ public class PortNumberProvider implements Provider<Integer>, Cloneable, Seriali
         return next_port.getAndIncrement();
     }
 
-    @Override
-    protected PortNumberProvider clone() throws CloneNotSupportedException {
+    public PortNumberProvider copy() {
 
         return new PortNumberProvider(start);
     }

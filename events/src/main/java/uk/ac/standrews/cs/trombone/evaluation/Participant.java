@@ -3,10 +3,10 @@ package uk.ac.standrews.cs.trombone.evaluation;
 import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicInteger;
 import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
-import uk.ac.standrews.cs.trombone.evaluation.churn.Churn;
 import uk.ac.standrews.cs.trombone.core.PeerConfigurator;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.key.Key;
+import uk.ac.standrews.cs.trombone.evaluation.churn.Churn;
 import uk.ac.standrews.cs.trombone.evaluation.workload.Workload;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
@@ -91,5 +91,10 @@ public class Participant implements Comparable<Participant> {
         if (!(other instanceof Participant)) { return false; }
         final Participant that = (Participant) other;
         return id.equals(that.id);
+    }
+
+    public PeerConfigurator getPeerConfigurator() {
+
+        return configurator;
     }
 }

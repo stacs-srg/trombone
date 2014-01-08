@@ -16,26 +16,25 @@
  * You should have received a copy of the GNU General Public License
  * along with Trombone.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.trombone.evaluation.provider;
 
-import java.util.Random;
+import javax.inject.Provider;
 import org.mashti.sina.distribution.ProbabilityDistribution;
 import uk.ac.standrews.cs.trombone.evaluation.churn.Churn;
 import uk.ac.standrews.cs.trombone.evaluation.churn.ConstantRateUncorrelatedChurn;
 
-public class ConstantRateUncorrelatedUniformChurnProvider implements SerializableProvider<Churn> {
+public class ConstantRateUncorrelatedUniformChurnProvider implements Provider<Churn> {
 
     private final ProbabilityDistribution session_length_distribution;
     private final ProbabilityDistribution downtime_distribution;
-    private final SerializableProvider<Long> seed_provider;
-    private final Random uniform_random;
+    private final Provider<Long> seed_provider;
 
-    public ConstantRateUncorrelatedUniformChurnProvider(final ProbabilityDistribution session_length_distribution, final ProbabilityDistribution downtime_distribution, final SerializableProvider<Long> seed_provider) {
+    public ConstantRateUncorrelatedUniformChurnProvider(final ProbabilityDistribution session_length_distribution, final ProbabilityDistribution downtime_distribution, final Provider<Long> seed_provider) {
 
         this.session_length_distribution = session_length_distribution;
         this.downtime_distribution = downtime_distribution;
         this.seed_provider = seed_provider;
-        uniform_random = new Random(seed_provider.get());
     }
 
     @Override

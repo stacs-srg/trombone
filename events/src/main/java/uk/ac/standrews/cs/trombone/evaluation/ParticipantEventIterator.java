@@ -30,7 +30,7 @@ public class ParticipantEventIterator implements Iterator<Event>, Comparable<Par
     @Override
     public synchronized boolean hasNext() {
 
-        return !isTimeUp(); //&& !last_availability.isAvailable();
+        return !isTimeUp();
     }
 
     @Override

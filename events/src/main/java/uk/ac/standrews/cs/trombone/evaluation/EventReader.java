@@ -34,14 +34,14 @@ public class EventReader implements Closeable, Iterator<Event> {
     private final Map<Integer, PeerReference> peers_index;
     private final AtomicReference<List<String>> next_row_reference;
 
-    public EventReader(FileSystem events_home) throws IOException, DecoderException {
+    public EventReader(FileSystem events_home, int index) throws IOException, DecoderException {
 
-        this(events_home, DEFAULT_SKIP_FIRST_ROW);
+        this(events_home, index, DEFAULT_SKIP_FIRST_ROW);
     }
 
-    public EventReader(FileSystem events_home, boolean skip_first_row) throws IOException, DecoderException {
+    public EventReader(FileSystem events_home, int index, boolean skip_first_row) throws IOException, DecoderException {
 
-        event_reader = new CsvListReader(Files.newBufferedReader(events_home.getPath("1", "events.csv"), StandardCharsets.UTF_8), CsvPreference.STANDARD_PREFERENCE);
+        event_reader = new CsvListReader(Files.newBufferedReader(events_home.getPath(String.valueOf(index), "events.csv"), StandardCharsets.UTF_8), CsvPreference.STANDARD_PREFERENCE);
         lookup_targets_index = readLookupTargets(Files.newBufferedReader(events_home.getPath("lookup_targets.csv"), StandardCharsets.UTF_8));
         peers_index = readPeers(Files.newBufferedReader(events_home.getPath("peers.csv"), StandardCharsets.UTF_8));
         next_row_reference = new AtomicReference<>();

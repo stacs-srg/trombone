@@ -15,6 +15,9 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.supercsv.io.CsvListWriter;
 import org.supercsv.prefs.CsvPreference;
 import uk.ac.standrews.cs.trombone.core.key.Key;
@@ -24,6 +27,7 @@ import uk.ac.standrews.cs.trombone.core.key.Key;
  */
 public class EventWriter implements Closeable {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(EventWriter.class);
     private final ConcurrentHashMap<Key, Integer> lookup_targets_index;
     private final AtomicInteger next_target_index = new AtomicInteger();
     private final HashMap<String, CsvListWriter> host_event_writers;
@@ -35,6 +39,7 @@ public class EventWriter implements Closeable {
     private final CsvListWriter lookup_targets_csv_writer;
     private final CsvListWriter oracle_csv_writer;
     private final FileSystem events_home;
+    private final AtomicLong write_counter = new AtomicLong(0);
 
     public EventWriter(FileSystem events_home) throws IOException {
 
@@ -64,9 +69,13 @@ public class EventWriter implements Closeable {
         }
         final Long timeInNanos = event.getTimeInNanos();
         writer.write(timeInNanos, event.getParticipant().getId(), event.getCode(), event.getParameters());
-        writer.flush();
+        if (write_counter.incrementAndGet() % 1000 == 0) {
+            writer.flush();
+            write_counter.set(0);
+        }
 
         if (participants.add(participant)) {
+            //FIXME encode configurator
             peers_csv_writer.write(participant.getId(), participant.getKey(), participant.getHostName(), participant.getPort());
             peers_csv_writer.flush();
         }

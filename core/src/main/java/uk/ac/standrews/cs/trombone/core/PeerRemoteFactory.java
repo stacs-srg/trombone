@@ -51,7 +51,7 @@ public class PeerRemoteFactory extends LeanClientFactory<PeerRemote> {
 
     public class PeerClient extends Client {
 
-        public volatile InternalPeerReference reference;
+         volatile InternalPeerReference reference;
 
         protected PeerClient(final InetSocketAddress address, final ChannelPool pool) {
 

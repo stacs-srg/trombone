@@ -16,32 +16,34 @@
  * You should have received a copy of the GNU General Public License
  * along with Trombone.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.trombone.evaluation.provider;
 
+import javax.inject.Provider;
 import org.mashti.sina.distribution.ProbabilityDistribution;
-import uk.ac.standrews.cs.trombone.core.key.RandomKeyProvider;
+import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.evaluation.workload.ConstantRateWorkload;
 import uk.ac.standrews.cs.trombone.evaluation.workload.Workload;
 
-public class ConstantRateWorkloadProvider implements SerializableProvider<Workload> {
+public class ConstantRateWorkloadProvider implements Provider<Workload> {
 
-    private final ProbabilityDistribution intervals_dsitribution;
+    private final ProbabilityDistribution intervals_distribution;
     private final int retry_threshold;
-    private final SerializableProvider<Long> seed_provider;
-    private final RandomKeyProvider key_provider;
+    private final Provider<Long> seed_provider;
+    private final Provider<Key> target_key_provider;
 
-    public ConstantRateWorkloadProvider(final ProbabilityDistribution intervals_dsitribution, final int retry_threshold, final SerializableProvider<Long> seed_provider) {
+    public ConstantRateWorkloadProvider(final ProbabilityDistribution intervals_distribution, final Provider<Key> target_key_provider, final int retry_threshold, final Provider<Long> seed_provider) {
 
-        this.intervals_dsitribution = intervals_dsitribution;
+        this.intervals_distribution = intervals_distribution;
+        this.target_key_provider = target_key_provider;
         this.retry_threshold = retry_threshold;
         this.seed_provider = seed_provider;
-        key_provider = new RandomKeyProvider(seed_provider.get());
     }
 
     @Override
     public Workload get() {
 
         final Long seed = seed_provider.get();
-        return new ConstantRateWorkload(intervals_dsitribution, key_provider, retry_threshold, seed);
+        return new ConstantRateWorkload(intervals_distribution, target_key_provider, retry_threshold, seed);
     }
 }

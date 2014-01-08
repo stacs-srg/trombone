@@ -20,10 +20,12 @@ import uk.ac.standrews.cs.trombone.core.Peer;
 public class EvolutionaryMaintenance {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EvolutionaryMaintenance.class);
-    private static final Probability MUTATION_PROBABILITY = new Probability(0.2d);
+    private static final Probability MUTATION_PROBABILITY = new Probability(0.1d);
     private static final int DISSEMINATION_STRATEGY_LIST_SIZE = 1;
     private static final DisseminationStrategyFactory DISSEMINATION_STRATEGY_FACTORY = new DisseminationStrategyFactory();
     private static final ListCandidateFactory<DisseminationStrategy> DISSEMINATION_STRATEGY_LIST_FACTORY = new ListCandidateFactory<>(DISSEMINATION_STRATEGY_FACTORY, DISSEMINATION_STRATEGY_LIST_SIZE);
+    private static final int POPULATION_SIZE = 10;
+    private static final int ELITE_COUNT = 2;
     private final Peer local;
     private final Maintenance maintenance;
     private final AbstractEvolutionEngine<List<DisseminationStrategy>> evolution_engine;
@@ -44,7 +46,7 @@ public class EvolutionaryMaintenance {
 
     public void adapt(TerminationCondition... termination_conditions) {
 
-        final List<DisseminationStrategy> current_best = evolution_engine.evolve(10, 2, termination_conditions);
+        final List<DisseminationStrategy> current_best = evolution_engine.evolve(POPULATION_SIZE, ELITE_COUNT, termination_conditions);
         LOGGER.info("at least one termination condition is met; terminating adaptation");
 
         //TODO this is incomplete; here we should have a map of environment to solution.

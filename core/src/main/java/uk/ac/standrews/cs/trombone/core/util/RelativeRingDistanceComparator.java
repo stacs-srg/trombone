@@ -10,7 +10,7 @@ public class RelativeRingDistanceComparator implements Comparator<Key>, Serializ
     private static final long serialVersionUID = -1051743700684807791L;
     private final Key start;
 
-    public RelativeRingDistanceComparator(Key start) {
+    public RelativeRingDistanceComparator(final Key start) {
 
         this.start = start;
     }

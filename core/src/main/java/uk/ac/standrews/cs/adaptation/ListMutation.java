@@ -66,6 +66,7 @@ public class ListMutation<T> implements EvolutionaryOperator<List<T>> {
 
         for (int i = 0; i < selected_candidate.size(); i++) {
             if (mutationProbability.nextValue().nextEvent(random)) {
+                // FIXME not sure this is right. this is replacement not mutation
                 selected_candidate.set(i, candidate_factory.generateRandomCandidate(random));
             }
         }
