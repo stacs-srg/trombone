@@ -12,6 +12,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -42,7 +43,7 @@ import uk.ac.standrews.cs.trombone.core.PeerReference;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class EventExecutor {
 
-    public static final int LOOKUP_RETRY_COUNT = 5;
+    private static final int LOOKUP_RETRY_COUNT = 5;
     private static final Integer[] NO_INDICES = new Integer[0];
     private static final int MAX_BUFFERED_EVENTS = 20000;
     private static final Logger LOGGER = LoggerFactory.getLogger(EventExecutor.class);
@@ -72,18 +73,21 @@ public class EventExecutor {
     private final CsvReporter csv_reporter;
     private final ConcurrentSkipListMap<Long, Integer[]> oracle = new ConcurrentSkipListMap<Long, Integer[]>();
     private final Random random = new MersenneTwisterRNG();
-    private Future<Object> task_scheduler_future;
+    private final FileSystem observations_home;
+    private Future<Void> task_scheduler_future;
     private long start_time;
 
-    public EventExecutor(final FileSystem events_home, int index) throws IOException, DecoderException {
+    public EventExecutor(final FileSystem events_home, int host_index, FileSystem observations_home) throws IOException, DecoderException {
+
+        this.observations_home = observations_home;
 
         //FIXME get lookup retry count from scenario
 
-        event_reader = new EventReader(events_home, index);
+        event_reader = new EventReader(events_home, host_index);
         runnable_events = new DelayQueue<RunnableExperimentEvent>();
         task_populator = Executors.newCachedThreadPool(new NamedThreadFactory("task_populator_"));
         task_scheduler = Executors.newSingleThreadExecutor(new NamedThreadFactory("task_scheduler_"));
-        task_executor = Executors.newFixedThreadPool(500, new NamedThreadFactory("task_executor_"));
+        task_executor = Executors.newFixedThreadPool(10, new NamedThreadFactory("task_executor_"));
         event_queue_semaphore = new Semaphore(0, true);
 
         metric_registry = new MetricRegistry("test");
@@ -104,9 +108,11 @@ public class EventExecutor {
         metric_registry.register("event_execution_lag_sampler", event_execution_lag_sampler);
         metric_registry.register("event_execution_duration_timer", event_execution_duration_timer);
 
-        final File observations = new File("observations");
+        final File observations = new File("/Users/masih/Desktop/state/partition1/trombone/experiments/observations");
         FileUtils.deleteDirectory(observations);
         FileUtils.forceMkdir(observations);
+        
+//        Files.createDirectory(observations_home.getPath(String.valueOf(host_index)));
         csv_reporter = new CsvReporter(metric_registry, observations);
 
         loadInitialEvents();
@@ -158,10 +164,10 @@ public class EventExecutor {
 
             start_time = System.nanoTime();
             csv_reporter.start(10, TimeUnit.SECONDS);
-            task_scheduler_future = task_scheduler.submit(new Callable<Object>() {
+            task_scheduler_future = task_scheduler.submit(new Callable<Void>() {
 
                 @Override
-                public Object call() throws Exception {
+                public Void call() throws Exception {
 
                     try {
                         while (!Thread.currentThread().isInterrupted() && !runnable_events.isEmpty()) {
@@ -191,6 +197,13 @@ public class EventExecutor {
 
         if (isStarted()) {
             task_scheduler_future.cancel(true);
+        }
+    }
+
+    public void awaitCompletion() throws InterruptedException, ExecutionException {
+
+        if (isStarted()) {
+            task_scheduler_future.get();
         }
     }
 
@@ -272,7 +285,8 @@ public class EventExecutor {
 
         final Event event = event_reader.next();
         final PeerReference event_source = event.getSource();
-        final Peer peer = getPeerByReference(event_source, event.getParticipant().getPeerConfigurator());
+        //FIXME NULL CONFIGURATOR
+        final Peer peer = getPeerByReference(event_source, null);
         queue(peer, event);
     }
 

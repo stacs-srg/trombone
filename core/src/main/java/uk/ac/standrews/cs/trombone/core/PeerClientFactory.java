@@ -18,15 +18,16 @@ import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class PeerRemoteFactory extends LeanClientFactory<PeerRemote> {
+class PeerClientFactory extends LeanClientFactory<PeerRemote> {
+
     private static final ConcurrentHashMap<InetSocketAddress, ChannelPool> channel_pool_map = new ConcurrentHashMap<InetSocketAddress, ChannelPool>();
-    private static final Logger LOGGER = LoggerFactory.getLogger(PeerRemoteFactory.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PeerClientFactory.class);
     private final Peer peer;
     private final PeerState peer_state;
     private final PeerMetric peer_metric;
     private final Maintenance peer_maintenance;
 
-    PeerRemoteFactory(final Peer peer) {
+    PeerClientFactory(final Peer peer) {
 
         super(PeerRemote.class, PeerCodecs.INSTANCE);
         this.peer = peer;
@@ -51,7 +52,7 @@ public class PeerRemoteFactory extends LeanClientFactory<PeerRemote> {
 
     public class PeerClient extends Client {
 
-         volatile InternalPeerReference reference;
+        volatile InternalPeerReference reference;
 
         protected PeerClient(final InetSocketAddress address, final ChannelPool pool) {
 
@@ -91,6 +92,7 @@ public class PeerRemoteFactory extends LeanClientFactory<PeerRemote> {
 
                 @Override
                 public void onFailure(final Throwable t) {
+
                     LOGGER.debug("failure occurred on future", t);
                     if (t instanceof TransportException) {
                         reference.setReachable(false);

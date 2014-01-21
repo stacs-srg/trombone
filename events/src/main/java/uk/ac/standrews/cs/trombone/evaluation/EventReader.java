@@ -2,11 +2,12 @@ package uk.ac.standrews.cs.trombone.evaluation;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.io.Reader;
 import java.net.InetSocketAddress;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -15,7 +16,6 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import org.apache.commons.codec.DecoderException;
-import org.mashti.jetson.util.CloseableUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.supercsv.io.CsvListReader;
@@ -26,6 +26,7 @@ import uk.ac.standrews.cs.trombone.core.key.Key;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class EventReader implements Closeable, Iterator<Event> {
 
+    public static final Charset EVENT_CSV_CHARSET = StandardCharsets.UTF_8;
     private static final Logger LOGGER = LoggerFactory.getLogger(EventReader.class);
     private static final boolean DEFAULT_SKIP_FIRST_ROW = true;
     private static final Pattern LOOKUP_EVENT_PARAM_PATTERN = Pattern.compile(":");
@@ -41,13 +42,31 @@ public class EventReader implements Closeable, Iterator<Event> {
 
     public EventReader(FileSystem events_home, int index, boolean skip_first_row) throws IOException, DecoderException {
 
-        event_reader = new CsvListReader(Files.newBufferedReader(events_home.getPath(String.valueOf(index), "events.csv"), StandardCharsets.UTF_8), CsvPreference.STANDARD_PREFERENCE);
-        lookup_targets_index = readLookupTargets(Files.newBufferedReader(events_home.getPath("lookup_targets.csv"), StandardCharsets.UTF_8));
-        peers_index = readPeers(Files.newBufferedReader(events_home.getPath("peers.csv"), StandardCharsets.UTF_8));
+        event_reader = getReader(events_home.getPath(String.valueOf(index), "events.csv"));
+        lookup_targets_index = readLookupTargets(events_home.getPath("lookup_targets.csv"));
+        peers_index = readPeers(events_home.getPath("peers.csv"));
         next_row_reference = new AtomicReference<>();
 
         if (skip_first_row) {
             skipFirstRow();
+        }
+    }
+
+    public static Map<String, Integer> readHostNames(final Path hosts_csv) throws IOException {
+
+        final Map<String, Integer> host_indices = new HashMap<>();
+
+        try (final CsvListReader reader = getReader(hosts_csv)) {
+
+            reader.getHeader(true); //skip header
+            List<String> row = reader.read();
+            do {
+                final Integer index = Integer.valueOf(row.get(0));
+                final String host_name = row.get(1);
+                host_indices.put(host_name, index);
+                row = reader.read();
+            } while (row != null);
+            return host_indices;
         }
     }
 
@@ -84,13 +103,16 @@ public class EventReader implements Closeable, Iterator<Event> {
         return peers_index.get(peer_id);
     }
 
-    private static Map<Integer, PeerReference> readPeers(final Reader peers_csv) throws IOException, DecoderException {
+    private static CsvListReader getReader(Path path) throws IOException {
+
+        return new CsvListReader(Files.newBufferedReader(path, EVENT_CSV_CHARSET), CsvPreference.STANDARD_PREFERENCE);
+    }
+
+    private static Map<Integer, PeerReference> readPeers(final Path peers_csv) throws IOException, DecoderException {
 
         final Map<Integer, PeerReference> peers = new HashMap<Integer, PeerReference>();
-        CsvListReader reader = null;
 
-        try {
-            reader = new CsvListReader(peers_csv, CsvPreference.STANDARD_PREFERENCE);
+        try (final CsvListReader reader = getReader(peers_csv)) {
             reader.getHeader(true);  //skip header
             List<String> row = reader.read();
             do {
@@ -102,17 +124,12 @@ public class EventReader implements Closeable, Iterator<Event> {
             } while (row != null);
             return peers;
         }
-        finally {
-            CloseableUtil.closeQuietly(reader);
-        }
     }
 
-    private static Map<Integer, Key> readLookupTargets(final Reader lookup_targets_csv) throws IOException, DecoderException {
+    private static Map<Integer, Key> readLookupTargets(final Path lookup_targets_csv) throws IOException, DecoderException {
 
         final Map<Integer, Key> lookup_targets = new HashMap<Integer, Key>();
-        CsvListReader reader = null;
-        try {
-            reader = new CsvListReader(lookup_targets_csv, CsvPreference.STANDARD_PREFERENCE);
+        try (final CsvListReader reader = getReader(lookup_targets_csv)) {
             reader.getHeader(true); //skip header
             List<String> row = reader.read();
             do {
@@ -122,9 +139,6 @@ public class EventReader implements Closeable, Iterator<Event> {
                 row = reader.read();
             } while (row != null);
             return lookup_targets;
-        }
-        finally {
-            CloseableUtil.closeQuietly(reader);
         }
     }
 

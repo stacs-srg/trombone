@@ -3,6 +3,7 @@ package uk.ac.standrews.cs.trombone.evaluation;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -134,8 +135,19 @@ public class EventWriter implements Closeable {
 
     private Path getHostEventCsv(final int host_index) throws IOException {
 
-        Files.createDirectory(events_home.getPath(String.valueOf(host_index)));
-        return events_home.getPath(String.valueOf(host_index), "events.csv");
+        final String host_events_home = String.valueOf(host_index);
+        final Path host_events_path = events_home.getPath(host_events_home);
+        
+        if (Files.notExists(host_events_path)) {
+            try {
+                Files.createDirectory(host_events_path);
+            }
+            catch (FileAlreadyExistsException e) {
+                LOGGER.debug("host event home already existed", e);
+            }
+        }
+
+        return events_home.getPath(host_events_home, "events.csv");
     }
 
     private synchronized int getHostIndex(final String host_name) throws IOException {

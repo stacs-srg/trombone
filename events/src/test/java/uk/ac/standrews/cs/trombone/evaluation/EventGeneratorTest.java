@@ -25,7 +25,7 @@ public class EventGeneratorTest {
     private static final ProbabilityDistribution session_length_distribution = new ExponentialDistribution(Double.valueOf(new Duration(100, TimeUnit.SECONDS).getLength(TimeUnit.NANOSECONDS)));
     private static final ProbabilityDistribution downtime_distribution = new ExponentialDistribution(Double.valueOf(new Duration(1, TimeUnit.SECONDS).getLength(TimeUnit.NANOSECONDS)));
     private static final ProbabilityDistribution workload_intervals_distribution = new ExponentialDistribution(Double.valueOf(new Duration(500, TimeUnit.MILLISECONDS).getLength(TimeUnit.NANOSECONDS)));
-    private static final Duration experiment_duration = new Duration(30, TimeUnit.MINUTES);
+    private static final Duration experiment_duration = new Duration(3, TimeUnit.MINUTES);
     private Scenario scenario;
 
     @Before
@@ -39,7 +39,8 @@ public class EventGeneratorTest {
         scenario.setChurnProvider(new NoChurnProvider());
         scenario.setWorkloadProvider(new ConstantRateWorkloadProvider(workload_intervals_distribution, target_key_provider, 5, new RandomSeedProvider(scenario.generateSeed())));
         scenario.setExperimentDuration(experiment_duration);
-        scenario.addHost("localhost", 1000, new PortNumberProvider(45000));
+        scenario.addHost("localhost", 100, new PortNumberProvider(45000));
+     
     }
 
     @Test
@@ -52,7 +53,7 @@ public class EventGeneratorTest {
 
         System.out.println("TOOK " + (System.currentTimeMillis() - now) + " ms");
 
-//                final FileSystem fileSystem = FileSystems.newFileSystem(URI.create("jar:file:/Users/masih/Desktop/test.zip"), new HashMap<String, String>());
+        //        final FileSystem fileSystem = FileSystems.newFileSystem(URI.create("jar:file:/Users/masih/Desktop/test.zip"), new HashMap<String, String>());
         //        EventExecutor executor = new EventExecutor(fileSystem);
         //        executor.start();
         //        experiment_duration.sleep();

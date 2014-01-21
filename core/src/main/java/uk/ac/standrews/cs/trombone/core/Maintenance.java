@@ -21,7 +21,7 @@ public class Maintenance {
     private final List<DisseminationStrategy> dissemination_strategies;
     private final Peer local;
     private final Runnable non_opportunistic_disseminator = new NonOpportunisticDisseminator();
-    private ScheduledFuture<?> scheduled_non_deterministic_disseminator;
+    private ScheduledFuture<?> scheduled_non_opportunistic_disseminator;
 
     public Maintenance(final Peer local) {
 
@@ -32,20 +32,20 @@ public class Maintenance {
     public synchronized void start() {
 
         if (!isStarted()) {
-            scheduled_non_deterministic_disseminator = SCHEDULER.scheduleWithFixedDelay(non_opportunistic_disseminator, ACTIVE_MAINTENANCE_INTERVAL_MILLIS, ACTIVE_MAINTENANCE_INTERVAL_MILLIS, TimeUnit.MILLISECONDS);
+            scheduled_non_opportunistic_disseminator = SCHEDULER.scheduleWithFixedDelay(non_opportunistic_disseminator, ACTIVE_MAINTENANCE_INTERVAL_MILLIS, ACTIVE_MAINTENANCE_INTERVAL_MILLIS, TimeUnit.MILLISECONDS);
         }
     }
 
     public synchronized void stop() {
 
         if (isStarted()) {
-            scheduled_non_deterministic_disseminator.cancel(true);
+            scheduled_non_opportunistic_disseminator.cancel(true);
         }
     }
 
     public synchronized boolean isStarted() {
 
-        return scheduled_non_deterministic_disseminator != null && !scheduled_non_deterministic_disseminator.isDone();
+        return scheduled_non_opportunistic_disseminator != null && !scheduled_non_opportunistic_disseminator.isDone();
     }
 
     public List<DisseminationStrategy> getDisseminationStrategies() {

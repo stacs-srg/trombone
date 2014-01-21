@@ -1,60 +1,25 @@
 package uk.ac.standrews.cs.trombone.core;
 
-import com.google.common.util.concurrent.ListeningExecutorService;
-import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelHandlerContext;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.concurrent.atomic.AtomicBoolean;
-import org.mashti.jetson.FutureResponse;
 import org.mashti.jetson.Server;
 import org.mashti.jetson.ServerFactory;
 import org.mashti.jetson.exception.RPCException;
-import org.mashti.jetson.lean.LeanServerFactory;
 import uk.ac.standrews.cs.trombone.core.key.Key;
-import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
 import uk.ac.standrews.cs.trombone.core.selector.Selector;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class Peer implements PeerRemote {
 
     private static final String EXPOSURE_PROPERTY_NAME = "exposure";
-    private static final String JOINED_PROPERTY_NAME = "joined";
-    private static final ServerFactory<PeerRemote> SERVER_FACTORY = new LeanServerFactory<PeerRemote>(PeerRemote.class, PeerCodecs.INSTANCE) {
-
-        @Override
-        public Server createServer(final PeerRemote service) {
-
-            return new MyServer(server_bootstrap, service, request_executor) {
-
-            };
-        }
-
-        class MyServer extends Server {
-
-            private final Peer peer;
-            MyServer(final ServerBootstrap server_bootstrap, final Object service, final ListeningExecutorService executor) {
-
-                super(server_bootstrap, service, executor);
-                
-                peer = (Peer) service;
-            }
-
-            @Override
-            protected void handle(final ChannelHandlerContext context, final FutureResponse future_response) {
-                  // peer.getPeerMetric().notifyMethod(future_response.getMethod()); // record frequency of called methods
-                super.handle(context, future_response);
-            }
-        }
-    };
+    private static final ServerFactory<PeerRemote> SERVER_FACTORY = new PeerServerFactory();
     private final PeerState state;
     private final Key key;
-    private final PeerRemoteFactory remote_factory;
+    private final PeerClientFactory remote_factory;
     private final Server server;
     private final PropertyChangeSupport property_change_support;
-    private final AtomicBoolean joined = new AtomicBoolean();
     private final PeerMetric metric;
     private final Maintenance maintenance;
     private volatile PeerReference self;
@@ -71,7 +36,7 @@ public class Peer implements PeerRemote {
         maintenance = new Maintenance(this);
         property_change_support = new PropertyChangeSupport(this);
         metric = new PeerMetric(this);
-        remote_factory = new PeerRemoteFactory(this);
+        remote_factory = new PeerClientFactory(this);
         server = SERVER_FACTORY.createServer(this);
         server.setBindAddress(address);
         server.setWrittenByteCountListener(metric);
@@ -94,7 +59,6 @@ public class Peer implements PeerRemote {
         final boolean unexposed = server.unexpose();
         if (unexposed) {
             property_change_support.firePropertyChange(EXPOSURE_PROPERTY_NAME, true, false);
-            setJoined(false);
             maintenance.stop();
         }
         return unexposed;
@@ -109,7 +73,7 @@ public class Peer implements PeerRemote {
     @Override
     public synchronized void join(final PeerReference member) throws RPCException {
 
-        if (isExposed() && !hasJoined() && member != null) {
+        if (isExposed() && member != null) {
 
             final PeerRemote member_remote = getRemote(member);
             final PeerReference successor = member_remote.lookup(key);
@@ -119,7 +83,6 @@ public class Peer implements PeerRemote {
 
             member_remote.push(self);
             successor_remote.push(self);
-            setJoined(true);
         }
     }
 
@@ -189,11 +152,6 @@ public class Peer implements PeerRemote {
         property_change_support.addPropertyChangeListener(EXPOSURE_PROPERTY_NAME, listener);
     }
 
-    public void addMembershipChangeListener(final PropertyChangeListener listener) {
-
-        property_change_support.addPropertyChangeListener(JOINED_PROPERTY_NAME, listener);
-    }
-
     public boolean isExposed() {
 
         return server.isExposed();
@@ -250,18 +208,6 @@ public class Peer implements PeerRemote {
         }
 
         return next_hop;
-    }
-
-    private void setJoined(boolean join) {
-
-        if (joined.compareAndSet(!join, join)) {
-            property_change_support.firePropertyChange(JOINED_PROPERTY_NAME, !join, join);
-        }
-    }
-
-    private boolean hasJoined() {
-
-        return joined.get();
     }
 
     private void refreshSelfReference() {

@@ -30,6 +30,8 @@ public class EventGenerator {
     private final ExecutorService executor;
     private Future<?> event_generator_task;
 
+    //TODO encode Scenario in the zip file
+    
     public EventGenerator(final Scenario scenario, final File event_home) throws IOException {
 
         this.scenario = scenario;

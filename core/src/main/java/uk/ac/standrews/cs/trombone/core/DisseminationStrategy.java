@@ -13,8 +13,8 @@ import uk.ac.standrews.cs.trombone.core.selector.Selector;
  */
 public class DisseminationStrategy {
 
-    static final Method PUSH_METHOD = ReflectionUtils.findKnownMethod(PeerRemote.class, "push", PeerReference[].class);
-    static final Method PULL_METHOD = ReflectionUtils.findKnownMethod(PeerRemote.class, "pull", Selector.class);
+    private static final Method PUSH_METHOD = ReflectionUtils.findKnownMethod(PeerRemote.class, "push", PeerReference[].class);
+    private static final Method PULL_METHOD = ReflectionUtils.findKnownMethod(PeerRemote.class, "pull", Selector.class);
     private static final PeerReference[] EMPTY_REFERENCES = new PeerReference[0];
     private static final Logger LOGGER = LoggerFactory.getLogger(DisseminationStrategy.class);
     private final boolean opportunistic;
@@ -54,15 +54,15 @@ public class DisseminationStrategy {
         }
     }
 
-     PeerReference[] getPushData(final Peer local) {
-
-        return pullQuietly(local, data_selector);
-    }
-
     public boolean recipientsContain(Peer local, final PeerReference recipient) {
 
         final PeerReference[] recipients = pullQuietly(local, recipient_selector);
         return ArrayUtils.contains(recipients, recipient);
+    }
+
+    PeerReference[] getPushData(final Peer local) {
+
+        return pullQuietly(local, data_selector);
     }
 
     Method getMethod() {

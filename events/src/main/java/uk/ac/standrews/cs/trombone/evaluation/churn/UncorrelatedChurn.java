@@ -32,7 +32,7 @@ public abstract class UncorrelatedChurn implements Churn {
 
         NumericalRangeValidator.validateRangeZeroToOneExclusive(availability);
         uniform_random = new Random(seed);
-        exposed = availability > uniform_random.nextDouble();
+        exposed = availability >= uniform_random.nextDouble();
     }
 
     @Override

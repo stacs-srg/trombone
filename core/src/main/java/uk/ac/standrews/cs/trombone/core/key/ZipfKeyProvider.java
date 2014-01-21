@@ -7,14 +7,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import javax.inject.Provider;
 import org.mashti.sina.distribution.ZipfDistribution;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.uncommons.maths.random.MersenneTwisterRNG;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class ZipfKeyProvider implements Provider<Key> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ZipfKeyProvider.class);
     private final ZipfDistribution distribution;
     private final Key[] keys;
     private final Random random;
@@ -49,17 +46,11 @@ public class ZipfKeyProvider implements Provider<Key> {
     @Override
     public Key get() {
 
-        final long now = System.nanoTime();
         try {
-//                    return keys[random.nextInt(elements_count)];
-//            return keys[nextIndex()];
             return keys_queue.take();
         }
         catch (Throwable e) {
             return keys[nextIndex()];
-        }
-        finally {
-            LOGGER.info("time took : " + (System.nanoTime() - now) + " q: " + keys_queue.size());
         }
     }
 
@@ -81,5 +72,4 @@ public class ZipfKeyProvider implements Provider<Key> {
 
         return rank - 1;
     }
-
 }
