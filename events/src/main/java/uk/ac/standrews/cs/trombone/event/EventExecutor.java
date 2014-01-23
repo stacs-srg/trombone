@@ -1,10 +1,9 @@
-package uk.ac.standrews.cs.trombone.evaluation;
+package uk.ac.standrews.cs.trombone.event;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystem;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -19,7 +18,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.codec.DecoderException;
-import org.apache.commons.io.FileUtils;
 import org.mashti.gauge.Counter;
 import org.mashti.gauge.MetricRegistry;
 import org.mashti.gauge.Rate;
@@ -73,16 +71,15 @@ public class EventExecutor {
     private final CsvReporter csv_reporter;
     private final ConcurrentSkipListMap<Long, Integer[]> oracle = new ConcurrentSkipListMap<Long, Integer[]>();
     private final Random random = new MersenneTwisterRNG();
-    private final FileSystem observations_home;
+    private final Path observations_home;
     private Future<Void> task_scheduler_future;
     private long start_time;
 
-    public EventExecutor(final FileSystem events_home, int host_index, FileSystem observations_home) throws IOException, DecoderException {
+    public EventExecutor(final Path events_home, int host_index, Path observations_home) throws IOException, DecoderException {
 
         this.observations_home = observations_home;
-
         //FIXME get lookup retry count from scenario
-
+       
         event_reader = new EventReader(events_home, host_index);
         runnable_events = new DelayQueue<RunnableExperimentEvent>();
         task_populator = Executors.newCachedThreadPool(new NamedThreadFactory("task_populator_"));
@@ -107,13 +104,8 @@ public class EventExecutor {
         metric_registry.register("sent_bytes_rate", PeerMetric.getGlobalSentBytesRate());
         metric_registry.register("event_execution_lag_sampler", event_execution_lag_sampler);
         metric_registry.register("event_execution_duration_timer", event_execution_duration_timer);
-
-        final File observations = new File("/Users/masih/Desktop/state/partition1/trombone/experiments/observations");
-        FileUtils.deleteDirectory(observations);
-        FileUtils.forceMkdir(observations);
         
-//        Files.createDirectory(observations_home.getPath(String.valueOf(host_index)));
-        csv_reporter = new CsvReporter(metric_registry, observations);
+        csv_reporter = new CsvReporter(metric_registry, observations_home);
 
         loadInitialEvents();
         LOGGER.info("loaded initial event queue population");
@@ -126,7 +118,7 @@ public class EventExecutor {
 
                 // TODO get rid of the oracle if you can: use a list of alive nodes for when a node joins
 
-                final CsvListReader reader = new CsvListReader(Files.newBufferedReader(events_home.getPath("oracle.csv"), StandardCharsets.UTF_8), CsvPreference.STANDARD_PREFERENCE);
+                final CsvListReader reader = new CsvListReader(Files.newBufferedReader(events_home.resolve("oracle.csv"), StandardCharsets.UTF_8), CsvPreference.STANDARD_PREFERENCE);
                 reader.getHeader(true);
                 List<String> line = reader.read();
                 while (line != null) {

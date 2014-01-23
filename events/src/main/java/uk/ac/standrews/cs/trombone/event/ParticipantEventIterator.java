@@ -1,11 +1,11 @@
-package uk.ac.standrews.cs.trombone.evaluation;
+package uk.ac.standrews.cs.trombone.event;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicLong;
-import uk.ac.standrews.cs.trombone.evaluation.churn.Churn;
+import uk.ac.standrews.cs.trombone.event.churn.Churn;
 import uk.ac.standrews.cs.trombone.core.key.Key;
-import uk.ac.standrews.cs.trombone.evaluation.workload.Workload;
+import uk.ac.standrews.cs.trombone.event.workload.Workload;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)

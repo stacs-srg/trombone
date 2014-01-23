@@ -17,9 +17,8 @@
  * along with Trombone.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package uk.ac.standrews.cs.trombone.evaluation;
+package uk.ac.standrews.cs.trombone.event;
 
-import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.util.Random;
 import java.util.Set;
@@ -30,13 +29,12 @@ import javax.inject.Provider;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.core.PeerConfigurator;
 import uk.ac.standrews.cs.trombone.core.key.Key;
-import uk.ac.standrews.cs.trombone.evaluation.churn.Churn;
-import uk.ac.standrews.cs.trombone.evaluation.provider.PortNumberProvider;
-import uk.ac.standrews.cs.trombone.evaluation.workload.Workload;
+import uk.ac.standrews.cs.trombone.event.churn.Churn;
+import uk.ac.standrews.cs.trombone.event.provider.PortNumberProvider;
+import uk.ac.standrews.cs.trombone.event.workload.Workload;
 
-public class Scenario implements Serializable {
+public class Scenario {
 
-    private static final long serialVersionUID = 5082585779371037794L;
     private final String name;
     private final long master_seed;
     private final Random random;
@@ -47,7 +45,7 @@ public class Scenario implements Serializable {
     private Provider<Workload> workload_provider;
     private PeerConfigurator configurator;
 
-    protected Scenario(String name, long master_seed) {
+    public Scenario(String name, long master_seed) {
 
         this.name = name;
         this.master_seed = master_seed;
@@ -141,16 +139,16 @@ public class Scenario implements Serializable {
         this.configurator = configurator;
     }
 
-    protected long getMasterSeed() {
-
-        return master_seed;
-    }
-
-    protected long generateSeed() {
+    public long generateSeed() {
 
         synchronized (random) {
             return random.nextLong();
         }
+    }
+
+    protected long getMasterSeed() {
+
+        return master_seed;
     }
 
     Participant newParticipantOnHost(String host) {

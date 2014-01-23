@@ -1,11 +1,7 @@
-package uk.ac.standrews.cs.trombone.evaluation;
+package uk.ac.standrews.cs.trombone.event;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.util.HashMap;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
@@ -22,7 +18,6 @@ import uk.ac.standrews.cs.trombone.core.key.Key;
 public class EventGenerator {
 
     private final Scenario scenario;
-    private final File event_home;
     private final TreeSet<ParticipantEventIterator> event_iterators;
     private final ConcurrentSkipListSet<Event> events = new ConcurrentSkipListSet<Event>();
     private final AtomicLong min_event_time = new AtomicLong();
@@ -31,19 +26,12 @@ public class EventGenerator {
     private Future<?> event_generator_task;
 
     //TODO encode Scenario in the zip file
-    
-    public EventGenerator(final Scenario scenario, final File event_home) throws IOException {
+
+    public EventGenerator(final Scenario scenario, final Path event_home) throws IOException {
 
         this.scenario = scenario;
-        this.event_home = event_home;
         event_iterators = new TreeSet<>();
-        final File events_home = new File(event_home, scenario.getName() + ".zip");
-        URI uri = URI.create("jar:" + events_home.toURI().toString());
-        System.out.println(uri.toString());
-        Map<String, String> env = new HashMap<>();
-        env.put("create", "true");
-        FileSystem fs = FileSystems.newFileSystem(uri, env);
-        event_csv_writer = new EventWriter(fs);
+        event_csv_writer = new EventWriter(event_home);
         init(scenario);
         executor = Executors.newCachedThreadPool();
 

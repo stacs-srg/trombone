@@ -1,4 +1,4 @@
-package uk.ac.standrews.cs.trombone.evaluation;
+package uk.ac.standrews.cs.trombone.event;
 
 import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
 import uk.ac.standrews.cs.trombone.core.PeerReference;

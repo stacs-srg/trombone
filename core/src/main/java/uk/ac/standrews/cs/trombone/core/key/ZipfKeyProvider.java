@@ -1,75 +1,45 @@
 package uk.ac.standrews.cs.trombone.core.key;
 
 import java.util.Random;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.TreeMap;
 import javax.inject.Provider;
 import org.mashti.sina.distribution.ZipfDistribution;
-import org.uncommons.maths.random.MersenneTwisterRNG;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class ZipfKeyProvider implements Provider<Key> {
 
-    private final ZipfDistribution distribution;
-    private final Key[] keys;
+    private static final Logger LOGGER = LoggerFactory.getLogger(ZipfKeyProvider.class);
     private final Random random;
-    private final int elements_count;
-    private final LinkedBlockingQueue<Key> keys_queue = new LinkedBlockingQueue<>(10000);
+    private final TreeMap<Double, Key> key_rank;
 
     public ZipfKeyProvider(final int elements_count, double exponent, long seed) {
 
-        this.elements_count = elements_count;
-        distribution = new ZipfDistribution(elements_count, exponent);
-        keys = new RandomKeyProvider(seed).generate(elements_count);
-        random = new MersenneTwisterRNG(); //TODO use Well19937c
-        final ExecutorService executorService = Executors.newFixedThreadPool(100);
-        for (int i = 0; i < 100; i++) {
-            executorService.submit(new Callable<Object>() {
-
-                @Override
-                public Object call() throws Exception {
-
-                    final MersenneTwisterRNG rng = new MersenneTwisterRNG();
-                    while (!Thread.currentThread().isInterrupted()) {
-                        final Key key = keys[nextIndex(rng)];
-                        keys_queue.put(key);
-                    }
-
-                    return null;
-                }
-            });
-        }
+        random = new Random(seed);
+        key_rank = new TreeMap<>();
+        populateKeyRankMap(elements_count, exponent);
     }
 
     @Override
     public Key get() {
 
-        try {
-            return keys_queue.take();
-        }
-        catch (Throwable e) {
-            return keys[nextIndex()];
-        }
-    }
-
-    private int nextIndex() {
-
-        return nextIndex(random);
-    }
-
-    private int nextIndex(Random random) {
-
-        int rank;
-        double frequency;
-        double dice;
-        do {
-            rank = random.nextInt(elements_count) + 1;
-            frequency = distribution.density(rank).doubleValue();
+        final double dice;
+        synchronized (random) {
             dice = random.nextDouble();
-        } while (!(dice < frequency));
+        }
+        return key_rank.ceilingEntry(dice).getValue();
+    }
 
-        return rank - 1;
+    private void populateKeyRankMap(final int elements_count, final double exponent) {
+
+        LOGGER.info("populating keys with zipf frequency distribution");
+        final ZipfDistribution distribution = new ZipfDistribution(elements_count, exponent);
+        final RandomKeyProvider randomKeyProvider = new RandomKeyProvider(random.nextLong());
+        for (int i = 0; i < elements_count; i++) {
+            final double rank = distribution.cumulative(i + 1).doubleValue();
+            final Key key = randomKeyProvider.get();
+            key_rank.put(rank, key);
+        }
     }
 }

@@ -1,11 +1,10 @@
-package uk.ac.standrews.cs.trombone.evaluation;
+package uk.ac.standrews.cs.trombone.event;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -35,16 +34,16 @@ public class EventReader implements Closeable, Iterator<Event> {
     private final Map<Integer, PeerReference> peers_index;
     private final AtomicReference<List<String>> next_row_reference;
 
-    public EventReader(FileSystem events_home, int index) throws IOException, DecoderException {
+    public EventReader(Path events_home, int index) throws IOException, DecoderException {
 
         this(events_home, index, DEFAULT_SKIP_FIRST_ROW);
     }
 
-    public EventReader(FileSystem events_home, int index, boolean skip_first_row) throws IOException, DecoderException {
+    public EventReader(Path events_home, int index, boolean skip_first_row) throws IOException, DecoderException {
 
-        event_reader = getReader(events_home.getPath(String.valueOf(index), "events.csv"));
-        lookup_targets_index = readLookupTargets(events_home.getPath("lookup_targets.csv"));
-        peers_index = readPeers(events_home.getPath("peers.csv"));
+        event_reader = getReader(events_home.resolve(String.valueOf(index)).resolve("events.csv"));
+        lookup_targets_index = readLookupTargets(events_home.resolve("lookup_targets.csv"));
+        peers_index = readPeers(events_home.resolve("peers.csv"));
         next_row_reference = new AtomicReference<>();
 
         if (skip_first_row) {

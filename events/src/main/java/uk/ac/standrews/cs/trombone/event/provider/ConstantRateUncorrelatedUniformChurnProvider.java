@@ -17,12 +17,12 @@
  * along with Trombone.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package uk.ac.standrews.cs.trombone.evaluation.provider;
+package uk.ac.standrews.cs.trombone.event.provider;
 
 import javax.inject.Provider;
 import org.mashti.sina.distribution.ProbabilityDistribution;
-import uk.ac.standrews.cs.trombone.evaluation.churn.Churn;
-import uk.ac.standrews.cs.trombone.evaluation.churn.ConstantRateUncorrelatedChurn;
+import uk.ac.standrews.cs.trombone.event.churn.Churn;
+import uk.ac.standrews.cs.trombone.event.churn.ConstantRateUncorrelatedChurn;
 
 public class ConstantRateUncorrelatedUniformChurnProvider implements Provider<Churn> {
 

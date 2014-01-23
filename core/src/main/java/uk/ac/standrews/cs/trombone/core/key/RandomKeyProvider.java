@@ -33,7 +33,7 @@ public class RandomKeyProvider implements Provider<Key> {
         random.nextBytes(key_value);
         return Key.valueOf(key_value);
     }
-
+    
     public Key[] generate(final int count) {
 
         final Key[] keys = new Key[count];

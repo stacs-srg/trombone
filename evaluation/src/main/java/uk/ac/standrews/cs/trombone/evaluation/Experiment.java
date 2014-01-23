@@ -18,6 +18,7 @@ import uk.ac.standrews.cs.shabdiz.host.SSHHost;
 import uk.ac.standrews.cs.shabdiz.job.Worker;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
 import uk.ac.standrews.cs.shabdiz.job.util.SerializableVoid;
+import uk.ac.standrews.cs.trombone.event.EventReader;
 import uk.ac.standrews.cs.trombone.evaluation.util.BlubHostProvider;
 
 /**

@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import uk.ac.standrews.cs.shabdiz.job.Job;
 import uk.ac.standrews.cs.shabdiz.job.util.SerializableVoid;
+import uk.ac.standrews.cs.trombone.event.EventExecutor;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
@@ -29,14 +30,14 @@ public class EventExecutionJob implements Job<SerializableVoid> {
 
         final Path events = Paths.get(events_path);
         final Path observations = Paths.get(observations_path);
-        final FileSystem events_file_system = FileSystems.newFileSystem(events, null);
-        final FileSystem observations_file_system = FileSystems.newFileSystem(observations, null);
-
-        final EventExecutor event_executor = new EventExecutor(events_file_system, host_index, observations_file_system);
-        event_executor.start();
-        event_executor.awaitCompletion();
-        event_executor.stop();
-
+        
+        try (FileSystem events_file_system = FileSystems.newFileSystem(events, null); FileSystem observations_file_system = FileSystems.newFileSystem(observations, null)) {
+        
+            final EventExecutor event_executor = new EventExecutor(events_file_system.getPath("/"), host_index, observations_file_system.getPath("/"));
+            event_executor.start();
+            event_executor.awaitCompletion();
+            event_executor.stop();
+        }
         return null; // void task
     }
 }

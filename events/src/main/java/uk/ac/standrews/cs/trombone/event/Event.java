@@ -1,4 +1,4 @@
-package uk.ac.standrews.cs.trombone.evaluation;
+package uk.ac.standrews.cs.trombone.event;
 
 import java.util.EventObject;
 import java.util.concurrent.atomic.AtomicLong;

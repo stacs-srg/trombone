@@ -1,4 +1,4 @@
-package uk.ac.standrews.cs.trombone.evaluation.provider;
+package uk.ac.standrews.cs.trombone.event.provider;
 
 import java.util.Random;
 import javax.inject.Provider;

@@ -67,6 +67,7 @@ class PeerClientFactory extends LeanClientFactory<PeerRemote> {
                 LOGGER.warn("remote procedure {} was invoked while the peer is unexposed", method);
                 throw new RPCException("peer is unexposed; cannot invoke remote procedure");
             }
+            addSyntheticDelay();
             return super.invoke(proxy, method, params);
         }
 
@@ -112,6 +113,16 @@ class PeerClientFactory extends LeanClientFactory<PeerRemote> {
                 }
             }
             super.beforeFlush(channel, future_response);
+        }
+
+        private void addSyntheticDelay() throws RPCException {
+
+            try {
+                Thread.sleep(0, 550000);
+            }
+            catch (InterruptedException e) {
+                throw new RPCException("interrupted while inducing synthetic delay", e);
+            }
         }
     }
 }

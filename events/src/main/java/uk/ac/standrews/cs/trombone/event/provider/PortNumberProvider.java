@@ -1,4 +1,4 @@
-package uk.ac.standrews.cs.trombone.evaluation.provider;
+package uk.ac.standrews.cs.trombone.event.provider;
 
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicInteger;

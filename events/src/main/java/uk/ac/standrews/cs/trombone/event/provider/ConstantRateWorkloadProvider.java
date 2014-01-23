@@ -17,26 +17,24 @@
  * along with Trombone.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package uk.ac.standrews.cs.trombone.evaluation.provider;
+package uk.ac.standrews.cs.trombone.event.provider;
 
 import javax.inject.Provider;
 import org.mashti.sina.distribution.ProbabilityDistribution;
 import uk.ac.standrews.cs.trombone.core.key.Key;
-import uk.ac.standrews.cs.trombone.evaluation.workload.ConstantRateWorkload;
-import uk.ac.standrews.cs.trombone.evaluation.workload.Workload;
+import uk.ac.standrews.cs.trombone.event.workload.ConstantRateWorkload;
+import uk.ac.standrews.cs.trombone.event.workload.Workload;
 
 public class ConstantRateWorkloadProvider implements Provider<Workload> {
 
     private final ProbabilityDistribution intervals_distribution;
-    private final int retry_threshold;
     private final Provider<Long> seed_provider;
     private final Provider<Key> target_key_provider;
 
-    public ConstantRateWorkloadProvider(final ProbabilityDistribution intervals_distribution, final Provider<Key> target_key_provider, final int retry_threshold, final Provider<Long> seed_provider) {
+    public ConstantRateWorkloadProvider(final ProbabilityDistribution intervals_distribution, final Provider<Key> target_key_provider, final Provider<Long> seed_provider) {
 
         this.intervals_distribution = intervals_distribution;
         this.target_key_provider = target_key_provider;
-        this.retry_threshold = retry_threshold;
         this.seed_provider = seed_provider;
     }
 
@@ -44,6 +42,16 @@ public class ConstantRateWorkloadProvider implements Provider<Workload> {
     public Workload get() {
 
         final Long seed = seed_provider.get();
-        return new ConstantRateWorkload(intervals_distribution, target_key_provider, retry_threshold, seed);
+        return new ConstantRateWorkload(intervals_distribution, target_key_provider, seed);
+    }
+
+    @Override
+    public String toString() {
+
+        final StringBuilder sb = new StringBuilder("ConstantRateWorkloadProvider{");
+        sb.append("intervals_distribution=").append(intervals_distribution);
+        sb.append(", target_key_provider=").append(target_key_provider);
+        sb.append('}');
+        return sb.toString();
     }
 }

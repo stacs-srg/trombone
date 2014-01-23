@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Trombone.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.standrews.cs.trombone.evaluation.churn;
+package uk.ac.standrews.cs.trombone.event.churn;
 
 import java.util.Random;
 import org.mashti.sina.distribution.ProbabilityDistribution;

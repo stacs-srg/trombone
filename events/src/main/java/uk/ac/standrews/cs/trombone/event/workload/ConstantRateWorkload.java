@@ -17,12 +17,11 @@
  * along with Trombone.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package uk.ac.standrews.cs.trombone.evaluation.workload;
+package uk.ac.standrews.cs.trombone.event.workload;
 
 import java.util.Random;
 import javax.inject.Provider;
 import org.mashti.sina.distribution.ProbabilityDistribution;
-import org.mashti.sina.util.NumericalRangeValidator;
 import org.mashti.sina.util.RandomNumberGenerator;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 
@@ -35,15 +34,12 @@ public class ConstantRateWorkload implements Workload {
 
     private final Provider<Key> key_factory;
     private final ProbabilityDistribution intervals_distribution;
-    private final int retry_threshold;
     private final Random uniform_random;
 
-    public ConstantRateWorkload(final ProbabilityDistribution intervals_distribution, final Provider<Key> key_factory, final int retry_threshold, final long seed) {
+    public ConstantRateWorkload(final ProbabilityDistribution intervals_distribution, final Provider<Key> key_factory, final long seed) {
 
-        NumericalRangeValidator.validateRangeLargerThanOneInclusive(retry_threshold);
         this.intervals_distribution = intervals_distribution;
         this.key_factory = key_factory;
-        this.retry_threshold = retry_threshold;
         uniform_random = new Random(seed);
     }
 
@@ -52,7 +48,7 @@ public class ConstantRateWorkload implements Workload {
 
         final long interval = getNextInterval();
         final Key target = getNextTarget();
-        return new Lookup(interval, target, retry_threshold);
+        return new Lookup(interval, target);
     }
 
     private long getNextInterval() {
