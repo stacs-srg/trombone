@@ -59,7 +59,6 @@ public class EventGeneratorTest {
             generator.generate();
         }
 
-        System.out.println("TOOK " + new javafx.util.Duration(System.currentTimeMillis() - now).toMinutes() + " minutes");
 
         final FileSystem fileSystem = FileSystems.newFileSystem(URI.create("jar:file:/Users/masih/Desktop/test.zip"), new HashMap<String, String>());
 
