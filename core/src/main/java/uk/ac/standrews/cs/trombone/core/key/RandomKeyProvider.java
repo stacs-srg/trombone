@@ -6,34 +6,34 @@ import javax.inject.Provider;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class RandomKeyProvider implements Provider<Key> {
 
-    private static final int DEFAULT_KEY_LENGTH_IN_BITS = 4 * Byte.SIZE;
     private final Random random;
+    private final long seed;
+    private final int key_length_in_bits;
     private final int key_length_in_bytes;
 
-    public RandomKeyProvider() {
+    public RandomKeyProvider(final long seed, int key_length_in_bits) {
 
-        this(new Random(), DEFAULT_KEY_LENGTH_IN_BITS);
-    }
-
-    public RandomKeyProvider(final long seed) {
-
-        this(new Random(seed), DEFAULT_KEY_LENGTH_IN_BITS);
-    }
-
-    public RandomKeyProvider(final Random random, int key_length_in_bits) {
-
-        this.random = random;
+        this.seed = seed;
+        this.key_length_in_bits = key_length_in_bits;
+        random = new Random(seed);
         key_length_in_bytes = key_length_in_bits / Byte.SIZE;
     }
 
     @Override
-    public synchronized Key get() {
+    public Key get() {
 
         final byte[] key_value = new byte[key_length_in_bytes];
-        random.nextBytes(key_value);
+        synchronized (random) {
+            random.nextBytes(key_value);
+        }
         return Key.valueOf(key_value);
     }
-    
+
+    public int getKeyLengthInBits() {
+
+        return key_length_in_bits;
+    }
+
     public Key[] generate(final int count) {
 
         final Key[] keys = new Key[count];
@@ -41,5 +41,15 @@ public class RandomKeyProvider implements Provider<Key> {
             keys[i] = get();
         }
         return keys;
+    }
+
+    @Override
+    public String toString() {
+
+        final StringBuilder sb = new StringBuilder("RandomKeyProvider{");
+        sb.append("seed=").append(seed);
+        sb.append(", key_length_in_bits=").append(key_length_in_bits);
+        sb.append('}');
+        return sb.toString();
     }
 }

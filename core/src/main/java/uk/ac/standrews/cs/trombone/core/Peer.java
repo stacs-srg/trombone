@@ -58,8 +58,8 @@ public class Peer implements PeerRemote {
 
         final boolean unexposed = server.unexpose();
         if (unexposed) {
-            property_change_support.firePropertyChange(EXPOSURE_PROPERTY_NAME, true, false);
             maintenance.stop();
+            property_change_support.firePropertyChange(EXPOSURE_PROPERTY_NAME, true, false);
         }
         return unexposed;
     }

@@ -23,6 +23,16 @@ import uk.ac.standrews.cs.trombone.core.key.Key;
 
 public interface Workload {
 
+    Lookup NEVER_OCCURRING_LOOKUP = new Lookup(Long.MAX_VALUE, null);
+    Workload NONE = new Workload() {
+
+        @Override
+        public Lookup getLookupAt(final long time) {
+
+            return NEVER_OCCURRING_LOOKUP;
+        }
+    };
+
     Lookup getLookupAt(long time);
 
     public class Lookup {

@@ -1,4 +1,4 @@
-package uk.ac.standrews.cs.adaptation;
+package uk.ac.standrews.cs.trombone.core.adaptation;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.uncommons.watchmaker.framework.FitnessEvaluator;
 import uk.ac.standrews.cs.trombone.core.DisseminationStrategy;
-import uk.ac.standrews.cs.trombone.core.Maintenance;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerMetric;
 
@@ -19,13 +18,12 @@ public class PVCFitnessEvaluator implements FitnessEvaluator<List<DisseminationS
     private static final Logger LOGGER = LoggerFactory.getLogger(PVCFitnessEvaluator.class);
     private static final double[] ORIGIN = {0, 0, 0};
     private final PeerMetric metric;
-    private final Maintenance maintenance;
+    private final EvolutionaryMaintenance maintenance;
 
-    public PVCFitnessEvaluator(final Peer local) {
+    public PVCFitnessEvaluator(final Peer local, final EvolutionaryMaintenance maintenance) {
 
         metric = local.getPeerMetric();
-
-        maintenance = local.getMaintenance();
+        this.maintenance = maintenance;
 
     }
 
@@ -60,6 +58,8 @@ public class PVCFitnessEvaluator implements FitnessEvaluator<List<DisseminationS
 
         assert p1.length == p2.length;
 
+        //FIXME normalize; discussion with Ozgur
+        
         double sum = 0;
         for (int i = 0; i < p1.length; i++) {
             final double dp = p1[i] - p2[i];

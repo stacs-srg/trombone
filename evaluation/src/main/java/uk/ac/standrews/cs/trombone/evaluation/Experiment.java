@@ -15,11 +15,11 @@ import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.LocalHost;
 import uk.ac.standrews.cs.shabdiz.host.SSHHost;
+import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
 import uk.ac.standrews.cs.shabdiz.job.Worker;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
-import uk.ac.standrews.cs.shabdiz.job.util.SerializableVoid;
-import uk.ac.standrews.cs.trombone.event.EventReader;
 import uk.ac.standrews.cs.trombone.evaluation.util.BlubHostProvider;
+import uk.ac.standrews.cs.trombone.event.EventReader;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
@@ -58,7 +58,7 @@ public class Experiment {
     }
 
     protected void setup() throws Exception {
-        
+
         final FileSystem events_file_system = FileSystems.newFileSystem(Paths.get(events.getAbsolutePath()), null);
         host_indices = EventReader.readHostNames(events_file_system.getPath("hosts.csv"));
         worker_network = new WorkerNetwork();
@@ -66,9 +66,14 @@ public class Experiment {
         for (String host_name : host_indices.keySet()) {
             final Host host = isLocalhost(host_name) ? new LocalHost() : new SSHHost(host_name, BlubHostProvider.SSHJ_AUTH);
             worker_network.add(host);
-            host.upload(events, "/Users/masih/Desktop/state/partition1/trombone/experiments/events/");
+            LOGGER.info("uploading events to {}", host_name);
+            final String parent = events.getParentFile().getAbsolutePath();
+            final Process mkdir = host.execute(Commands.MAKE_DIRECTORIES.get(host.getPlatform(), parent));
+            mkdir.waitFor();
+            mkdir.destroy();
+            host.upload(events, parent);
         }
-
+        worker_network.getWorkerManager().setWorkerJVMArguments("-Xmx1G");
         worker_network.addCurrentJVMClasspath();
         worker_network.deployAll();
         worker_network.awaitAnyOfStates(ApplicationState.RUNNING);
@@ -91,25 +96,29 @@ public class Experiment {
 
     private void execute() throws Exception {
 
-        final Map<Host, Future<SerializableVoid>> host_event_executions = new HashMap<>();
+        final Map<Host, Future<String>> host_event_executions = new HashMap<>();
 
         for (ApplicationDescriptor descriptor : worker_network) {
 
             final Worker worker = descriptor.getApplicationReference();
             final Host host = descriptor.getHost();
-            final int host_index = 1;//getHostIndexByName(host.getName());
-            final Future<SerializableVoid> future_event_execution = worker.submit(new EventExecutionJob(events_path, host_index, observations_path));
+            final int host_index = getHostIndexByName(host.getName());
+            final Future<String> future_event_execution = worker.submit(new EventExecutionJob(events_path, host_index, observations_path));
             host_event_executions.put(host, future_event_execution);
         }
 
-        for (Map.Entry<Host, Future<SerializableVoid>> host_event_entry : host_event_executions.entrySet()) {
+        for (Map.Entry<Host, Future<String>> host_event_entry : host_event_executions.entrySet()) {
 
             final Host host = host_event_entry.getKey();
-            final Future<SerializableVoid> future_event_execution = host_event_entry.getValue();
+            final Future<String> future_event_execution = host_event_entry.getValue();
 
             try {
-                future_event_execution.get();
-                LOGGER.info("successfully finished executing events on host {}", host);
+                final String results_path = future_event_execution.get();
+                LOGGER.info("successfully finished executing events on host {} - {}", host, results_path);
+                final File destination = new File(events.getParentFile(), host.getName());
+                destination.mkdirs();
+                host.download(observations_path, destination);
+                LOGGER.info("downloaded observations from host {} to {}", host.getName(), destination);
             }
             catch (InterruptedException | ExecutionException e) {
                 LOGGER.error("Event execution on host {} failed due to {}", host, e);

@@ -1,4 +1,4 @@
-package uk.ac.standrews.cs.adaptation;
+package uk.ac.standrews.cs.trombone.core.adaptation;
 
 import java.util.Random;
 import org.uncommons.watchmaker.framework.factories.AbstractCandidateFactory;

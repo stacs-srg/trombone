@@ -29,7 +29,7 @@ class PeerClientFactory extends LeanClientFactory<PeerRemote> {
 
     PeerClientFactory(final Peer peer) {
 
-        super(PeerRemote.class, PeerCodecs.INSTANCE);
+        super(PeerRemote.class, PeerCodecs.INSTANCE, channel_pool_map);
         this.peer = peer;
         peer_state = peer.getPeerState();
         peer_metric = peer.getPeerMetric();
@@ -64,7 +64,7 @@ class PeerClientFactory extends LeanClientFactory<PeerRemote> {
         public Object invoke(final Object proxy, final Method method, final Object[] params) throws Throwable {
 
             if (!peer.isExposed()) {
-                LOGGER.warn("remote procedure {} was invoked while the peer is unexposed", method);
+                LOGGER.debug("remote procedure {} was invoked while the peer is unexposed", method);
                 throw new RPCException("peer is unexposed; cannot invoke remote procedure");
             }
             addSyntheticDelay();
@@ -116,7 +116,9 @@ class PeerClientFactory extends LeanClientFactory<PeerRemote> {
         }
 
         private void addSyntheticDelay() throws RPCException {
-
+            //FIXME ADD ONLY IF NOT LOCAL
+            //            final String host_name = getAddress().getHostString();
+            //            if(host_name.equals("localhost") || host_name.equals(InetAddress.getLocalHost().getHostName()))
             try {
                 Thread.sleep(0, 550000);
             }

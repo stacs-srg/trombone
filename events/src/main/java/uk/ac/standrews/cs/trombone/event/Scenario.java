@@ -20,6 +20,7 @@
 package uk.ac.standrews.cs.trombone.event;
 
 import java.net.InetSocketAddress;
+import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,7 +31,7 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.core.PeerConfigurator;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.event.churn.Churn;
-import uk.ac.standrews.cs.trombone.event.provider.PortNumberProvider;
+import uk.ac.standrews.cs.trombone.event.provider.SequentialPortNumberProvider;
 import uk.ac.standrews.cs.trombone.event.workload.Workload;
 
 public class Scenario {
@@ -39,6 +40,7 @@ public class Scenario {
     private final long master_seed;
     private final Random random;
     private final ConcurrentHashMap<String, HostScenario> host_scenarios;
+    private final Properties properties;
     private Duration experiment_duration;
     private Provider<Key> peer_key_provider;
     private Provider<Churn> churn_provider;
@@ -51,6 +53,9 @@ public class Scenario {
         this.master_seed = master_seed;
         random = new Random(master_seed);
         host_scenarios = new ConcurrentHashMap<>();
+        properties = new Properties();
+        properties.setProperty("scenario.name", name);
+        properties.setProperty("scenario.master_seed", String.valueOf(master_seed));
     }
 
     public Set<String> getHostNames() {
@@ -58,10 +63,13 @@ public class Scenario {
         return new CopyOnWriteArraySet<String>(host_scenarios.keySet());
     }
 
-    public void addHost(String host, Integer peer_count, PortNumberProvider port_number_provider) {
+    public void addHost(String host, Integer peer_count, SequentialPortNumberProvider port_number_provider) {
 
         final HostScenario host_scenario = new HostScenario(host, peer_count, port_number_provider.copy());
         host_scenarios.put(host, host_scenario);
+        properties.setProperty("scenario.host." + host + ".peer_count", String.valueOf(peer_count));
+        properties.setProperty("scenario.host." + host + ".port_number_provider", port_number_provider.toString());
+        properties.setProperty("scenario.max_network_size", String.valueOf(getMaximumNetworkSize()));
     }
 
     public final int getMaximumNetworkSize() {
@@ -77,6 +85,7 @@ public class Scenario {
     public void setExperimentDuration(final Duration experiment_duration) {
 
         this.experiment_duration = experiment_duration;
+        properties.setProperty("scenario.experiment_duration", experiment_duration.toString());
     }
 
     public Duration getExperimentDuration() {
@@ -107,6 +116,7 @@ public class Scenario {
     public void setPeerKeyProvider(final Provider<Key> peer_key_provider) {
 
         this.peer_key_provider = peer_key_provider;
+        properties.setProperty("scenario.peer_key_provider", peer_key_provider.toString());
     }
 
     public Provider<Churn> getChurnProvider() {
@@ -117,6 +127,7 @@ public class Scenario {
     public void setChurnProvider(final Provider<Churn> churn_provider) {
 
         this.churn_provider = churn_provider;
+        properties.setProperty("scenario.churn_provider", churn_provider.toString());
     }
 
     public Provider<Workload> getWorkloadProvider() {
@@ -127,6 +138,7 @@ public class Scenario {
     public void setWorkloadProvider(final Provider<Workload> workload_provider) {
 
         this.workload_provider = workload_provider;
+        properties.setProperty("scenario.workload_provider", workload_provider.toString());
     }
 
     public PeerConfigurator getPeerConfigurator() {
@@ -137,6 +149,7 @@ public class Scenario {
     public void setPeerConfigurator(final PeerConfigurator configurator) {
 
         this.configurator = configurator;
+        properties.setProperty("scenario.peer_configurator", configurator.toString());
     }
 
     public long generateSeed() {
@@ -146,6 +159,11 @@ public class Scenario {
         }
     }
 
+    public Properties getProperties() {
+
+        return properties;
+    }
+
     protected long getMasterSeed() {
 
         return master_seed;
@@ -153,7 +171,11 @@ public class Scenario {
 
     Participant newParticipantOnHost(String host) {
 
-        return new Participant(peer_key_provider.get(), new InetSocketAddress(host, nextPortByHost(host)), churn_provider.get(), workload_provider.get(), configurator);
+        final Key peer_key = peer_key_provider.get();
+        final InetSocketAddress peer_address = InetSocketAddress.createUnresolved(host, nextPortByHost(host));
+        final Churn churn = churn_provider.get();
+        final Workload workload = workload_provider.get();
+        return new Participant(peer_key, peer_address, churn, workload, configurator);
     }
 
     private Integer nextPortByHost(final String host) {
@@ -165,9 +187,9 @@ public class Scenario {
 
         private final String host_name;
         private final int peer_count;
-        private final PortNumberProvider port_number_provider;
+        private final SequentialPortNumberProvider port_number_provider;
 
-        private HostScenario(String host_name, final Integer peer_count, final PortNumberProvider port_number_provider) {
+        private HostScenario(String host_name, final Integer peer_count, final SequentialPortNumberProvider port_number_provider) {
 
             this.host_name = host_name;
             this.peer_count = peer_count;

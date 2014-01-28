@@ -18,32 +18,32 @@ import uk.ac.standrews.cs.test.category.Ignore;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.core.key.RandomKeyProvider;
 import uk.ac.standrews.cs.trombone.core.key.ZipfKeyProvider;
+import uk.ac.standrews.cs.trombone.event.provider.ConstantRateUncorrelatedUniformChurnProvider;
 import uk.ac.standrews.cs.trombone.event.provider.ConstantRateWorkloadProvider;
-import uk.ac.standrews.cs.trombone.event.provider.NoChurnProvider;
-import uk.ac.standrews.cs.trombone.event.provider.PortNumberProvider;
 import uk.ac.standrews.cs.trombone.event.provider.RandomSeedProvider;
+import uk.ac.standrews.cs.trombone.event.provider.SequentialPortNumberProvider;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 @Category(Ignore.class)
 public class EventGeneratorTest {
 
     private static final ProbabilityDistribution session_length_distribution = new ExponentialDistribution(Double.valueOf(new Duration(100, TimeUnit.SECONDS).getLength(TimeUnit.NANOSECONDS)));
-    private static final ProbabilityDistribution downtime_distribution = new ExponentialDistribution(Double.valueOf(new Duration(1, TimeUnit.SECONDS).getLength(TimeUnit.NANOSECONDS)));
+    private static final ProbabilityDistribution downtime_distribution = new ExponentialDistribution(Double.valueOf(new Duration(3, TimeUnit.SECONDS).getLength(TimeUnit.NANOSECONDS)));
     private static final ProbabilityDistribution workload_intervals_distribution = new ExponentialDistribution(Double.valueOf(new Duration(500, TimeUnit.MILLISECONDS).getLength(TimeUnit.NANOSECONDS)));
-    private static final Duration experiment_duration = new Duration(60, TimeUnit.MINUTES);
+    private static final Duration experiment_duration = new Duration(1, TimeUnit.MINUTES);
     private Scenario scenario;
 
     @Before
     public void setUp() throws Exception {
 
         scenario = new Scenario("test", 89562);
-        final Provider<Key> target_key_provider = new ZipfKeyProvider(20000, 1, scenario.generateSeed());
-        scenario.setPeerKeyProvider(new RandomKeyProvider(scenario.generateSeed()));
-        //        scenario.setChurnProvider(new ConstantRateUncorrelatedUniformChurnProvider(session_length_distribution, downtime_distribution, new RandomSeedProvider(scenario.generateSeed())));
-        scenario.setChurnProvider(NoChurnProvider.getInstance());
+        final Provider<Key> target_key_provider = new ZipfKeyProvider(200, 1, 32, scenario.generateSeed());
+        scenario.setPeerKeyProvider(new RandomKeyProvider(scenario.generateSeed(), 32));
+        scenario.setChurnProvider(new ConstantRateUncorrelatedUniformChurnProvider(session_length_distribution, downtime_distribution, new RandomSeedProvider(scenario.generateSeed())));
+        //        scenario.setChurnProvider(NoChurnProvider.getInstance());
         scenario.setWorkloadProvider(new ConstantRateWorkloadProvider(workload_intervals_distribution, target_key_provider, new RandomSeedProvider(scenario.generateSeed())));
         scenario.setExperimentDuration(experiment_duration);
-        scenario.addHost("localhost", 1000, new PortNumberProvider(45000));
+        scenario.addHost("localhost", 10, new SequentialPortNumberProvider(45000));
     }
 
     @Test
@@ -59,9 +59,10 @@ public class EventGeneratorTest {
             generator.generate();
         }
 
-        System.out.println("TOOK " + (System.currentTimeMillis() - now) + " ms");
+        System.out.println("TOOK " + new javafx.util.Duration(System.currentTimeMillis() - now).toMinutes() + " minutes");
 
-        //        final FileSystem fileSystem = FileSystems.newFileSystem(URI.create("jar:file:/Users/masih/Desktop/test.zip"), new HashMap<String, String>());
+        final FileSystem fileSystem = FileSystems.newFileSystem(URI.create("jar:file:/Users/masih/Desktop/test.zip"), new HashMap<String, String>());
+
         //        EventExecutor executor = new EventExecutor(fileSystem);
         //        executor.start();
         //        experiment_duration.sleep();

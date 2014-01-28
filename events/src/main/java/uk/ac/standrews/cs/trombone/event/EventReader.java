@@ -8,10 +8,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import org.apache.commons.codec.DecoderException;
@@ -127,7 +129,7 @@ public class EventReader implements Closeable, Iterator<Event> {
 
     private static Map<Integer, Key> readLookupTargets(final Path lookup_targets_csv) throws IOException, DecoderException {
 
-        final Map<Integer, Key> lookup_targets = new HashMap<Integer, Key>();
+        final Map<Integer, Key> lookup_targets = new HashMap<>();
         try (final CsvListReader reader = getReader(lookup_targets_csv)) {
             reader.getHeader(true); //skip header
             List<String> row = reader.read();
@@ -150,18 +152,31 @@ public class EventReader implements Closeable, Iterator<Event> {
         final PeerReference peer = getPeerReferenceByIndex(peer_id);
         final int code = Integer.valueOf(next_row.get(2));
         switch (code) {
-            case ChurnEvent.UNAVAILABLE_CODE:
-                return new ChurnEvent(peer, peer_id, time, false);
+            case LeaveEvent.LEAVE_EVENT_CODE:
+                return new LeaveEvent(peer, peer_id, time);
 
-            case ChurnEvent.AVAILABLE_CODE:
-                final ChurnEvent event = new ChurnEvent(peer, peer_id, time, true);
-                event.setDurationInNanos(Long.valueOf(next_row.get(3)));
+            case JoinEvent.JOIN_EVENT_CODE:
+                final JoinEvent event = new JoinEvent(peer, peer_id, time);
+                final String join_params = next_row.get(3);
+                final String[] split_params = join_params.split(JoinEvent.PARAMETER_DELIMITER);
+                event.setDurationInNanos(Long.valueOf(split_params[0]));
+                
+                final Set<PeerReference> known_peer_references = new HashSet<>();
+                for (int i = 1; i < split_params.length; i++) {
+                    final String index_as_string = split_params[i].trim();
+                    if (!index_as_string.isEmpty()) {
+                        final int reference_index = Integer.parseInt(index_as_string);
+                        known_peer_references.add(getPeerReferenceByIndex(reference_index));
+                    }
+                }
+                event.setKnownPeerReferences(known_peer_references);
+                
                 return event;
 
             case LookupEvent.LOOKUP_EVENT_CODE:
-                final String[] params = LOOKUP_EVENT_PARAM_PATTERN.split(next_row.get(3));
-                final Key target = getLookupTargetByIndex(Integer.valueOf(params[0]));
-                final Integer expected_result_id = Integer.valueOf(params[1]);
+                final String[] lookup_params = LOOKUP_EVENT_PARAM_PATTERN.split(next_row.get(3));
+                final Key target = getLookupTargetByIndex(Integer.valueOf(lookup_params[0]));
+                final Integer expected_result_id = Integer.valueOf(lookup_params[1]);
                 final PeerReference expected_result = getPeerReferenceByIndex(expected_result_id);
                 final LookupEvent lookup_event = new LookupEvent(peer, peer_id, time, target);
                 lookup_event.setExpectedResult(expected_result, expected_result_id);

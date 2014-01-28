@@ -93,6 +93,17 @@ public class Participant implements Comparable<Participant> {
         return id.equals(that.id);
     }
 
+    @Override
+    public String toString() {
+
+        final StringBuilder sb = new StringBuilder("Participant{");
+        sb.append("id=").append(id);
+        sb.append(", key=").append(key);
+        sb.append(", address=").append(address);
+        sb.append('}');
+        return sb.toString();
+    }
+
     public PeerConfigurator getPeerConfigurator() {
 
         return configurator;

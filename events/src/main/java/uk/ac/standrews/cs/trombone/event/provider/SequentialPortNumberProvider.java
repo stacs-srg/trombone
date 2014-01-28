@@ -5,13 +5,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.inject.Provider;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class PortNumberProvider implements Provider<Integer>, Serializable {
+public class SequentialPortNumberProvider implements Provider<Integer>, Serializable {
 
     private static final long serialVersionUID = -7586002873803828004L;
     private final int start;
     private final AtomicInteger next_port;
 
-    public PortNumberProvider(int start) {
+    public SequentialPortNumberProvider(int start) {
 
         if (start < 0 || start > 0xffff) { throw new IllegalArgumentException("invalid start port"); }
         this.start = start;
@@ -24,8 +24,17 @@ public class PortNumberProvider implements Provider<Integer>, Serializable {
         return next_port.getAndIncrement();
     }
 
-    public PortNumberProvider copy() {
+    public SequentialPortNumberProvider copy() {
 
-        return new PortNumberProvider(start);
+        return new SequentialPortNumberProvider(start);
+    }
+
+    @Override
+    public String toString() {
+
+        final StringBuilder sb = new StringBuilder("SequentialPortNumberProvider{");
+        sb.append("start=").append(start);
+        sb.append('}');
+        return sb.toString();
     }
 }

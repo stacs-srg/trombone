@@ -1,4 +1,4 @@
-package uk.ac.standrews.cs.adaptation;
+package uk.ac.standrews.cs.trombone.core.adaptation;
 
 import java.util.List;
 import org.slf4j.Logger;
@@ -17,7 +17,7 @@ import uk.ac.standrews.cs.trombone.core.Peer;
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class EvolutionaryMaintenance {
+public class EvolutionaryMaintenance extends Maintenance {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EvolutionaryMaintenance.class);
     private static final Probability MUTATION_PROBABILITY = new Probability(0.1d);
@@ -26,17 +26,14 @@ public class EvolutionaryMaintenance {
     private static final ListCandidateFactory<DisseminationStrategy> DISSEMINATION_STRATEGY_LIST_FACTORY = new ListCandidateFactory<>(DISSEMINATION_STRATEGY_FACTORY, DISSEMINATION_STRATEGY_LIST_SIZE);
     private static final int POPULATION_SIZE = 10;
     private static final int ELITE_COUNT = 2;
-    private final Peer local;
-    private final Maintenance maintenance;
     private final AbstractEvolutionEngine<List<DisseminationStrategy>> evolution_engine;
 
     public EvolutionaryMaintenance(final Peer local) {
 
-        this.local = local;
-        maintenance = local.getMaintenance();
+        super(local);
 
         final ListMutation<DisseminationStrategy> operator = new ListMutation<>(DISSEMINATION_STRATEGY_FACTORY, MUTATION_PROBABILITY);
-        final PVCFitnessEvaluator fitness_evaluator = new PVCFitnessEvaluator(local);
+        final PVCFitnessEvaluator fitness_evaluator = new PVCFitnessEvaluator(local, this);
         final SelectionStrategy<Object> selection_strategy = new RouletteWheelSelection();
         final MersenneTwisterRNG random = new MersenneTwisterRNG();
 
@@ -50,8 +47,20 @@ public class EvolutionaryMaintenance {
         LOGGER.info("at least one termination condition is met; terminating adaptation");
 
         //TODO this is incomplete; here we should have a map of environment to solution.
-        maintenance.reset();
-        maintenance.addAll(current_best);
+        reset();
+        addAll(current_best);
 
+    }
+
+    @Override
+    public void reset() {
+
+        super.reset();
+    }
+
+    @Override
+    public void addAll(final List<DisseminationStrategy> strategies) {
+
+        super.addAll(strategies);
     }
 }

@@ -8,10 +8,10 @@ import uk.ac.standrews.cs.trombone.core.PeerReference;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public abstract class Event extends EventObject implements Comparable<Event> {
 
-    private static final AtomicLong NEXT_ID = new AtomicLong();
     private static final long serialVersionUID = -3008406138733512647L;
-    private final Integer source_id;
+    private static final AtomicLong NEXT_ID = new AtomicLong();
     protected final Long time_nanos;
+    private final Integer source_id;
     private final Long id;
     private transient Participant participant;
 

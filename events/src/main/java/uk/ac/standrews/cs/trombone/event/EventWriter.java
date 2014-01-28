@@ -7,12 +7,10 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -37,26 +35,22 @@ public class EventWriter implements Closeable {
     private final CsvListWriter hosts_csv_writer;
     private final CsvListWriter peers_csv_writer;
     private final CsvListWriter lookup_targets_csv_writer;
-    private final CsvListWriter oracle_csv_writer;
     private final AtomicLong write_counter = new AtomicLong(0);
     private final Path events_home;
 
     public EventWriter(Path events_home) throws IOException {
 
         this.events_home = events_home;
-
         lookup_targets_index = new ConcurrentHashMap<Key, Integer>();
         host_event_writers = new HashMap<>();
         host_indices = new TreeMap<>();
         hosts_csv_writer = getWriter(events_home.resolve("hosts.csv"));
         peers_csv_writer = getWriter(events_home.resolve("peers.csv"));
         lookup_targets_csv_writer = getWriter(events_home.resolve("lookup_targets.csv"));
-        oracle_csv_writer = getWriter(events_home.resolve("oracle.csv"));
 
         hosts_csv_writer.writeHeader("index", "host_name");
         peers_csv_writer.writeHeader("index", "peer_key", "host_name", "port");
         lookup_targets_csv_writer.writeHeader("index", "key");
-        oracle_csv_writer.writeHeader("time", "alive_peer_indices");
     }
 
     public void write(Event event) throws IOException {
@@ -68,9 +62,10 @@ public class EventWriter implements Closeable {
             LookupEvent lookup_event = (LookupEvent) event;
             lookup_event.setTargetId(getLookupTargetIndex(lookup_event.getTarget()));
         }
+
         final Long timeInNanos = event.getTimeInNanos();
         writer.write(timeInNanos, event.getParticipant().getId(), event.getCode(), event.getParameters());
-        if (write_counter.incrementAndGet() % 1000 == 0) {
+        if (write_counter.incrementAndGet() % 10000 == 0) {
             writer.flush();
             write_counter.set(0);
         }
@@ -80,19 +75,6 @@ public class EventWriter implements Closeable {
             peers_csv_writer.write(participant.getId(), participant.getKey(), participant.getHostName(), participant.getPort());
             peers_csv_writer.flush();
         }
-    }
-
-    public void write(long time, final Collection<Participant> alive_participants) throws IOException {
-
-        StringBuilder sb = new StringBuilder();
-        for (Participant participant : new TreeSet<Participant>(alive_participants)) {
-            sb.append(participant.getId());
-            sb.append(' ');
-        }
-
-        oracle_csv_writer.write(time, sb.toString());
-        oracle_csv_writer.flush();
-
     }
 
     @Override
@@ -107,9 +89,6 @@ public class EventWriter implements Closeable {
 
         peers_csv_writer.flush();
         peers_csv_writer.close();
-
-        oracle_csv_writer.flush();
-        oracle_csv_writer.close();
 
         lookup_targets_csv_writer.flush();
         lookup_targets_csv_writer.close();
@@ -126,7 +105,8 @@ public class EventWriter implements Closeable {
         final CsvListWriter writer;
         if (!host_event_writers.containsKey(host_name)) {
             final int host_index = getHostIndex(host_name);
-            writer = new CsvListWriter(Files.newBufferedWriter(getHostEventCsv(host_index), StandardCharsets.UTF_8, StandardOpenOption.CREATE), CsvPreference.STANDARD_PREFERENCE);
+            final Path host_event_csv = getHostEventCsv(host_index);
+            writer = new CsvListWriter(Files.newBufferedWriter(host_event_csv, StandardCharsets.UTF_8, StandardOpenOption.CREATE), CsvPreference.STANDARD_PREFERENCE);
             writer.writeHeader("time", "peer_index", "event_code", "event_params");
             host_event_writers.put(host_name, writer);
         }

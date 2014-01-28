@@ -22,8 +22,9 @@ package uk.ac.standrews.cs.trombone.event.workload;
 import java.util.Random;
 import javax.inject.Provider;
 import org.mashti.sina.distribution.ProbabilityDistribution;
-import org.mashti.sina.util.RandomNumberGenerator;
 import uk.ac.standrews.cs.trombone.core.key.Key;
+
+import static java.lang.Math.log;
 
 /**
  * Presents a synthetic workload.
@@ -35,12 +36,14 @@ public class ConstantRateWorkload implements Workload {
     private final Provider<Key> key_factory;
     private final ProbabilityDistribution intervals_distribution;
     private final Random uniform_random;
+    private final double mean;
 
     public ConstantRateWorkload(final ProbabilityDistribution intervals_distribution, final Provider<Key> key_factory, final long seed) {
 
         this.intervals_distribution = intervals_distribution;
         this.key_factory = key_factory;
         uniform_random = new Random(seed);
+        mean = intervals_distribution.mean().doubleValue();
     }
 
     @Override
@@ -54,7 +57,11 @@ public class ConstantRateWorkload implements Workload {
     private long getNextInterval() {
 
         synchronized (intervals_distribution) {
-            return RandomNumberGenerator.generate(intervals_distribution, uniform_random).longValue();
+
+            
+            return (long) (-mean * log(1 - uniform_random.nextDouble()));
+            
+//            return RandomNumberGenerator.generate(intervals_distribution, uniform_random).longValue();
         }
     }
 

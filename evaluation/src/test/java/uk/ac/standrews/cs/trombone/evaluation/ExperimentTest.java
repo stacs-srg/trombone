@@ -9,8 +9,9 @@ import java.util.Map;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import uk.ac.standrews.cs.test.category.Ignore;
-import uk.ac.standrews.cs.trombone.evaluation.scenarios.Scenario1;
+import uk.ac.standrews.cs.trombone.evaluation.scenarios.PlatformJustificationSingleHost;
 import uk.ac.standrews.cs.trombone.event.EventGenerator;
+import uk.ac.standrews.cs.trombone.event.Scenario;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
@@ -21,22 +22,23 @@ public class ExperimentTest {
     @Test
     public void testRun() throws Exception {
 
-        final Scenario1 scenario = new Scenario1();
+        final Scenario scenario = new PlatformJustificationSingleHost();
         final File events_home = new File("/Users/masih/Desktop", scenario.getName() + ".zip");
-        final URI path = URI.create("jar:" + events_home.toURI());
+        final URI events_uri = URI.create("jar:" + events_home.toURI());
 
         final Map<String, String> environment = new HashMap<>();
         environment.put("create", "true");
+        environment.put("encoding", "UTF8");
 
-        try (final FileSystem events_file_system = FileSystems.newFileSystem(path, environment)) {
+        try (final FileSystem events_file_system = FileSystems.newFileSystem(events_uri, environment)) {
             final EventGenerator generator = new EventGenerator(scenario, events_file_system.getPath("/"));
             generator.generate();
         }
 
-        //        Experiment experiment = new Experiment("/Users/masih/Desktop/test.zip", "/Users/masih/Desktop/test.zip");
+        //        Experiment experiment = new Experiment(events_home.getAbsolutePath(), events_home.getAbsolutePath());
         //        experiment.run();
 
-        EventExecutionJob executionJob = new EventExecutionJob("/Users/masih/Desktop/scenario_1.zip", 1, "/Users/masih/Desktop/scenario_1.zip");
+        EventExecutionJob executionJob = new EventExecutionJob(events_home.getAbsolutePath(), 1, events_home.getParent() + "/" + scenario.getName());
         executionJob.call();
 
     }

@@ -51,6 +51,7 @@ public class ConstantRateWorkloadProvider implements Provider<Workload> {
         final StringBuilder sb = new StringBuilder("ConstantRateWorkloadProvider{");
         sb.append("intervals_distribution=").append(intervals_distribution);
         sb.append(", target_key_provider=").append(target_key_provider);
+        sb.append(", seed_provider=").append(seed_provider);
         sb.append('}');
         return sb.toString();
     }

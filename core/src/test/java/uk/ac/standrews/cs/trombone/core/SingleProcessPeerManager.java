@@ -15,7 +15,7 @@ import uk.ac.standrews.cs.trombone.core.key.RandomKeyProvider;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class SingleProcessPeerManager implements ApplicationManager {
 
-    private static final RandomKeyProvider KEY_PROVIDER = new RandomKeyProvider(1222);
+    private static final RandomKeyProvider KEY_PROVIDER = new RandomKeyProvider(1222, 32);
     private static final AttributeKey<Peer> PEER_KEY = new AttributeKey<Peer>();
     private static final Random RANDOM = new Random(545454);
     private final Set<PeerReference> joined_peers = new HashSet<PeerReference>();

@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 public class Maintenance {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Maintenance.class);
+    //FIXME think of how not to use this fixed size pool; needs to be reconfigured based on the size of the network
     private static final ScheduledExecutorService SCHEDULER = Executors.newScheduledThreadPool(100, new NamedThreadFactory("maintenance_", true));
     private static final int ACTIVE_MAINTENANCE_INTERVAL_MILLIS = 1500;
     private final List<DisseminationStrategy> dissemination_strategies;
@@ -23,24 +24,10 @@ public class Maintenance {
     private final Runnable non_opportunistic_disseminator = new NonOpportunisticDisseminator();
     private ScheduledFuture<?> scheduled_non_opportunistic_disseminator;
 
-    public Maintenance(final Peer local) {
+    protected Maintenance(final Peer local) {
 
         this.local = local;
         dissemination_strategies = new ArrayList<DisseminationStrategy>();
-    }
-
-    public synchronized void start() {
-
-        if (!isStarted()) {
-            scheduled_non_opportunistic_disseminator = SCHEDULER.scheduleWithFixedDelay(non_opportunistic_disseminator, ACTIVE_MAINTENANCE_INTERVAL_MILLIS, ACTIVE_MAINTENANCE_INTERVAL_MILLIS, TimeUnit.MILLISECONDS);
-        }
-    }
-
-    public synchronized void stop() {
-
-        if (isStarted()) {
-            scheduled_non_opportunistic_disseminator.cancel(true);
-        }
     }
 
     public synchronized boolean isStarted() {
@@ -48,26 +35,40 @@ public class Maintenance {
         return scheduled_non_opportunistic_disseminator != null && !scheduled_non_opportunistic_disseminator.isDone();
     }
 
-    public List<DisseminationStrategy> getDisseminationStrategies() {
+    protected synchronized void start() {
+
+        if (!isStarted()) {
+            scheduled_non_opportunistic_disseminator = SCHEDULER.scheduleWithFixedDelay(non_opportunistic_disseminator, ACTIVE_MAINTENANCE_INTERVAL_MILLIS, ACTIVE_MAINTENANCE_INTERVAL_MILLIS, TimeUnit.MILLISECONDS);
+        }
+    }
+
+    protected synchronized void stop() {
+
+        if (isStarted()) {
+            scheduled_non_opportunistic_disseminator.cancel(true);
+        }
+    }
+
+    protected List<DisseminationStrategy> getDisseminationStrategies() {
 
         return new CopyOnWriteArrayList<DisseminationStrategy>(dissemination_strategies);
     }
 
-    public void add(DisseminationStrategy strategy) {
+    protected void add(DisseminationStrategy strategy) {
 
         synchronized (dissemination_strategies) {
             dissemination_strategies.add(strategy);
         }
     }
 
-    public void reset() {
+    protected void reset() {
 
         synchronized (dissemination_strategies) {
             dissemination_strategies.clear();
         }
     }
 
-    public void addAll(final List<DisseminationStrategy> strategies) {
+    protected void addAll(final List<DisseminationStrategy> strategies) {
 
         synchronized (dissemination_strategies) {
             dissemination_strategies.addAll(strategies);

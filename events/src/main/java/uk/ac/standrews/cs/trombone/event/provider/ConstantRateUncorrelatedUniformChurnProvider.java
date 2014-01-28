@@ -43,4 +43,15 @@ public class ConstantRateUncorrelatedUniformChurnProvider implements Provider<Ch
         final Long seed = seed_provider.get();
         return new ConstantRateUncorrelatedChurn(session_length_distribution, downtime_distribution, seed);
     }
+
+    @Override
+    public String toString() {
+
+        final StringBuilder sb = new StringBuilder("ConstantRateUncorrelatedUniformChurnProvider{");
+        sb.append("session_length_distribution=").append(session_length_distribution);
+        sb.append(", downtime_distribution=").append(downtime_distribution);
+        sb.append(", seed_provider=").append(seed_provider);
+        sb.append('}');
+        return sb.toString();
+    }
 }

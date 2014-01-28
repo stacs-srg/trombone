@@ -3,8 +3,9 @@ package uk.ac.standrews.cs.trombone.event;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicLong;
-import uk.ac.standrews.cs.trombone.event.churn.Churn;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 import uk.ac.standrews.cs.trombone.core.key.Key;
+import uk.ac.standrews.cs.trombone.event.churn.Churn;
 import uk.ac.standrews.cs.trombone.event.workload.Workload;
 
 /**
@@ -17,7 +18,9 @@ public class ParticipantEventIterator implements Iterator<Event>, Comparable<Par
     private final long experiment_duration_nanos;
     private final Churn churn;
     private final Workload workload;
-    private volatile ChurnEvent last_availability;
+    private final int hashcode;
+    private boolean available;
+    private long session_end_time;
 
     public ParticipantEventIterator(Participant participant, long experiment_duration_nanos) {
 
@@ -25,52 +28,30 @@ public class ParticipantEventIterator implements Iterator<Event>, Comparable<Par
         this.experiment_duration_nanos = experiment_duration_nanos;
         churn = participant.getChurn();
         workload = participant.getWorkload();
+        hashcode = new HashCodeBuilder(23, 91).append(participant).append(experiment_duration_nanos).toHashCode();
     }
 
     @Override
     public synchronized boolean hasNext() {
 
-        return !isTimeUp();
+        return !(isTimeUp() && !available);
     }
 
     @Override
     public synchronized Event next() {
 
-        final long event_time = current_time_nanos.get();
+        final Event next_event;
         if (isTimeUp()) {
-            if (!last_availability.isAvailable()) {
-                throw new NoSuchElementException();
-            }
-            else {
-                last_availability = getChurnEventAt(event_time);
-                current_time_nanos.set(experiment_duration_nanos);
-                return last_availability;
-            }
+            next_event = lastEvent();
         }
-
-        if (last_availability == null || !last_availability.isAvailable() || !last_availability.isWithin(event_time)) {
-            last_availability = getChurnEventAt(event_time);
-
-            if (!last_availability.isAvailable()) {
-                current_time_nanos.addAndGet(last_availability.getDurationInNanos());
-            }
-            return last_availability;
-        }
-
-        final Workload.Lookup lookup = workload.getLookupAt(event_time);
-        final Key target = lookup.getTarget();
-        final long interval = lookup.getIntervalInNanos();
-        final long lookup_time = event_time + interval;
-
-        if (last_availability.isWithin(lookup_time)) {
-            current_time_nanos.addAndGet(interval);
-            return new LookupEvent(participant, lookup_time, target);
+        else if (!available || getCurrentTime() == session_end_time) {
+            next_event = nextJoinLeaveEvent();
         }
         else {
-            current_time_nanos.set(last_availability.getEndTimeNanos());
+            next_event = nextLookupEvent();
         }
 
-        return next();
+        return next_event;
     }
 
     public Long getCurrentTime() {
@@ -99,38 +80,68 @@ public class ParticipantEventIterator implements Iterator<Event>, Comparable<Par
 
         final ParticipantEventIterator that = (ParticipantEventIterator) other;
         if (!participant.equals(that.participant)) { return false; }
-
-        return true;
+        return getCurrentTime().equals(that.getCurrentTime());
     }
 
     @Override
     public int hashCode() {
 
-        return 31 * participant.hashCode();
+        return hashcode;
     }
 
-    @Override
-    public String toString() {
+    private Event nextLookupEvent() {
 
-        return "generator " + participant.getId();
+        assert available;
+        final long current_time = current_time_nanos.get();
+        final Workload.Lookup lookup = workload.getLookupAt(current_time);
+        final Key target = lookup.getTarget();
+        final long interval = lookup.getIntervalInNanos();
+        final long occurrence_time = current_time + interval;
+
+        final Event next_event;
+        if (session_end_time > occurrence_time) {
+            current_time_nanos.addAndGet(interval);
+            next_event = new LookupEvent(participant, occurrence_time, target);
+        }
+        else {
+            current_time_nanos.set(session_end_time);
+            next_event = next();
+        }
+        return next_event;
     }
 
-    private ChurnEvent getChurnEventAt(final long time) {
+    private Event lastEvent() {
 
-        if (time >= experiment_duration_nanos) {
-            return new ChurnEvent(participant, experiment_duration_nanos, false);
+        assert isTimeUp();
+
+        if (available) {
+            available = false;
+            return new LeaveEvent(participant, experiment_duration_nanos);
         }
 
-        Churn.Availability availability = churn.getAvailabilityAt(time);
-        final long duration_nanos = Math.min(availability.getDurationInNanos(), experiment_duration_nanos - time);
-        final boolean available = availability.isAvailable();
-        final ChurnEvent current_availability = new ChurnEvent(participant, time, available);
-        current_availability.setDurationInNanos(duration_nanos);
-        return current_availability;
+        throw new NoSuchElementException();
+    }
+
+    private synchronized Event nextJoinLeaveEvent() {
+
+        assert !isTimeUp();
+        final Long current_time = getCurrentTime();
+        Churn.Availability availability = churn.getAvailabilityAt(current_time);
+        final long duration_nanos = Math.min(availability.getDurationInNanos(), experiment_duration_nanos - current_time);
+        available = availability.isAvailable();
+
+        if (available) {
+            session_end_time = current_time + duration_nanos;
+            return new JoinEvent(participant, current_time, duration_nanos);
+        }
+        else {
+            current_time_nanos.addAndGet(duration_nanos);
+            return new LeaveEvent(participant, current_time);
+        }
     }
 
     private boolean isTimeUp() {
 
-        return experiment_duration_nanos <= current_time_nanos.get();
+        return getCurrentTime() >= experiment_duration_nanos;
     }
 }
