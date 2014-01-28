@@ -26,12 +26,12 @@ public class EvolutionaryMaintenance extends Maintenance {
     private static final ListCandidateFactory<DisseminationStrategy> DISSEMINATION_STRATEGY_LIST_FACTORY = new ListCandidateFactory<>(DISSEMINATION_STRATEGY_FACTORY, DISSEMINATION_STRATEGY_LIST_SIZE);
     private static final int POPULATION_SIZE = 10;
     private static final int ELITE_COUNT = 2;
+    
     private final AbstractEvolutionEngine<List<DisseminationStrategy>> evolution_engine;
 
     public EvolutionaryMaintenance(final Peer local) {
 
         super(local);
-
         final ListMutation<DisseminationStrategy> operator = new ListMutation<>(DISSEMINATION_STRATEGY_FACTORY, MUTATION_PROBABILITY);
         final PVCFitnessEvaluator fitness_evaluator = new PVCFitnessEvaluator(local, this);
         final SelectionStrategy<Object> selection_strategy = new RouletteWheelSelection();

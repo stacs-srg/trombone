@@ -5,6 +5,7 @@ import com.google.common.util.concurrent.Futures;
 import io.netty.channel.Channel;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
 import org.mashti.jetson.ChannelPool;
@@ -16,6 +17,7 @@ import org.mashti.jetson.lean.LeanClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
+import uk.ac.standrews.cs.trombone.core.util.NetworkUtils;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 class PeerClientFactory extends LeanClientFactory<PeerRemote> {
@@ -116,14 +118,17 @@ class PeerClientFactory extends LeanClientFactory<PeerRemote> {
         }
 
         private void addSyntheticDelay() throws RPCException {
-            //FIXME ADD ONLY IF NOT LOCAL
-            //            final String host_name = getAddress().getHostString();
-            //            if(host_name.equals("localhost") || host_name.equals(InetAddress.getLocalHost().getHostName()))
-            try {
-                Thread.sleep(0, 550000);
-            }
-            catch (InterruptedException e) {
-                throw new RPCException("interrupted while inducing synthetic delay", e);
+
+            final InetAddress remote_address = getAddress().getAddress();
+            if (NetworkUtils.isLocalAddress(remote_address)) {
+                try {
+
+                    //TODO parametrise through peer configuration
+                    Thread.sleep(0, 550000);
+                }
+                catch (InterruptedException e) {
+                    throw new RPCException("interrupted while inducing synthetic delay", e);
+                }
             }
         }
     }
