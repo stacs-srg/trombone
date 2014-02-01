@@ -2,28 +2,47 @@ package uk.ac.standrews.cs.trombone.core;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.concurrent.ConcurrentHashMap;
 import org.mashti.jetson.ChannelPool;
 import org.mashti.jetson.Client;
+import org.mashti.jetson.ClientFactory;
 import org.mashti.jetson.FutureResponse;
 import org.mashti.jetson.exception.RPCException;
 import org.mashti.jetson.exception.TransportException;
-import org.mashti.jetson.lean.LeanClientFactory;
+import org.mashti.jetson.lean.LeanClientChannelInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
 import uk.ac.standrews.cs.trombone.core.util.NetworkUtils;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-class PeerClientFactory extends LeanClientFactory<PeerRemote> {
+class PeerClientFactory extends ClientFactory<PeerRemote> {
 
-    private static final ConcurrentHashMap<InetSocketAddress, ChannelPool> channel_pool_map = new ConcurrentHashMap<InetSocketAddress, ChannelPool>();
     private static final Logger LOGGER = LoggerFactory.getLogger(PeerClientFactory.class);
+    private static final Bootstrap BOOTSTRAP = new Bootstrap();
+    private static final ChannelPool CHANNEL_POOL = new ChannelPool(BOOTSTRAP);
+
+    static {
+        //        BOOTSTRAP.group(new NioEventLoopGroup(100));
+        BOOTSTRAP.group(PeerServerFactory.child_event_loop);
+        BOOTSTRAP.channel(NioSocketChannel.class);
+        BOOTSTRAP.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5_000);
+        BOOTSTRAP.option(ChannelOption.TCP_NODELAY, true);
+        BOOTSTRAP.handler(new LeanClientChannelInitializer(PeerRemote.class, PeerCodecs.INSTANCE));
+
+        CHANNEL_POOL.setTestOnBorrow(true);
+        CHANNEL_POOL.setTestOnReturn(false);
+        CHANNEL_POOL.setMaxTotalPerKey(4);
+        CHANNEL_POOL.setBlockWhenExhausted(false);
+    }
+
     private final Peer peer;
     private final PeerState peer_state;
     private final PeerMetric peer_metric;
@@ -31,7 +50,7 @@ class PeerClientFactory extends LeanClientFactory<PeerRemote> {
 
     PeerClientFactory(final Peer peer) {
 
-        super(PeerRemote.class, PeerCodecs.INSTANCE, channel_pool_map);
+        super(PeerRemote.class, BOOTSTRAP, CHANNEL_POOL);
         this.peer = peer;
         peer_state = peer.getPeerState();
         peer_metric = peer.getPeerMetric();
@@ -49,7 +68,7 @@ class PeerClientFactory extends LeanClientFactory<PeerRemote> {
     @Override
     protected Client createClient(final InetSocketAddress address) {
 
-        return new PeerClient(address, getChannelPool(address));
+        return new PeerClient(address, CHANNEL_POOL);
     }
 
     public class PeerClient extends Client {
@@ -108,7 +127,7 @@ class PeerClientFactory extends LeanClientFactory<PeerRemote> {
         @Override
         protected void beforeFlush(final Channel channel, final FutureResponse future_response) throws RPCException {
 
-            for (DisseminationStrategy strategy : peer_maintenance.getDisseminationStrategies()) {
+            for (DisseminationStrategy.Action strategy : peer_maintenance.getDisseminationStrategy()) {
                 if (strategy.isOpportunistic() && strategy.recipientsContain(peer, reference)) {
                     final FutureResponse future_dissemination = newFutureResponse(strategy.getMethod(), strategy.getArguments(peer));
                     channel.write(future_dissemination);

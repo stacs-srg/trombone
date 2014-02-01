@@ -19,6 +19,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.codec.DecoderException;
 import org.mashti.gauge.Counter;
+import org.mashti.gauge.Gauge;
 import org.mashti.gauge.MetricRegistry;
 import org.mashti.gauge.Rate;
 import org.mashti.gauge.Sampler;
@@ -28,7 +29,6 @@ import org.mashti.jetson.exception.RPCException;
 import org.mashti.jetson.util.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerConfigurator;
 import uk.ac.standrews.cs.trombone.core.PeerFactory;
@@ -38,7 +38,7 @@ import uk.ac.standrews.cs.trombone.core.PeerReference;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class EventExecutor {
 
-    private static final int LOOKUP_RETRY_COUNT = 1;
+    private static final int LOOKUP_RETRY_COUNT = 5;
     private static final int MAX_BUFFERED_EVENTS = 20000;
     private static final Logger LOGGER = LoggerFactory.getLogger(EventExecutor.class);
     private final Rate lookup_execution_rate = new Rate();
@@ -59,13 +59,24 @@ public class EventExecutor {
     private final DelayQueue<RunnableExperimentEvent> runnable_events;
     private final ExecutorService task_populator;
     private final ExecutorService task_scheduler;
-    private final ExecutorService task_executor;
-    private final ExecutorService task_executor2;
-    private final Semaphore event_queue_semaphore;
+    private final ThreadPoolExecutor task_executor;
+    private final ThreadPoolExecutor task_executor2;
+    private final Semaphore load_balancer;
     private final Map<PeerReference, Peer> peers_map = new ConcurrentSkipListMap<PeerReference, Peer>();
     private final EventReader event_reader;
     private final MetricRegistry metric_registry;
     private final CsvReporter csv_reporter;
+    private final Rate join_failure_rate = new Rate();
+    private final Rate join_success_rate = new Rate();
+    private final Gauge<Integer> queue_size = new Gauge<Integer>() {
+
+        @Override
+        public Integer get() {
+
+            return runnable_events.size();
+        }
+    };
+    private final Future<Void> task_populator_future;
     private Future<Void> task_scheduler_future;
     private long start_time;
 
@@ -76,11 +87,12 @@ public class EventExecutor {
 
         event_reader = new EventReader(events_home, host_index);
         runnable_events = new DelayQueue<RunnableExperimentEvent>();
-        task_populator = Executors.newCachedThreadPool(new NamedThreadFactory("task_populator_"));
-        task_scheduler = Executors.newSingleThreadExecutor(new NamedThreadFactory("task_scheduler_"));
-        task_executor = new ThreadPoolExecutor(10, 10, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("task_executor_"));
-        task_executor2 = new ThreadPoolExecutor(1000, 1000, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("task_executor2_"));
-        event_queue_semaphore = new Semaphore(0, true);
+        task_populator = Executors.newFixedThreadPool(100, new NamedThreadFactory("task_populator_"));
+        task_scheduler = Executors.newFixedThreadPool(10, new NamedThreadFactory("task_scheduler_"));
+        task_executor = new ThreadPoolExecutor(400, 800, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("task_executor_"));
+        task_executor.prestartAllCoreThreads();
+        task_executor2 = new ThreadPoolExecutor(100, 100, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("task_executor2_"));
+        load_balancer = new Semaphore(MAX_BUFFERED_EVENTS, true);
 
         metric_registry = new MetricRegistry("test");
         metric_registry.register("lookup_execution_rate", lookup_execution_rate);
@@ -99,12 +111,12 @@ public class EventExecutor {
         metric_registry.register("sent_bytes_rate", PeerMetric.getGlobalSentBytesRate());
         metric_registry.register("event_execution_lag_sampler", event_execution_lag_sampler);
         metric_registry.register("event_execution_duration_timer", event_execution_duration_timer);
+        metric_registry.register("join_failure_rate", join_failure_rate);
+        metric_registry.register("join_success_rate", join_success_rate);
+        metric_registry.register("queue_size", queue_size);
 
         csv_reporter = new CsvReporter(metric_registry, observations_home);
-
-        loadInitialEvents();
-        LOGGER.info("loaded initial event queue population");
-        startTaskQueuePopulator();
+        task_populator_future = startTaskQueuePopulator();
     }
 
     public long getCurrentTimeInNanos() {
@@ -112,28 +124,24 @@ public class EventExecutor {
         return System.nanoTime() - start_time;
     }
 
-    public synchronized void start() {
+    public synchronized void start() throws InterruptedException {
 
         if (!isStarted()) {
 
-            start_time = System.nanoTime();
-            csv_reporter.start(10, TimeUnit.SECONDS);
             task_scheduler_future = task_scheduler.submit(new Callable<Void>() {
 
                 @Override
                 public Void call() throws Exception {
 
+                    awaitInitialEventLoading();
+                    LOGGER.info("starting event execution...");
+                    start_time = System.nanoTime();
+                    csv_reporter.start(10, TimeUnit.SECONDS);
                     try {
-                        while (!Thread.currentThread().isInterrupted() && !runnable_events.isEmpty()) {
+                        while (!Thread.currentThread().isInterrupted() && !task_populator_future.isDone() || !runnable_events.isEmpty()) {
                             final RunnableExperimentEvent runnable = runnable_events.take();
-
-                            if (runnable instanceof RunnableLookupEvent) {
-                                task_executor2.execute(runnable);
-                            }
-                            else {
-                                task_executor.execute(runnable);
-                            }
-                            event_queue_semaphore.release();
+                            task_executor.execute(runnable);
+                            load_balancer.release();
                         }
                     }
                     catch (Exception e) {
@@ -141,6 +149,7 @@ public class EventExecutor {
                     }
                     finally {
                         LOGGER.info("finished executing events");
+                        csv_reporter.stop();
                     }
                     return null;
                 }
@@ -163,7 +172,12 @@ public class EventExecutor {
     public void awaitCompletion() throws InterruptedException, ExecutionException {
 
         if (isStarted()) {
+            task_populator_future.get();
             task_scheduler_future.get();
+            //            task_executor.shutdown();
+            //            task_executor2.shutdown();
+            //            task_executor.awaitTermination(10, TimeUnit.MINUTES);
+            //            task_executor2.awaitTermination(10, TimeUnit.MINUTES);
         }
     }
 
@@ -211,15 +225,11 @@ public class EventExecutor {
         return peer;
     }
 
-    private void loadInitialEvents() throws IOException {
+    private void awaitInitialEventLoading() throws InterruptedException {
 
-        for (int i = 0; i < MAX_BUFFERED_EVENTS; i++) {
-            if (event_reader.hasNext()) {
-                queueNextEvent();
-            }
-            else {
-                break;
-            }
+        LOGGER.info("awaiting initial event population...");
+        while (load_balancer.availablePermits() != 0 && !task_populator_future.isDone()) {
+            Thread.sleep(1000);
         }
     }
 
@@ -233,7 +243,7 @@ public class EventExecutor {
                 try {
                     while (!Thread.currentThread().isInterrupted() && event_reader.hasNext()) {
 
-                        event_queue_semaphore.acquire();
+                        load_balancer.acquire();
                         queueNextEvent();
                     }
                 }
@@ -252,8 +262,7 @@ public class EventExecutor {
 
         final Event event = event_reader.next();
         final PeerReference event_source = event.getSource();
-        //FIXME NULL CONFIGURATOR
-        final Peer peer = getPeerByReference(event_source, null);
+        final Peer peer = getPeerByReference(event_source, null);    //FIXME NULL CONFIGURATOR
         queue(peer, event);
     }
 
@@ -261,32 +270,44 @@ public class EventExecutor {
 
         if (known_peers != null && !known_peers.isEmpty()) {
 
-            try {
-                TimeoutExecutorService.awaitCompletion(new Callable<Boolean>() {
+            final Future<Boolean> future_join = task_executor2.submit(new Callable<Boolean>() {
 
-                    @Override
-                    public Boolean call() throws Exception {
+                @Override
+                public Boolean call() throws Exception {
 
-                        final Iterator<PeerReference> iterator = known_peers.iterator();
-                        boolean successful = false;
-
-                        while (!Thread.currentThread().isInterrupted() && !successful && iterator.hasNext()) {
-                            final PeerReference reference = iterator.next();
-                            try {
-                                peer.join(reference);
-                                successful = true;
-                            }
-                            catch (RPCException e) {
-                                successful = false;
-                            }
+                    final Iterator<PeerReference> iterator = known_peers.iterator();
+                    boolean successful = false;
+                    while (!Thread.currentThread().isInterrupted() && !successful && iterator.hasNext()) {
+                        final PeerReference reference = iterator.next();
+                        try {
+                            peer.join(reference);
+                            successful = true;
                         }
-
-                        return successful;
+                        catch (RPCException e) {
+                            LOGGER.trace("error while attempting to join ", e);
+                            successful = false;
+                        }
                     }
-                }, timeout_nanos, TimeUnit.NANOSECONDS);
+                    return successful;
+                }
+            });
+            try {
+                final boolean successfully_joined = future_join.get(timeout_nanos, TimeUnit.NANOSECONDS);
+
+                if (successfully_joined) {
+                    join_success_rate.mark();
+                }
+                else {
+                    join_failure_rate.mark();
+                }
             }
             catch (final Exception e) {
-                LOGGER.error("failed to join", e);
+                join_failure_rate.mark();
+                LOGGER.warn("failed to join: {}", e.getMessage());
+                LOGGER.debug("failed to join", e);
+            }
+            finally {
+                future_join.cancel(true);
             }
         }
     }
@@ -434,7 +455,7 @@ public class EventExecutor {
                     lookup_incorrectness_delay_timer.update(duration_in_nanos, TimeUnit.NANOSECONDS);
                 }
             }
-            catch (final Exception e) {
+            catch (final Throwable e) {
                 LOGGER.error("failure occurred when executing lookup", e);
             }
             finally {

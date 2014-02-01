@@ -50,7 +50,6 @@ public class EventGeneratorTest {
     public void testGeneration() throws Exception {
 
         final File events_home = new File("/Users/masih/Desktop", scenario.getName() + ".zip");
-        final long now = System.currentTimeMillis();
         final URI path = URI.create("jar:" + events_home.toURI());
         final Map<String, String> environment = new HashMap<>();
         environment.put("create", "true");
@@ -58,7 +57,6 @@ public class EventGeneratorTest {
             final EventGenerator generator = new EventGenerator(scenario, events_file_system.getPath("/"));
             generator.generate();
         }
-
 
         final FileSystem fileSystem = FileSystems.newFileSystem(URI.create("jar:file:/Users/masih/Desktop/test.zip"), new HashMap<String, String>());
 

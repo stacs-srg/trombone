@@ -1,6 +1,5 @@
 package uk.ac.standrews.cs.trombone.core;
 
-import java.io.IOException;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
@@ -8,7 +7,7 @@ public abstract class P2PNetwork extends ApplicationNetwork {
 
     private final int size;
 
-    protected P2PNetwork(int size) throws IOException {
+    protected P2PNetwork(int size) {
 
         super("trombone network");
         this.size = size;

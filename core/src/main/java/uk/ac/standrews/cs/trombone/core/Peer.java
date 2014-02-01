@@ -16,8 +16,8 @@ public class Peer implements PeerRemote {
     private static final String EXPOSURE_PROPERTY_NAME = "exposure";
     private static final ServerFactory<PeerRemote> SERVER_FACTORY = new PeerServerFactory();
     private final PeerState state;
-    private final Key key;
     private final PeerClientFactory remote_factory;
+    private final Key key;
     private final Server server;
     private final PropertyChangeSupport property_change_support;
     private final PeerMetric metric;
@@ -32,6 +32,7 @@ public class Peer implements PeerRemote {
     Peer(final InetSocketAddress address, final Key key) {
 
         this.key = key;
+
         state = new PeerState(key);
         maintenance = new Maintenance(this);
         property_change_support = new PropertyChangeSupport(this);
@@ -75,14 +76,8 @@ public class Peer implements PeerRemote {
 
         if (isExposed() && member != null) {
 
-            final PeerRemote member_remote = getRemote(member);
-            final PeerReference successor = member_remote.lookup(key);
-            final PeerRemote successor_remote = getRemote(successor);
-
-            // upon getting the remote proxy the member and successor will be added to state.
-
-            member_remote.push(self);
-            successor_remote.push(self);
+            push(member);
+            getRemote(member).push(self);     //TODO NEED THIS?
         }
     }
 

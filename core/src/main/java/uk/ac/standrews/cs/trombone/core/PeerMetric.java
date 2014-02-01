@@ -1,10 +1,9 @@
 package uk.ac.standrews.cs.trombone.core;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.mashti.gauge.Counter;
 import org.mashti.gauge.Metric;
 import org.mashti.gauge.Rate;
 import org.mashti.gauge.Sampler;
@@ -12,43 +11,27 @@ import org.mashti.gauge.Timer;
 import org.mashti.jetson.WrittenByteCountListener;
 import org.mashti.jetson.exception.RPCException;
 import org.mashti.sina.distribution.statistic.Statistics;
+import uk.ac.standrews.cs.trombone.core.adaptation.EnvironmentSnapshot;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class PeerMetric implements Metric, WrittenByteCountListener {
 
     private static final Rate GLOBAL_SENT_BYTES_RATE = new Rate();
-    private final Rate sent_bytes_meter;
+    private final Rate sent_bytes_rate;
     private final Timer lookup_success_delay_timer;
-    private final Sampler lookup_success_hop_count_histogram;
-    private final Sampler lookup_success_retry_count_histogram;
-    private final Rate lookup_failure_rate_meter;
-    private final Rate departure_rate;
-    private final Rate arrival_rate;
+    private final Sampler lookup_success_hop_count_sampler;
+    private final Sampler lookup_success_retry_count_sampler;
+    private final Rate lookup_failure_rate;
+    private final Counter lookup_counter;
 
     public PeerMetric(final Peer peer) {
 
-        sent_bytes_meter = new Rate();
+        sent_bytes_rate = new Rate();
         lookup_success_delay_timer = new Timer();
-        lookup_success_hop_count_histogram = new Sampler();
-        lookup_success_retry_count_histogram = new Sampler();
-        lookup_failure_rate_meter = new Rate();
-        departure_rate = new Rate();
-        arrival_rate = new Rate();
-
-        peer.addExposureChangeListener(new PropertyChangeListener() {
-
-            @Override
-            public void propertyChange(final PropertyChangeEvent event) {
-
-                final Boolean arrived = (Boolean) event.getNewValue();
-                if (arrived) {
-                    arrival_rate.mark();
-                }
-                else {
-                    departure_rate.mark();
-                }
-            }
-        });
+        lookup_success_hop_count_sampler = new Sampler();
+        lookup_success_retry_count_sampler = new Sampler();
+        lookup_failure_rate = new Rate();
+        lookup_counter = new Counter();
     }
 
     public static Rate getGlobalSentBytesRate() {
@@ -56,9 +39,9 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
         return GLOBAL_SENT_BYTES_RATE;
     }
 
-    public Timer getLookupSuccessDelayTimer() {
+    public long getNumberOfExecutedLookups() {
 
-        return lookup_success_delay_timer;
+        return lookup_counter.getAndReset();
     }
 
     public LookupMeasurement newLookupMeasurement(final int retry_count) {
@@ -73,21 +56,26 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
         return unit.convert(mean_delay_nanaos, TimeUnit.NANOSECONDS);
     }
 
-    public long getSentBytes() {
+    public double getSentBytesRatePerSecond() {
 
-        return sent_bytes_meter.getCount();
+        return sent_bytes_rate.getRateAndReset();
     }
 
     public double getLookupFailureRate() {
 
-        return lookup_failure_rate_meter.getRate();
+        return lookup_failure_rate.getRate();
     }
 
     @Override
     public void notifyWrittenByteCount(final int byte_count) {
 
-        sent_bytes_meter.mark(byte_count);
+        sent_bytes_rate.mark(byte_count);
         GLOBAL_SENT_BYTES_RATE.mark(byte_count);
+    }
+
+    public EnvironmentSnapshot getSnapshot() {
+
+        return null;
     }
 
     public final class LookupMeasurement {
@@ -131,7 +119,7 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
 
         public synchronized boolean hasRetryThresholdReached() {
 
-            return retry_count.get() > retry_threshold;
+            return retry_count.get() >= retry_threshold;
         }
 
         public synchronized void stop(PeerReference result) {
@@ -139,8 +127,9 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
             if (doneIfUndone()) {
                 this.result = result;
                 duration_in_nanos = time.stop();
-                lookup_success_hop_count_histogram.update(hop_count.get());
-                lookup_success_retry_count_histogram.update(retry_count.get());
+                lookup_success_hop_count_sampler.update(hop_count.get());
+                lookup_success_retry_count_sampler.update(retry_count.get());
+                lookup_counter.increment();
             }
         }
 
@@ -149,7 +138,8 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
             if (doneIfUndone()) {
                 this.error = error;
                 duration_in_nanos = time.stop();
-                lookup_failure_rate_meter.mark();
+                lookup_failure_rate.mark();
+                lookup_counter.increment();
             }
         }
 

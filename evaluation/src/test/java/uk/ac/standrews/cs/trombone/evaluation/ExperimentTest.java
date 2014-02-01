@@ -22,8 +22,22 @@ public class ExperimentTest {
     @Test
     public void testRun() throws Exception {
 
+        //                final File events_home = new File("/Users/masih/Desktop", "PlatformJustificationSingleHost.zip");
+        final File events_home = new File("/Users/masih/Desktop", "PlatformJustificationSingleHost_churn.zip");
+        //        final File events_home = new File("/Users/masih/Desktop", "PlatformJustificationSingleHost_1000.zip");
+        //        Experiment experiment = new Experiment(events_home.getAbsolutePath(), events_home.getAbsolutePath());
+        //        experiment.run();
+
+        final EventExecutionJob executionJob = new EventExecutionJob(events_home.getAbsolutePath(), 1, events_home.getParent() + "/PlatformJustificationSingleHost");
+        executionJob.call();
+    }
+
+    @Test
+    public void testGenerate() throws Exception {
+
         final Scenario scenario = new PlatformJustificationSingleHost();
-        final File events_home = new File("/Users/masih/Desktop", scenario.getName() + ".zip");
+        final File events_home = new File("/Users/masih/Desktop", "PlatformJustificationSingleHost1.zip");
+        //        final File events_home = new File("/Users/masih/Desktop", "PlatformJustificationSingleHost_churn.zip");
         final URI events_uri = URI.create("jar:" + events_home.toURI());
 
         final Map<String, String> environment = new HashMap<>();
@@ -34,12 +48,5 @@ public class ExperimentTest {
             final EventGenerator generator = new EventGenerator(scenario, events_file_system.getPath("/"));
             generator.generate();
         }
-
-        //        Experiment experiment = new Experiment(events_home.getAbsolutePath(), events_home.getAbsolutePath());
-        //        experiment.run();
-
-        EventExecutionJob executionJob = new EventExecutionJob(events_home.getAbsolutePath(), 1, events_home.getParent() + "/" + scenario.getName());
-        executionJob.call();
-
     }
 }
