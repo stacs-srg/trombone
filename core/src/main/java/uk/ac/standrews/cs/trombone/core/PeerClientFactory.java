@@ -127,10 +127,13 @@ class PeerClientFactory extends ClientFactory<PeerRemote> {
         @Override
         protected void beforeFlush(final Channel channel, final FutureResponse future_response) throws RPCException {
 
-            for (DisseminationStrategy.Action strategy : peer_maintenance.getDisseminationStrategy()) {
-                if (strategy.isOpportunistic() && strategy.recipientsContain(peer, reference)) {
-                    final FutureResponse future_dissemination = newFutureResponse(strategy.getMethod(), strategy.getArguments(peer));
-                    channel.write(future_dissemination);
+            final DisseminationStrategy strategy = peer_maintenance.getDisseminationStrategy();
+            if (strategy != null) {
+                for (DisseminationStrategy.Action action : strategy) {
+                    if (action.isOpportunistic() && action.recipientsContain(peer, reference)) {
+                        final FutureResponse future_dissemination = newFutureResponse(action.getMethod(), action.getArguments(peer));
+                        channel.write(future_dissemination);
+                    }
                 }
             }
             super.beforeFlush(channel, future_response);

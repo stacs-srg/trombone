@@ -10,6 +10,7 @@ import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
 public final class PeerFactory {
 
     static final LeanClientFactory<PeerRemote> CLIENT_FACTORY = new LeanClientFactory<PeerRemote>(PeerRemote.class, PeerCodecs.INSTANCE);
+    static final PeerConfiguration DEFAULT_PEER_CONFIGURATION = new DefaultPeerConfiguration();
 
     public static PeerRemote bind(PeerReference reference) {
 
@@ -23,7 +24,7 @@ public final class PeerFactory {
         return new PeerReference(key, address);
     }
 
-    public static Peer createPeer(PeerReference reference, final PeerConfigurator configurator) {
+    public static Peer createPeer(PeerReference reference, final PeerConfiguration configurator) {
 
         final Key key = reference.getKey();
         final InetSocketAddress address = reference.getAddress();
@@ -35,12 +36,19 @@ public final class PeerFactory {
         return new Peer(key);
     }
 
-    public static Peer createPeer(final InetSocketAddress address, final Key key, final PeerConfigurator configurator) {
+    public static Peer createPeer(final InetSocketAddress address, final Key key, final PeerConfiguration configuration) {
 
-        final Peer peer = new Peer(address, key);
-        if (configurator != null) {
-            configurator.configure(peer);
+        return new Peer(address, key, configuration);
+    }
+
+    private static class DefaultPeerConfiguration implements PeerConfiguration {
+
+        private static final long serialVersionUID = -6578481188286774616L;
+
+        @Override
+        public Maintenance getMaintenance(final Peer peer) {
+
+            return new Maintenance(peer);
         }
-        return peer;
     }
 }

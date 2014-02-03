@@ -31,12 +31,17 @@ public class Peer implements PeerRemote {
 
     Peer(final InetSocketAddress address, final Key key) {
 
+        this(address, key, PeerFactory.DEFAULT_PEER_CONFIGURATION);
+    }
+
+    Peer(final InetSocketAddress address, final Key key, PeerConfiguration configuration) {
+
         this.key = key;
+        property_change_support = new PropertyChangeSupport(this);
 
         state = new PeerState(key);
-        maintenance = new Maintenance(this);
-        property_change_support = new PropertyChangeSupport(this);
         metric = new PeerMetric(this);
+        maintenance = configuration.getMaintenance(this);
         remote_factory = new PeerClientFactory(this);
         server = SERVER_FACTORY.createServer(this);
         server.setBindAddress(address);

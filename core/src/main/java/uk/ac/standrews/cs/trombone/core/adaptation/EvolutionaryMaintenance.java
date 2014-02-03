@@ -27,8 +27,8 @@ public class EvolutionaryMaintenance extends Maintenance {
     private static final Probability MUTATION_PROBABILITY = new Probability(0.1d);
     private static final int DISSEMINATION_STRATEGY_LIST_SIZE = 5;
     private static final DisseminationStrategyGenerator STRATEGY_GENERATOR = new DisseminationStrategyGenerator(DISSEMINATION_STRATEGY_LIST_SIZE);
-    private static final int POPULATION_SIZE = 10;
-    private static final int ELITE_COUNT = 2;
+    private static final int POPULATION_SIZE = 5;
+    private static final int ELITE_COUNT = 1;
     private final MersenneTwisterRNG random;
     private final AtomicInteger current_candidate_index = new AtomicInteger();
     private final PeerMetric metric;
@@ -38,6 +38,7 @@ public class EvolutionaryMaintenance extends Maintenance {
     private final int elite_count;
     private final Probability mutation_probability;
     private final AtomicDouble total_fitness = new AtomicDouble();
+    private final AtomicInteger generation = new AtomicInteger();
     private ScheduledFuture<?> evolution;
 
     public EvolutionaryMaintenance(final Peer local) {
@@ -51,7 +52,7 @@ public class EvolutionaryMaintenance extends Maintenance {
         this.population_size = population_size;
         this.elite_count = elite_count;
         this.mutation_probability = mutation_probability;
-        random = new MersenneTwisterRNG(local.getKey().getValue());
+        random = new MersenneTwisterRNG();            //FIXME seed
         metric = local.getPeerMetric();
 
         population = generateInitialPopulation();
@@ -82,13 +83,17 @@ public class EvolutionaryMaintenance extends Maintenance {
                     final EnvironmentSnapshot environment_snapshot = metric.getSnapshot();
                     final DisseminationStrategy old_candidate = getAndSet(new_candidate);
 
-                    if (index > 0) {
+                    LOGGER.info("changed strategy to {}", new_candidate);
+                    if (index > 0 && old_candidate != null) {
                         final EvaluatedDisseminationStrategy evaluated_strategy = new EvaluatedDisseminationStrategy(old_candidate, environment_snapshot);
                         evaluated_strategies.add(evaluated_strategy);
                         total_fitness.addAndGet(evaluated_strategy.getFitness());
                     }
                 }
                 else {
+                    final int generation_count = generation.incrementAndGet();
+                    LOGGER.info("end of generation {}", generation_count);
+                    LOGGER.info("the fittest: {}, the least fit: {}", evaluated_strategies.first(), evaluated_strategies.last());
 
                     population.clear();
 
@@ -113,9 +118,12 @@ public class EvolutionaryMaintenance extends Maintenance {
                     }
                     current_candidate_index.set(0);
                     total_fitness.set(0);
+
+                    //TODO clustering should happen here
+                    evaluated_strategies.clear();
                 }
             }
-        }, 0, 5, TimeUnit.MINUTES);
+        }, 0, 30, TimeUnit.SECONDS);
 
         super.start();
     }

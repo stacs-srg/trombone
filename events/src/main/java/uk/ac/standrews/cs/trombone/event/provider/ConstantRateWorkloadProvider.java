@@ -21,17 +21,18 @@ package uk.ac.standrews.cs.trombone.event.provider;
 
 import javax.inject.Provider;
 import org.mashti.sina.distribution.ProbabilityDistribution;
-import uk.ac.standrews.cs.trombone.core.key.Key;
+import uk.ac.standrews.cs.trombone.core.key.KeyProvider;
+import uk.ac.standrews.cs.trombone.core.util.Repeatable;
 import uk.ac.standrews.cs.trombone.event.workload.ConstantRateWorkload;
 import uk.ac.standrews.cs.trombone.event.workload.Workload;
 
-public class ConstantRateWorkloadProvider implements Provider<Workload> {
+public class ConstantRateWorkloadProvider implements Provider<Workload>, Repeatable, Cloneable {
 
     private final ProbabilityDistribution intervals_distribution;
-    private final Provider<Long> seed_provider;
-    private final Provider<Key> target_key_provider;
+    private final RandomSeedProvider seed_provider;
+    private final KeyProvider target_key_provider;
 
-    public ConstantRateWorkloadProvider(final ProbabilityDistribution intervals_distribution, final Provider<Key> target_key_provider, final Provider<Long> seed_provider) {
+    public ConstantRateWorkloadProvider(final ProbabilityDistribution intervals_distribution, final KeyProvider target_key_provider, final RandomSeedProvider seed_provider) {
 
         this.intervals_distribution = intervals_distribution;
         this.target_key_provider = target_key_provider;
@@ -54,5 +55,23 @@ public class ConstantRateWorkloadProvider implements Provider<Workload> {
         sb.append(", seed_provider=").append(seed_provider);
         sb.append('}');
         return sb.toString();
+    }
+
+    @Override
+    public synchronized void setSeed(final long seed) {
+
+        seed_provider.setSeed(seed);
+    }
+
+    @Override
+    public long getSeed() {
+
+        return seed_provider.getSeed();
+    }
+
+    @Override
+    public ConstantRateWorkloadProvider clone() {
+
+        return new ConstantRateWorkloadProvider(intervals_distribution, target_key_provider.clone(), seed_provider.clone());
     }
 }

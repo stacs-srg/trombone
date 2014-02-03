@@ -29,7 +29,6 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
         actions = new ArrayList<>();
     }
 
-
     @Override
     public Iterator<Action> iterator() {
 
@@ -64,6 +63,15 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
     public void addActions(final Collection<? extends Action> actions) {
 
         this.actions.addAll(actions);
+    }
+
+    @Override
+    public String toString() {
+
+        final StringBuilder sb = new StringBuilder("DisseminationStrategy{");
+        sb.append("actions=").append(actions);
+        sb.append('}');
+        return sb.toString();
     }
 
     public static class Action {
@@ -112,6 +120,18 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
                     }
                 }
             }
+        }
+
+        @Override
+        public String toString() {
+
+            final StringBuilder sb = new StringBuilder("Action{");
+            sb.append("opportunistic=").append(opportunistic);
+            sb.append(", push=").append(push);
+            sb.append(", data_selector=").append(data_selector);
+            sb.append(", recipient_selector=").append(recipient_selector);
+            sb.append('}');
+            return sb.toString();
         }
 
         PeerReference[] getPushData(final Peer local) {

@@ -28,8 +28,9 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Provider;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.trombone.core.PeerConfigurator;
+import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
 import uk.ac.standrews.cs.trombone.core.key.Key;
+import uk.ac.standrews.cs.trombone.core.util.Repeatable;
 import uk.ac.standrews.cs.trombone.event.churn.Churn;
 import uk.ac.standrews.cs.trombone.event.provider.SequentialPortNumberProvider;
 import uk.ac.standrews.cs.trombone.event.workload.Workload;
@@ -45,7 +46,7 @@ public class Scenario {
     private Provider<Key> peer_key_provider;
     private Provider<Churn> churn_provider;
     private Provider<Workload> workload_provider;
-    private PeerConfigurator configurator;
+    private PeerConfiguration configurator;
 
     public Scenario(String name, long master_seed) {
 
@@ -64,7 +65,8 @@ public class Scenario {
     }
 
     public void addHost(String host, Integer peer_count, SequentialPortNumberProvider port_number_provider) {
-
+        //TODO add per host config
+        //TODO don't use hostname as key; this allows user to add multiple scenarios on a single host
         final HostScenario host_scenario = new HostScenario(host, peer_count, port_number_provider.copy());
         host_scenarios.put(host, host_scenario);
         properties.setProperty("scenario.host." + host + ".peer_count", String.valueOf(peer_count));
@@ -127,6 +129,7 @@ public class Scenario {
     public void setChurnProvider(final Provider<Churn> churn_provider) {
 
         this.churn_provider = churn_provider;
+        checkAndSetSeed(churn_provider);
         properties.setProperty("scenario.churn_provider", churn_provider.toString());
     }
 
@@ -141,12 +144,12 @@ public class Scenario {
         properties.setProperty("scenario.workload_provider", workload_provider.toString());
     }
 
-    public PeerConfigurator getPeerConfigurator() {
+    public PeerConfiguration getPeerConfigurator() {
 
         return configurator;
     }
 
-    public void setPeerConfigurator(final PeerConfigurator configurator) {
+    public void setPeerConfigurator(final PeerConfiguration configurator) {
 
         this.configurator = configurator;
         properties.setProperty("scenario.peer_configurator", configurator.toString());
@@ -176,6 +179,15 @@ public class Scenario {
         final Churn churn = churn_provider.get();
         final Workload workload = workload_provider.get();
         return new Participant(peer_key, peer_address, churn, workload, configurator);
+    }
+
+    private void checkAndSetSeed(final Object object) {
+
+        if (object instanceof Repeatable) {
+            Repeatable repeatable = (Repeatable) object;
+            repeatable.setSeed(generateSeed());
+        }
+
     }
 
     private Integer nextPortByHost(final String host) {

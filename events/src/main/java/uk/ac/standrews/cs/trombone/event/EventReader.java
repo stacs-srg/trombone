@@ -17,10 +17,13 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.supercsv.io.CsvListReader;
 import org.supercsv.prefs.CsvPreference;
+import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 
@@ -34,17 +37,20 @@ public class EventReader implements Closeable, Iterator<Event> {
     private final CsvListReader event_reader;
     private final Map<Integer, Key> lookup_targets_index;
     private final Map<Integer, PeerReference> peers_index;
+    private final Map<Integer, PeerConfiguration> peer_configs_index;
+    private final Map<PeerReference, PeerConfiguration> peer_configs_map = new HashMap<>();
     private final AtomicReference<List<String>> next_row_reference;
 
-    public EventReader(Path events_home, int index) throws IOException, DecoderException {
+    public EventReader(Path events_home, int index) throws IOException, DecoderException, ClassNotFoundException {
 
         this(events_home, index, DEFAULT_SKIP_FIRST_ROW);
     }
 
-    public EventReader(Path events_home, int index, boolean skip_first_row) throws IOException, DecoderException {
+    public EventReader(Path events_home, int index, boolean skip_first_row) throws IOException, DecoderException, ClassNotFoundException {
 
         event_reader = getReader(events_home.resolve(String.valueOf(index)).resolve("events.csv"));
         lookup_targets_index = readLookupTargets(events_home.resolve("lookup_targets.csv"));
+        peer_configs_index = readPeerConfigurations(events_home.resolve("peer_configurations.csv"));
         peers_index = readPeers(events_home.resolve("peers.csv"));
         next_row_reference = new AtomicReference<>();
 
@@ -69,6 +75,11 @@ public class EventReader implements Closeable, Iterator<Event> {
             } while (row != null);
             return host_indices;
         }
+    }
+
+    public PeerConfiguration getConfiguration(PeerReference reference) {
+
+        return peer_configs_map.get(reference);
     }
 
     @Override
@@ -109,9 +120,9 @@ public class EventReader implements Closeable, Iterator<Event> {
         return new CsvListReader(Files.newBufferedReader(path, EVENT_CSV_CHARSET), CsvPreference.STANDARD_PREFERENCE);
     }
 
-    private static Map<Integer, PeerReference> readPeers(final Path peers_csv) throws IOException, DecoderException {
+    private Map<Integer, PeerReference> readPeers(final Path peers_csv) throws IOException, DecoderException {
 
-        final Map<Integer, PeerReference> peers = new HashMap<Integer, PeerReference>();
+        final Map<Integer, PeerReference> peers = new HashMap<>();
 
         try (final CsvListReader reader = getReader(peers_csv)) {
             reader.getHeader(true);  //skip header
@@ -120,10 +131,37 @@ public class EventReader implements Closeable, Iterator<Event> {
                 final Integer index = Integer.valueOf(row.get(0));
                 final Key key = Key.valueOf(row.get(1));
                 final InetSocketAddress address = new InetSocketAddress(row.get(2), Integer.valueOf(row.get(3)));
-                peers.put(index, new PeerReference(key, address));
+                final Integer config_index = Integer.valueOf(row.get(4));
+                final PeerReference reference = new PeerReference(key, address);
+                peer_configs_map.put(reference, peer_configs_index.get(config_index));
+                peers.put(index, reference);
                 row = reader.read();
             } while (row != null);
             return peers;
+        }
+    }
+
+    private static Map<Integer, PeerConfiguration> readPeerConfigurations(final Path peer_configurations_csv) throws IOException, ClassNotFoundException {
+
+        final Map<Integer, PeerConfiguration> configurations = new HashMap<>();
+
+        try (final CsvListReader reader = getReader(peer_configurations_csv)) {
+            reader.getHeader(true);  //skip header
+            List<String> row = reader.read();
+            do {
+                final Integer index = Integer.valueOf(row.get(0));
+                final String class_name = row.get(1);
+                final String config_as_base64 = row.get(2);
+
+                final byte[] config_as_bytes = Base64.decodeBase64(config_as_base64);
+                @SuppressWarnings("unchecked")
+                final Class<? extends PeerConfiguration> config_class = (Class<? extends PeerConfiguration>) Class.forName(class_name);
+                final PeerConfiguration config_object = config_class.cast(SerializationUtils.deserialize(config_as_bytes));
+
+                configurations.put(index, config_object);
+                row = reader.read();
+            } while (row != null);
+            return configurations;
         }
     }
 
@@ -160,7 +198,7 @@ public class EventReader implements Closeable, Iterator<Event> {
                 final String join_params = next_row.get(3);
                 final String[] split_params = join_params.split(JoinEvent.PARAMETER_DELIMITER);
                 event.setDurationInNanos(Long.valueOf(split_params[0]));
-                
+
                 final Set<PeerReference> known_peer_references = new HashSet<>();
                 for (int i = 1; i < split_params.length; i++) {
                     final String index_as_string = split_params[i].trim();
@@ -170,7 +208,7 @@ public class EventReader implements Closeable, Iterator<Event> {
                     }
                 }
                 event.setKnownPeerReferences(known_peer_references);
-                
+
                 return event;
 
             case LookupEvent.LOOKUP_EVENT_CODE:

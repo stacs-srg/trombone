@@ -21,16 +21,17 @@ package uk.ac.standrews.cs.trombone.event.provider;
 
 import javax.inject.Provider;
 import org.mashti.sina.distribution.ProbabilityDistribution;
+import uk.ac.standrews.cs.trombone.core.util.Repeatable;
 import uk.ac.standrews.cs.trombone.event.churn.Churn;
 import uk.ac.standrews.cs.trombone.event.churn.ConstantRateUncorrelatedChurn;
 
-public class ConstantRateUncorrelatedUniformChurnProvider implements Provider<Churn> {
+public class ConstantRateUncorrelatedChurnProvider implements Provider<Churn>, Repeatable {
 
     private final ProbabilityDistribution session_length_distribution;
     private final ProbabilityDistribution downtime_distribution;
-    private final Provider<Long> seed_provider;
+    private final RandomSeedProvider seed_provider;
 
-    public ConstantRateUncorrelatedUniformChurnProvider(final ProbabilityDistribution session_length_distribution, final ProbabilityDistribution downtime_distribution, final Provider<Long> seed_provider) {
+    public ConstantRateUncorrelatedChurnProvider(final ProbabilityDistribution session_length_distribution, final ProbabilityDistribution downtime_distribution, final RandomSeedProvider seed_provider) {
 
         this.session_length_distribution = session_length_distribution;
         this.downtime_distribution = downtime_distribution;
@@ -53,5 +54,23 @@ public class ConstantRateUncorrelatedUniformChurnProvider implements Provider<Ch
         sb.append(", seed_provider=").append(seed_provider);
         sb.append('}');
         return sb.toString();
+    }
+
+    @Override
+    public synchronized void setSeed(final long seed) {
+
+        seed_provider.setSeed(seed);
+    }
+
+    @Override
+    public long getSeed() {
+
+        return seed_provider.getSeed();
+    }
+
+    @Override
+    public ConstantRateUncorrelatedChurnProvider clone() throws CloneNotSupportedException {
+
+        return new ConstantRateUncorrelatedChurnProvider(session_length_distribution, downtime_distribution, seed_provider.clone());
     }
 }

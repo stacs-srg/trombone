@@ -9,7 +9,7 @@ import uk.ac.standrews.cs.trombone.core.PeerMetric;
 public class EnvironmentSnapshot {
 
     private static final long MAX_LOOKUP_DELAY_MILLIS = TimeUnit.MILLISECONDS.convert(1, TimeUnit.MINUTES);
-    private static final double MAX_SENT_BYTES_PER_SECOND = 1000 * 5;
+    private static final double MAX_SENT_BYTES_PER_SECOND = 1000 * 50;
     private static final double MAX_LOOKUP_FAILURE_PER_SECOND = 10000;
     private final double lookup_failure_rate;
     private final long mean_lookup_success_delay_millis;
@@ -24,6 +24,8 @@ public class EnvironmentSnapshot {
         lookup_failure_rate = metric.getLookupFailureRate();
         mean_lookup_success_delay_millis = metric.getMeanLookupSuccessDelay(TimeUnit.MILLISECONDS);
         sent_bytes_per_second = metric.getSentBytesRatePerSecond();
+        number_of_lookups_executed = metric.getNumberOfExecutedLookups();
+        number_of_nexthop_answered = metric.getNumberOfServedNextHops();
     }
 
     public double getNormalizedMeanLookupSuccessDelayMillis() {
@@ -53,16 +55,16 @@ public class EnvironmentSnapshot {
 
     public double getSentBytesPerSecond() {
 
-        return 0;
+        return sent_bytes_per_second;
     }
 
     public double getLookupCount() {
 
-        return 0;
+        return number_of_lookups_executed;
     }
 
     public double getNextHopCount() {
 
-        return 0;
+        return number_of_nexthop_answered;
     }
 }

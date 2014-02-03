@@ -14,10 +14,13 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.supercsv.io.CsvListWriter;
 import org.supercsv.prefs.CsvPreference;
+import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 
 /**
@@ -30,10 +33,13 @@ public class EventWriter implements Closeable {
     private final AtomicInteger next_target_index = new AtomicInteger();
     private final HashMap<String, CsvListWriter> host_event_writers;
     private final TreeMap<String, Integer> host_indices;
+    private final HashMap<PeerConfiguration, Integer> peer_config_indices;
     private final Set<Participant> participants = new HashSet<>();
     private final AtomicInteger next_host_index = new AtomicInteger();
+    private final AtomicInteger next_peer_config_index = new AtomicInteger();
     private final CsvListWriter hosts_csv_writer;
     private final CsvListWriter peers_csv_writer;
+    private final CsvListWriter peer_configs_csv_writer;
     private final CsvListWriter lookup_targets_csv_writer;
     private final AtomicLong write_counter = new AtomicLong(0);
     private final Path events_home;
@@ -44,12 +50,15 @@ public class EventWriter implements Closeable {
         lookup_targets_index = new ConcurrentHashMap<Key, Integer>();
         host_event_writers = new HashMap<>();
         host_indices = new TreeMap<>();
+        peer_config_indices = new HashMap<>();
         hosts_csv_writer = getWriter(events_home.resolve("hosts.csv"));
         peers_csv_writer = getWriter(events_home.resolve("peers.csv"));
+        peer_configs_csv_writer = getWriter(events_home.resolve("peer_configurations.csv"));
         lookup_targets_csv_writer = getWriter(events_home.resolve("lookup_targets.csv"));
 
         hosts_csv_writer.writeHeader("index", "host_name");
-        peers_csv_writer.writeHeader("index", "peer_key", "host_name", "port");
+        peers_csv_writer.writeHeader("index", "peer_key", "host_name", "port", "config");
+        peer_configs_csv_writer.writeHeader("index", "class_name", "serialized_object");
         lookup_targets_csv_writer.writeHeader("index", "key");
     }
 
@@ -63,16 +72,15 @@ public class EventWriter implements Closeable {
             lookup_event.setTargetId(getLookupTargetIndex(lookup_event.getTarget()));
         }
 
-        final Long timeInNanos = event.getTimeInNanos();
-        writer.write(timeInNanos, event.getParticipant().getId(), event.getCode(), event.getParameters());
+        writer.write(event.getTimeInNanos(), event.getParticipant().getId(), event.getCode(), event.getParameters());
         if (write_counter.incrementAndGet() % 10000 == 0) {
             writer.flush();
             write_counter.set(0);
         }
 
         if (participants.add(participant)) {
-            //FIXME encode configurator
-            peers_csv_writer.write(participant.getId(), participant.getKey(), participant.getHostName(), participant.getPort());
+            final int config_index = getPeerConfigurationIndex(participant.getPeerConfiguration());
+            peers_csv_writer.write(participant.getId(), participant.getKey(), participant.getHostName(), participant.getPort(), config_index);
             peers_csv_writer.flush();
         }
     }
@@ -90,8 +98,26 @@ public class EventWriter implements Closeable {
         peers_csv_writer.flush();
         peers_csv_writer.close();
 
+        peer_configs_csv_writer.flush();
+        peer_configs_csv_writer.close();
+
         lookup_targets_csv_writer.flush();
         lookup_targets_csv_writer.close();
+    }
+
+    private int getPeerConfigurationIndex(final PeerConfiguration configuration) throws IOException {
+
+        final int index;
+        if (!peer_config_indices.containsKey(configuration)) {
+            index = next_peer_config_index.incrementAndGet();
+            peer_config_indices.put(configuration, index);
+            writePeerConfiguration(index, configuration);
+        }
+        else {
+            index = peer_config_indices.get(configuration);
+        }
+
+        return index;
     }
 
     private static CsvListWriter getWriter(Path csv_path) throws IOException {
@@ -146,6 +172,14 @@ public class EventWriter implements Closeable {
         }
 
         return index;
+    }
+
+    private void writePeerConfiguration(final int index, final PeerConfiguration configuration) throws IOException {
+
+        final byte[] config_as_bytes = SerializationUtils.serialize(configuration);
+        final String config_as_base_64 = Base64.encodeBase64String(config_as_bytes);
+        peer_configs_csv_writer.write(index, configuration.getClass().getName(), config_as_base_64);
+        peer_configs_csv_writer.flush();
     }
 
     private void writeHosts(final int index, final String host_name) throws IOException {

@@ -19,12 +19,19 @@ public class Maintenance {
     private static final int ACTIVE_MAINTENANCE_INTERVAL_MILLIS = 1500;
     private final AtomicReference<DisseminationStrategy> dissemination_strategy;
     private final Peer local;
+    private final int active_maintenance_interval_millis;
     private final Runnable non_opportunistic_disseminator = new NonOpportunisticDisseminator();
     private ScheduledFuture<?> active_maintenance;
 
-    protected Maintenance(final Peer local) {
+    public Maintenance(final Peer local) {
+
+        this(local, ACTIVE_MAINTENANCE_INTERVAL_MILLIS);
+    }
+
+    protected Maintenance(final Peer local, int active_maintenance_interval_millis) {
 
         this.local = local;
+        this.active_maintenance_interval_millis = active_maintenance_interval_millis;
         dissemination_strategy = new AtomicReference<>();
     }
 
@@ -36,7 +43,7 @@ public class Maintenance {
     protected synchronized void start() {
 
         if (!isStarted()) {
-            active_maintenance = SCHEDULER.scheduleWithFixedDelay(non_opportunistic_disseminator, ACTIVE_MAINTENANCE_INTERVAL_MILLIS, ACTIVE_MAINTENANCE_INTERVAL_MILLIS, TimeUnit.MILLISECONDS);
+            active_maintenance = SCHEDULER.scheduleWithFixedDelay(non_opportunistic_disseminator, active_maintenance_interval_millis, active_maintenance_interval_millis, TimeUnit.MILLISECONDS);
         }
     }
 

@@ -2,14 +2,15 @@ package uk.ac.standrews.cs.trombone.event.provider;
 
 import java.util.Random;
 import javax.inject.Provider;
+import uk.ac.standrews.cs.trombone.core.util.Repeatable;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class RandomSeedProvider implements Provider<Long> {
+public class RandomSeedProvider implements Provider<Long>, Repeatable, Cloneable {
 
     private final Random random;
-    private final Long seed;
+    private volatile Long seed;
 
     public RandomSeedProvider(Long seed) {
 
@@ -30,5 +31,24 @@ public class RandomSeedProvider implements Provider<Long> {
         sb.append("seed=").append(seed);
         sb.append('}');
         return sb.toString();
+    }
+
+    @Override
+    public synchronized void setSeed(final long seed) {
+
+        this.seed = seed;
+        random.setSeed(seed);
+    }
+
+    @Override
+    public synchronized long getSeed() {
+
+        return seed;
+    }
+
+    @Override
+    public RandomSeedProvider clone() {
+
+        return new RandomSeedProvider(seed);
     }
 }

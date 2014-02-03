@@ -57,6 +57,17 @@ public class EvaluatedDisseminationStrategy implements Comparable<EvaluatedDisse
         return hashcode;
     }
 
+    @Override
+    public String toString() {
+
+        final StringBuilder sb = new StringBuilder("EvaluatedDisseminationStrategy{");
+        sb.append("strategy=").append(strategy);
+        sb.append(", fitness=").append(fitness);
+        sb.append(", environment=").append(Arrays.toString(environment));
+        sb.append('}');
+        return sb.toString();
+    }
+
     public DisseminationStrategy getStrategy() {
 
         return strategy;
@@ -74,13 +85,13 @@ public class EvaluatedDisseminationStrategy implements Comparable<EvaluatedDisse
         final double lookup_failure_rate = environment_snapshot.getNormalizedLookupFailureRate();
 
         final double inverse_fitness = euclideanDistance(new double[] {mean_lookup_success_delay_millis, sent_bytes_rate_per_second, lookup_failure_rate}, ORIGIN);
-
-        if (fitness == 0) {
-            LOGGER.warn("zero inverse fitness! have we found a perfect solution? {}", strategy);
-            return Double.MAX_VALUE;
-        }
-
-        return 1 / inverse_fitness;
+        return inverse_fitness;
+        //        if (inverse_fitness == 0) {
+        //            LOGGER.warn("zero inverse fitness! have we found a perfect solution? {}", strategy);
+        //            return Double.MAX_VALUE;
+        //        }
+        //
+        //        return 1 / inverse_fitness;
     }
 
     private static double euclideanDistance(final double[] first_point, final double[] second_point) {

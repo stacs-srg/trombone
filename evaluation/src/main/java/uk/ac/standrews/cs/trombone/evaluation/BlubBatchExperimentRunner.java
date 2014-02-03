@@ -10,7 +10,7 @@ import org.apache.commons.io.FilenameUtils;
  */
 public class BlubBatchExperimentRunner {
 
-    static final File EVENTS = new File("target/events/");
+    static final File EVENTS = new File("results");
 
     public static void main(String[] args) throws Exception {
 
@@ -26,9 +26,8 @@ public class BlubBatchExperimentRunner {
         });
 
         for (File zip_event : zip_events) {
-            Experiment experiment = new Experiment(zip_event.getAbsolutePath(), "target/results/"+ FilenameUtils.getBaseName(zip_event.getName()));
+            Experiment experiment = new Experiment(zip_event.getAbsolutePath(), "target/results/" + FilenameUtils.getBaseName(zip_event.getName()));
             experiment.run();
         }
-
     }
 }

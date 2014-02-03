@@ -53,11 +53,11 @@ public class EventExecutionJob implements Job<String> {
         env.put("create", "true");
         env.put("encoding", "UTF8");
 
-        try (FileSystem events_file_system = FileSystems.newFileSystem(events, null); /*FileSystem observations_file_system = zip_file_system_provider.newFileSystem(observations, env);*/) {
+        try (FileSystem events_file_system = FileSystems.newFileSystem(events, null); FileSystem observations_file_system = zip_file_system_provider.newFileSystem(observations, env);) {
 
             final Path events_root = events_file_system.getPath("/");
             Files.createDirectories(observations);
-            final Path observations_root =observations;// observations_file_system.getPath("/");
+            final Path observations_root = observations_file_system.getPath("/");
             final EventExecutor event_executor = new EventExecutor(events_root, host_index, observations_root);
 
             event_executor.start();

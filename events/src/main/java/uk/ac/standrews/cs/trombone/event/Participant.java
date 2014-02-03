@@ -3,7 +3,7 @@ package uk.ac.standrews.cs.trombone.event;
 import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicInteger;
 import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
-import uk.ac.standrews.cs.trombone.core.PeerConfigurator;
+import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.event.churn.Churn;
@@ -18,18 +18,23 @@ public class Participant implements Comparable<Participant> {
     private final InetSocketAddress address;
     private final Churn churn;
     private final Workload workload;
-    private final PeerConfigurator configurator;
+    private final PeerConfiguration configuration;
     private final PeerReference reference;
 
-    public Participant(final Key key, final InetSocketAddress address, final Churn churn, final Workload workload, final PeerConfigurator configurator) {
+    public Participant(final Key key, final InetSocketAddress address, final Churn churn, final Workload workload, final PeerConfiguration configuration) {
 
         id = NEXT_ID.incrementAndGet();
         this.key = key;
         this.address = address;
         this.churn = churn;
         this.workload = workload;
-        this.configurator = configurator;
+        this.configuration = configuration;
         reference = new PeerReference(key, address);
+    }
+
+    public static void resetNextId() {
+
+        NEXT_ID.set(0);
     }
 
     public Integer getId() {
@@ -104,8 +109,8 @@ public class Participant implements Comparable<Participant> {
         return sb.toString();
     }
 
-    public PeerConfigurator getPeerConfigurator() {
+    public PeerConfiguration getPeerConfiguration() {
 
-        return configurator;
+        return configuration;
     }
 }

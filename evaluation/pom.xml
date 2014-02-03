@@ -13,32 +13,6 @@
 
     <groupId>uk.ac.standrews.cs.t3</groupId>
     <artifactId>evaluation</artifactId>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.2.1</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>java</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                
-                <configuration>
-                    <executable>java</executable>
-                    <arguments>
-                        <argument>-classpath</argument>
-                        <argument>uk.ac.standrews.cs.trombone.evaluation.scenarios.Scenario1</argument>
-                        <argument>/home/masih/test/t3/evaluation</argument>
-                        
-                    </arguments>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -79,8 +53,27 @@
             <artifactId>job</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
-
-
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>experimentation</id>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>2.16</version>
+                        <configuration>
+                             <includes>
+                                 <include>uk.ac.standrews.cs.trombone.evaluation.BatchEventGenerator</include>
+                             </includes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>

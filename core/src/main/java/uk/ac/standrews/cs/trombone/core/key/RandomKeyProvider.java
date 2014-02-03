@@ -1,15 +1,14 @@
 package uk.ac.standrews.cs.trombone.core.key;
 
 import java.util.Random;
-import javax.inject.Provider;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class RandomKeyProvider implements Provider<Key> {
+public class RandomKeyProvider implements KeyProvider {
 
     private final Random random;
-    private final long seed;
     private final int key_length_in_bits;
     private final int key_length_in_bytes;
+    private volatile long seed;
 
     public RandomKeyProvider(final long seed, int key_length_in_bits) {
 
@@ -51,5 +50,24 @@ public class RandomKeyProvider implements Provider<Key> {
         sb.append(", key_length_in_bits=").append(key_length_in_bits);
         sb.append('}');
         return sb.toString();
+    }
+
+    @Override
+    public synchronized void setSeed(final long seed) {
+
+        this.seed = seed;
+        random.setSeed(seed);
+    }
+
+    @Override
+    public synchronized long getSeed() {
+
+        return seed;
+    }
+
+    @Override
+    public RandomKeyProvider clone() {
+
+        return new RandomKeyProvider(seed, key_length_in_bits);
     }
 }

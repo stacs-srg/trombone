@@ -1,5 +1,6 @@
 package uk.ac.standrews.cs.trombone.core;
 
+import java.lang.reflect.Method;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -23,6 +24,7 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
     private final Sampler lookup_success_retry_count_sampler;
     private final Rate lookup_failure_rate;
     private final Counter lookup_counter;
+    private final Counter served_next_hop_counter;
 
     public PeerMetric(final Peer peer) {
 
@@ -32,6 +34,7 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
         lookup_success_retry_count_sampler = new Sampler();
         lookup_failure_rate = new Rate();
         lookup_counter = new Counter();
+        served_next_hop_counter = new Counter();
     }
 
     public static Rate getGlobalSentBytesRate() {
@@ -42,6 +45,11 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
     public long getNumberOfExecutedLookups() {
 
         return lookup_counter.getAndReset();
+    }
+
+    public long getNumberOfServedNextHops() {
+
+        return served_next_hop_counter.getAndReset();
     }
 
     public LookupMeasurement newLookupMeasurement(final int retry_count) {
@@ -75,7 +83,19 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
 
     public EnvironmentSnapshot getSnapshot() {
 
-        return null;
+        return new EnvironmentSnapshot(this);
+    }
+
+    void notifyServe(final Method method) {
+
+        final String method_name = method.getName();
+        switch (method_name) {
+            case "nextHop":
+                served_next_hop_counter.increment();
+                break;
+            default:
+                break;
+        }
     }
 
     public final class LookupMeasurement {

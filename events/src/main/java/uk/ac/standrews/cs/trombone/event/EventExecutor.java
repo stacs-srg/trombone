@@ -30,7 +30,7 @@ import org.mashti.jetson.util.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.core.Peer;
-import uk.ac.standrews.cs.trombone.core.PeerConfigurator;
+import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
 import uk.ac.standrews.cs.trombone.core.PeerFactory;
 import uk.ac.standrews.cs.trombone.core.PeerMetric;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
@@ -83,7 +83,7 @@ public class EventExecutor {
     //FIXME Add timeout for lookup execution or maybe any event execution
     //FIXME get lookup retry count from scenario
 
-    public EventExecutor(final Path events_home, int host_index, Path observations_home) throws IOException, DecoderException {
+    public EventExecutor(final Path events_home, int host_index, Path observations_home) throws IOException, DecoderException, ClassNotFoundException {
 
         event_reader = new EventReader(events_home, host_index);
         runnable_events = new DelayQueue<RunnableExperimentEvent>();
@@ -212,7 +212,7 @@ public class EventExecutor {
         runnable_events.add(new RunnableLookupEvent(peer, event));
     }
 
-    synchronized Peer getPeerByReference(PeerReference reference, PeerConfigurator configurator) {
+    synchronized Peer getPeerByReference(PeerReference reference, PeerConfiguration configurator) {
 
         final Peer peer;
         if (!peers_map.containsKey(reference)) {
@@ -262,7 +262,8 @@ public class EventExecutor {
 
         final Event event = event_reader.next();
         final PeerReference event_source = event.getSource();
-        final Peer peer = getPeerByReference(event_source, null);    //FIXME NULL CONFIGURATOR
+        final PeerConfiguration configuration = event_reader.getConfiguration(event_source);
+        final Peer peer = getPeerByReference(event_source, configuration);
         queue(peer, event);
     }
 

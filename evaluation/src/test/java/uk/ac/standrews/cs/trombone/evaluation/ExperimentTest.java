@@ -22,21 +22,19 @@ public class ExperimentTest {
     @Test
     public void testRun() throws Exception {
 
-        //                final File events_home = new File("/Users/masih/Desktop", "PlatformJustificationSingleHost.zip");
-        final File events_home = new File("/Users/masih/Desktop", "PlatformJustificationSingleHost_churn.zip");
-        //        final File events_home = new File("/Users/masih/Desktop", "PlatformJustificationSingleHost_1000.zip");
-        //        Experiment experiment = new Experiment(events_home.getAbsolutePath(), events_home.getAbsolutePath());
-        //        experiment.run();
+        final File events_home = new File("results/PlatformJustificationSingleHost", "events.zip");
+        Experiment experiment = new Experiment(events_home.getAbsolutePath(), events_home.getParent() + "/PlatformJustificationSingleHost");
+        experiment.run();
 
-        final EventExecutionJob executionJob = new EventExecutionJob(events_home.getAbsolutePath(), 1, events_home.getParent() + "/PlatformJustificationSingleHost");
-        executionJob.call();
+        //        final EventExecutionJob executionJob = new EventExecutionJob(events_home.getAbsolutePath(), 1, events_home.getParent() + "/PlatformJustificationSingleHost");
+        //        executionJob.call();
     }
 
     @Test
     public void testGenerate() throws Exception {
 
         final Scenario scenario = new PlatformJustificationSingleHost();
-        final File events_home = new File("/Users/masih/Desktop", "PlatformJustificationSingleHost1.zip");
+        final File events_home = new File("/Users/masih/Desktop", "PlatformJustificationSingleHost.zip");
         //        final File events_home = new File("/Users/masih/Desktop", "PlatformJustificationSingleHost_churn.zip");
         final URI events_uri = URI.create("jar:" + events_home.toURI());
 

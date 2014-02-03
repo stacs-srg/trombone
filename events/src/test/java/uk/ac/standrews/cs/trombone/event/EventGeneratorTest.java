@@ -7,7 +7,6 @@ import java.nio.file.FileSystems;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import javax.inject.Provider;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -15,10 +14,9 @@ import org.mashti.sina.distribution.ExponentialDistribution;
 import org.mashti.sina.distribution.ProbabilityDistribution;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.test.category.Ignore;
-import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.core.key.RandomKeyProvider;
 import uk.ac.standrews.cs.trombone.core.key.ZipfKeyProvider;
-import uk.ac.standrews.cs.trombone.event.provider.ConstantRateUncorrelatedUniformChurnProvider;
+import uk.ac.standrews.cs.trombone.event.provider.ConstantRateUncorrelatedChurnProvider;
 import uk.ac.standrews.cs.trombone.event.provider.ConstantRateWorkloadProvider;
 import uk.ac.standrews.cs.trombone.event.provider.RandomSeedProvider;
 import uk.ac.standrews.cs.trombone.event.provider.SequentialPortNumberProvider;
@@ -37,9 +35,9 @@ public class EventGeneratorTest {
     public void setUp() throws Exception {
 
         scenario = new Scenario("test", 89562);
-        final Provider<Key> target_key_provider = new ZipfKeyProvider(200, 1, 32, scenario.generateSeed());
+        final ZipfKeyProvider target_key_provider = new ZipfKeyProvider(200, 1, 32, scenario.generateSeed());
         scenario.setPeerKeyProvider(new RandomKeyProvider(scenario.generateSeed(), 32));
-        scenario.setChurnProvider(new ConstantRateUncorrelatedUniformChurnProvider(session_length_distribution, downtime_distribution, new RandomSeedProvider(scenario.generateSeed())));
+        scenario.setChurnProvider(new ConstantRateUncorrelatedChurnProvider(session_length_distribution, downtime_distribution, new RandomSeedProvider(scenario.generateSeed())));
         //        scenario.setChurnProvider(NoChurnProvider.getInstance());
         scenario.setWorkloadProvider(new ConstantRateWorkloadProvider(workload_intervals_distribution, target_key_provider, new RandomSeedProvider(scenario.generateSeed())));
         scenario.setExperimentDuration(experiment_duration);
