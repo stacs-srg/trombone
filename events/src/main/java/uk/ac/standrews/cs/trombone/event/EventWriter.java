@@ -1,5 +1,6 @@
 package uk.ac.standrews.cs.trombone.event;
 
+import java.io.BufferedWriter;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -9,6 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
@@ -82,6 +84,15 @@ public class EventWriter implements Closeable {
             final int config_index = getPeerConfigurationIndex(participant.getPeerConfiguration());
             peers_csv_writer.write(participant.getId(), participant.getKey(), participant.getHostName(), participant.getPort(), config_index);
             peers_csv_writer.flush();
+        }
+    }
+
+    public void write(Scenario scenario) throws IOException {
+
+        final Properties properties = scenario.getProperties();
+        final Path properties_path = events_home.resolve("scenario.properties");
+        try (final BufferedWriter writer = Files.newBufferedWriter(properties_path, StandardCharsets.UTF_8)) {
+            properties.store(writer, "");
         }
     }
 

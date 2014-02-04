@@ -1,5 +1,6 @@
 package uk.ac.standrews.cs.trombone.event;
 
+import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -13,6 +14,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
@@ -75,6 +77,16 @@ public class EventReader implements Closeable, Iterator<Event> {
             } while (row != null);
             return host_indices;
         }
+    }
+
+    public static Properties readScenarioProperties(Path events_home) throws IOException {
+
+        final Properties properties = new Properties();
+        final Path properties_path = events_home.resolve("scenario.properties");
+        try (final BufferedReader reader = Files.newBufferedReader(properties_path, StandardCharsets.UTF_8)) {
+            properties.load(reader);
+        }
+        return properties;
     }
 
     public PeerConfiguration getConfiguration(PeerReference reference) {

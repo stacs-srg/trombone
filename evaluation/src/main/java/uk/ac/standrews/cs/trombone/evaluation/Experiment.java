@@ -6,6 +6,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import org.slf4j.Logger;
@@ -33,6 +34,8 @@ public class Experiment {
     private final File events;
     private WorkerNetwork worker_network;
     private Map<String, Integer> host_indices;
+    private Properties scenario_properties;
+    private String scenario_name;
 
     protected Experiment(String events_path, String observations_path) {
 
@@ -45,7 +48,7 @@ public class Experiment {
 
         LOGGER.info("Setting up to execute events at {}", events_path);
         LOGGER.info("Observations to be stored at {}", observations_path);
-
+        System.out.println(events.exists());
         setup();
 
         try {
@@ -59,15 +62,17 @@ public class Experiment {
 
     protected void setup() throws Exception {
 
-        final FileSystem events_file_system = FileSystems.newFileSystem(Paths.get(events.getAbsolutePath()), null);
+        final FileSystem events_file_system = FileSystems.newFileSystem(Paths.get(events_path), null);
         host_indices = EventReader.readHostNames(events_file_system.getPath("hosts.csv"));
+        scenario_properties = EventReader.readScenarioProperties(events_file_system.getPath("/"));
+        scenario_name = scenario_properties.getProperty("scenario.name");
         worker_network = new WorkerNetwork();
 
         for (String host_name : host_indices.keySet()) {
             final Host host = isLocalhost(host_name) ? new LocalHost() : new SSHHost(host_name, BlubHostProvider.SSHJ_AUTH);
             worker_network.add(host);
             LOGGER.info("uploading events to {}", host_name);
-            final String parent = events.getParentFile().getAbsolutePath();
+            final String parent = "/state/partition1/trombone/" + scenario_name;
             final Process mkdir = host.execute(Commands.MAKE_DIRECTORIES.get(host.getPlatform(), parent));
             mkdir.waitFor();
             mkdir.destroy();

@@ -1,14 +1,10 @@
 package uk.ac.standrews.cs.trombone.event;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
@@ -36,19 +32,17 @@ public class EventGenerator {
     private final Semaphore load_balancer = new Semaphore(5_000, true);
     private final long experiment_duration;
     private final Random random;
-    private final Properties properties;
-    private final Path event_home;
+    private final Scenario scenario;
 
     public EventGenerator(final Scenario scenario, final Path event_home) throws IOException {
 
-        this.event_home = event_home;
+        this.scenario = scenario;
 
         event_iterators = new TreeSet<>();
         event_writer = new EventWriter(event_home);
         init(scenario);
         experiment_duration = scenario.getExperimentDurationInNanos();
         random = new Random(scenario.generateSeed());
-        properties = scenario.getProperties();
     }
 
     public void generate() throws ExecutionException, InterruptedException, IOException {
@@ -66,19 +60,11 @@ public class EventGenerator {
             event_persistor_task.get();
             LOGGER.info("finalising...");
             progress_logger.cancel(true);
-            persistProperties();
+            event_writer.write(scenario);
         }
         finally {
             executor.shutdownNow();
             event_writer.close();
-        }
-    }
-
-    private void persistProperties() throws IOException {
-
-        final Path properties_path = event_home.resolve("scenario.properties");
-        try (final BufferedWriter writer = Files.newBufferedWriter(properties_path, StandardCharsets.UTF_8)) {
-            properties.store(writer, "");
         }
     }
 
