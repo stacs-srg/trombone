@@ -2,8 +2,6 @@ package uk.ac.standrews.cs.trombone.evaluation;
 
 import java.io.File;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -20,6 +18,7 @@ import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
 import uk.ac.standrews.cs.shabdiz.job.Worker;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
 import uk.ac.standrews.cs.trombone.evaluation.util.BlubHostProvider;
+import uk.ac.standrews.cs.trombone.evaluation.util.ZipFileSystemUtils;
 import uk.ac.standrews.cs.trombone.event.EventReader;
 
 /**
@@ -36,6 +35,7 @@ public class Experiment {
     private Map<String, Integer> host_indices;
     private Properties scenario_properties;
     private String scenario_name;
+    private FileSystem events_file_system;
 
     protected Experiment(String events_path, String observations_path) {
 
@@ -62,7 +62,7 @@ public class Experiment {
 
     protected void setup() throws Exception {
 
-        final FileSystem events_file_system = FileSystems.newFileSystem(Paths.get(events_path), null);
+        events_file_system = ZipFileSystemUtils.newZipFileSystem(events_path, false);
         host_indices = EventReader.readHostNames(events_file_system.getPath("hosts.csv"));
         scenario_properties = EventReader.readScenarioProperties(events_file_system.getPath("/"));
         scenario_name = scenario_properties.getProperty("scenario.name");
@@ -86,6 +86,7 @@ public class Experiment {
 
     protected void tearDown() throws Exception {
 
+        events_file_system.close();
         worker_network.shutdown();
     }
 

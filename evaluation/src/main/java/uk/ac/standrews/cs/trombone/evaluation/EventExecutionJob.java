@@ -1,16 +1,13 @@
 package uk.ac.standrews.cs.trombone.evaluation;
 
-import com.sun.nio.zipfs.ZipFileSystemProvider;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import uk.ac.standrews.cs.shabdiz.job.Job;
+import uk.ac.standrews.cs.trombone.evaluation.util.ZipFileSystemUtils;
 import uk.ac.standrews.cs.trombone.event.EventExecutor;
 
 /**
@@ -48,12 +45,7 @@ public class EventExecutionJob implements Job<String> {
             observations = observations_home_path.resolve(DATE_FORMAT.format(new Date()) + ".zip");
         }
 
-        final ZipFileSystemProvider zip_file_system_provider = new ZipFileSystemProvider();
-        final Map<String, String> env = new HashMap<>();
-        env.put("create", "true");
-        env.put("encoding", "UTF8");
-
-        try (FileSystem events_file_system = FileSystems.newFileSystem(events, null); FileSystem observations_file_system = zip_file_system_provider.newFileSystem(observations, env);) {
+        try (FileSystem events_file_system = ZipFileSystemUtils.newZipFileSystem(events, false); FileSystem observations_file_system = ZipFileSystemUtils.newZipFileSystem(observations, true);) {
 
             final Path events_root = events_file_system.getPath("/");
             Files.createDirectories(observations);
