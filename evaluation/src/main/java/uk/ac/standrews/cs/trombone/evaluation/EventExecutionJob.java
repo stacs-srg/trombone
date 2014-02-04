@@ -48,7 +48,6 @@ public class EventExecutionJob implements Job<String> {
         try (FileSystem events_file_system = ZipFileSystemUtils.newZipFileSystem(events, false); FileSystem observations_file_system = ZipFileSystemUtils.newZipFileSystem(observations, true);) {
 
             final Path events_root = events_file_system.getPath("/");
-            Files.createDirectories(observations);
             final Path observations_root = observations_file_system.getPath("/");
             final EventExecutor event_executor = new EventExecutor(events_root, host_index, observations_root);
 

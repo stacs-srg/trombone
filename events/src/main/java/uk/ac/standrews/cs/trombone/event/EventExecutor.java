@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -29,6 +30,7 @@ import org.mashti.jetson.exception.RPCException;
 import org.mashti.jetson.util.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
 import uk.ac.standrews.cs.trombone.core.PeerFactory;
@@ -38,7 +40,6 @@ import uk.ac.standrews.cs.trombone.core.PeerReference;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class EventExecutor {
 
-    private static final int LOOKUP_RETRY_COUNT = 5;
     private static final int MAX_BUFFERED_EVENTS = 20000;
     private static final Logger LOGGER = LoggerFactory.getLogger(EventExecutor.class);
     private final Rate lookup_execution_rate = new Rate();
@@ -77,6 +78,8 @@ public class EventExecutor {
         }
     };
     private final Future<Void> task_populator_future;
+    private final Properties scenario_properties;
+    private final int lookup_retry_count;
     private Future<Void> task_scheduler_future;
     private long start_time;
 
@@ -93,6 +96,8 @@ public class EventExecutor {
         task_executor.prestartAllCoreThreads();
         task_executor2 = new ThreadPoolExecutor(100, 100, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("task_executor2_"));
         load_balancer = new Semaphore(MAX_BUFFERED_EVENTS, true);
+        scenario_properties = EventReader.readScenarioProperties(events_home);
+        lookup_retry_count = getLookupRetryCount();
 
         metric_registry = new MetricRegistry("test");
         metric_registry.register("lookup_execution_rate", lookup_execution_rate);
@@ -119,6 +124,20 @@ public class EventExecutor {
         task_populator_future = startTaskQueuePopulator();
     }
 
+    private Duration getObservationInterval() {
+
+        final String duration_as_string = scenario_properties.getProperty("scenario.observation_interval");
+        return Duration.valueOf(duration_as_string);
+
+    }
+
+    private int getLookupRetryCount() {
+
+        final String retry_count = scenario_properties.getProperty("scenario.lookup.retry_count");
+        return Integer.valueOf(retry_count);
+
+    }
+
     public long getCurrentTimeInNanos() {
 
         return System.nanoTime() - start_time;
@@ -136,7 +155,10 @@ public class EventExecutor {
                     awaitInitialEventLoading();
                     LOGGER.info("starting event execution...");
                     start_time = System.nanoTime();
-                    csv_reporter.start(10, TimeUnit.SECONDS);
+
+                    final Duration observation_interval = getObservationInterval();
+                    csv_reporter.start(observation_interval.getLength(), observation_interval.getTimeUnit());
+
                     try {
                         while (!Thread.currentThread().isInterrupted() && !task_populator_future.isDone() || !runnable_events.isEmpty()) {
                             final RunnableExperimentEvent runnable = runnable_events.take();
@@ -434,7 +456,7 @@ public class EventExecutor {
 
             try {
 
-                final PeerMetric.LookupMeasurement measurement = peer.lookup(event.getTarget(), LOOKUP_RETRY_COUNT);
+                final PeerMetric.LookupMeasurement measurement = peer.lookup(event.getTarget(), lookup_retry_count);
                 final PeerReference expected_result = event.getExpectedResult();
                 final long hop_count = measurement.getHopCount();
                 final long retry_count = measurement.getRetryCount();

@@ -14,6 +14,7 @@ public class PlatformJustificationMultipleHost extends Scenario {
         setChurnProvider(Constants.NO_CHURN);
         setWorkloadProvider(Constants.WORKLOAD_1.clone());
         setExperimentDuration(Constants.EXPERIMENT_DURATION);
+        setObservationInterval(Constants.OBSERVATION_INTERVAL);
         setPeerKeyProvider(Constants.PEER_KEY_PROVIDER.clone());
         setPeerConfigurator(Constants.NO_MAINTENANCE);
 

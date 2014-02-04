@@ -20,10 +20,15 @@ import uk.ac.standrews.cs.trombone.event.provider.SequentialPortNumberProvider;
  */
 public final class Constants {
 
+    private Constants() {
+
+    }
+
     // Master random seed provider
     private static final RandomSeedProvider SEED_PROVIDER = new RandomSeedProvider(13194894195L);
     public static final SequentialPortNumberProvider PORT_NUMBER_PROVIDER = new SequentialPortNumberProvider(45000);
     public static final Duration EXPERIMENT_DURATION = new Duration(30, TimeUnit.MINUTES);
+    public static final Duration OBSERVATION_INTERVAL = new Duration(10, TimeUnit.SECONDS);
     public static final int KEY_LENGTH_IN_BITS = Integer.SIZE;
     public static final ZipfKeyProvider TARGET_KEY_PROVIDER = new ZipfKeyProvider(20_000, 1, KEY_LENGTH_IN_BITS, SEED_PROVIDER.get());
     public static final RandomKeyProvider PEER_KEY_PROVIDER = new RandomKeyProvider(SEED_PROVIDER.get(), KEY_LENGTH_IN_BITS);

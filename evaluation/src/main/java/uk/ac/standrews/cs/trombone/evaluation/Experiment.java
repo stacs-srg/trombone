@@ -109,7 +109,7 @@ public class Experiment {
             final Worker worker = descriptor.getApplicationReference();
             final Host host = descriptor.getHost();
             final int host_index = getHostIndexByName(host.getName());
-            final Future<String> future_event_execution = worker.submit(new EventExecutionJob(events_path, host_index, observations_path));
+            final Future<String> future_event_execution = worker.submit(new EventExecutionJob("/state/partition1/trombone/" + scenario_name + "/events.zip", host_index, "/state/partition1/trombone/" + scenario_name + "/repetitions"));
             host_event_executions.put(host, future_event_execution);
         }
 
@@ -123,7 +123,7 @@ public class Experiment {
                 LOGGER.info("successfully finished executing events on host {} - {}", host, results_path);
                 final File destination = new File(events.getParentFile(), host.getName());
                 destination.mkdirs();
-                host.download(observations_path, destination);
+                host.download(results_path, destination);
                 LOGGER.info("downloaded observations from host {} to {}", host.getName(), destination);
             }
             catch (InterruptedException | ExecutionException e) {

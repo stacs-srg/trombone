@@ -43,10 +43,12 @@ public class Scenario {
     private final ConcurrentHashMap<String, HostScenario> host_scenarios;
     private final Properties properties;
     private Duration experiment_duration;
+    private Duration observation_interval;
     private Provider<Key> peer_key_provider;
     private Provider<Churn> churn_provider;
     private Provider<Workload> workload_provider;
     private PeerConfiguration configurator;
+    private int lookup_retry_count;
 
     public Scenario(String name, long master_seed) {
 
@@ -90,9 +92,31 @@ public class Scenario {
         properties.setProperty("scenario.experiment_duration", experiment_duration.toString());
     }
 
+    public void setObservationInterval(final Duration observation_interval) {
+
+        this.observation_interval = observation_interval;
+        properties.setProperty("scenario.observation_interval", observation_interval.toString());
+    }
+
     public Duration getExperimentDuration() {
 
         return experiment_duration;
+    }
+
+    public Duration getObservationInterval() {
+
+        return observation_interval;
+    }
+
+    public int getLookupRetryCount() {
+
+        return lookup_retry_count;
+    }
+
+    public void setLookupRetryCount(final int lookup_retry_count) {
+
+        this.lookup_retry_count = lookup_retry_count;
+        properties.setProperty("scenario.lookup.retry_count", String.valueOf(lookup_retry_count));
     }
 
     public Integer getMaximumPeersOnHost(final String host) {
