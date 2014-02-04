@@ -8,6 +8,8 @@ import uk.ac.standrews.cs.trombone.event.provider.SequentialPortNumberProvider;
  */
 public class PlatformJustificationMultipleHost extends Scenario {
 
+   
+
     public PlatformJustificationMultipleHost() {
 
         super("PlatformJustificationMultipleHost", Constants.SCENARIO_MASTER_SEED);
@@ -15,6 +17,7 @@ public class PlatformJustificationMultipleHost extends Scenario {
         setWorkloadProvider(Constants.WORKLOAD_1.clone());
         setExperimentDuration(Constants.EXPERIMENT_DURATION);
         setObservationInterval(Constants.OBSERVATION_INTERVAL);
+        setLookupRetryCount(Constants.LOOKUP_RETRY_COUNT);
         setPeerKeyProvider(Constants.PEER_KEY_PROVIDER.clone());
         setPeerConfigurator(Constants.NO_MAINTENANCE);
 

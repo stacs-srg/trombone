@@ -24,6 +24,7 @@ public final class Constants {
 
     }
 
+    public static final int LOOKUP_RETRY_COUNT = 5;
     // Master random seed provider
     private static final RandomSeedProvider SEED_PROVIDER = new RandomSeedProvider(13194894195L);
     public static final SequentialPortNumberProvider PORT_NUMBER_PROVIDER = new SequentialPortNumberProvider(45000);

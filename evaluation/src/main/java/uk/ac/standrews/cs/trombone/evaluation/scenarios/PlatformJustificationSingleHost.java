@@ -15,6 +15,7 @@ public class PlatformJustificationSingleHost extends Scenario {
         setWorkloadProvider(Constants.WORKLOAD_1.clone());
         setExperimentDuration(Constants.EXPERIMENT_DURATION);
         setObservationInterval(Constants.OBSERVATION_INTERVAL);
+        setLookupRetryCount(Constants.LOOKUP_RETRY_COUNT);
         setPeerKeyProvider(Constants.PEER_KEY_PROVIDER.clone());
         setPeerConfigurator(Constants.NO_MAINTENANCE);
         addHost("compute-0-0.local", 48, new SequentialPortNumberProvider(45000));
