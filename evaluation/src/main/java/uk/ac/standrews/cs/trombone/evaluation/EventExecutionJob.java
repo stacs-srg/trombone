@@ -15,7 +15,7 @@ import uk.ac.standrews.cs.trombone.event.EventExecutor;
  */
 public class EventExecutionJob implements Job<String> {
 
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss-SSS");
+    static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss-SSS");
     private static final long serialVersionUID = 2675891974884649473L;
     private static final String BLUB_OBSERVATIONS_HOME = "/state/partition1/trombone/";
     private final String events_path;

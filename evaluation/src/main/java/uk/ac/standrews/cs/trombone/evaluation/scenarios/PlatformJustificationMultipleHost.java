@@ -19,7 +19,7 @@ public class PlatformJustificationMultipleHost extends Scenario {
         setObservationInterval(Constants.OBSERVATION_INTERVAL);
         setLookupRetryCount(Constants.LOOKUP_RETRY_COUNT);
         setPeerKeyProvider(Constants.PEER_KEY_PROVIDER.clone());
-        setPeerConfigurator(Constants.NO_MAINTENANCE);
+        setPeerConfiguration(Constants.NO_MAINTENANCE);
 
         for (int i = 0; i < 48; i++) {
             addHost("compute-0-" + i + ".local", 1, new SequentialPortNumberProvider(45000));

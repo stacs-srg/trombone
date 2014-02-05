@@ -38,7 +38,7 @@ public final class Constants {
     public static final ExponentialDistribution EXP_10_S = ExponentialDistribution.byMean(10, TimeUnit.SECONDS);
     public static final ExponentialDistribution EXP_30_S = ExponentialDistribution.byMean(30, TimeUnit.SECONDS);
     public static final ExponentialDistribution EXP_30_MIN = ExponentialDistribution.byMean(30, TimeUnit.MINUTES);
-    //    // Churn patterns
+    // Churn patterns
     public static final NoChurnProvider NO_CHURN = NoChurnProvider.getInstance();
     public static final ConstantRateUncorrelatedChurnProvider CHURN_1 = new ConstantRateUncorrelatedChurnProvider(EXP_30_S, EXP_30_S, SEED_PROVIDER.clone());
     public static final ConstantRateUncorrelatedChurnProvider CHURN_2 = new ConstantRateUncorrelatedChurnProvider(EXP_30_S, EXP_30_MIN, SEED_PROVIDER.clone());

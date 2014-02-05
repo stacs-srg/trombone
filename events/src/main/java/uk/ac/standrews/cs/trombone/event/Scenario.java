@@ -30,7 +30,6 @@ import javax.inject.Provider;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
 import uk.ac.standrews.cs.trombone.core.key.Key;
-import uk.ac.standrews.cs.trombone.core.util.Repeatable;
 import uk.ac.standrews.cs.trombone.event.churn.Churn;
 import uk.ac.standrews.cs.trombone.event.provider.SequentialPortNumberProvider;
 import uk.ac.standrews.cs.trombone.event.workload.Workload;
@@ -47,7 +46,7 @@ public class Scenario {
     private Provider<Key> peer_key_provider;
     private Provider<Churn> churn_provider;
     private Provider<Workload> workload_provider;
-    private PeerConfiguration configurator;
+    private PeerConfiguration configuration;
     private int lookup_retry_count;
 
     public Scenario(String name, long master_seed) {
@@ -153,7 +152,6 @@ public class Scenario {
     public void setChurnProvider(final Provider<Churn> churn_provider) {
 
         this.churn_provider = churn_provider;
-        checkAndSetSeed(churn_provider);
         properties.setProperty("scenario.churn_provider", churn_provider.toString());
     }
 
@@ -168,15 +166,15 @@ public class Scenario {
         properties.setProperty("scenario.workload_provider", workload_provider.toString());
     }
 
-    public PeerConfiguration getPeerConfigurator() {
+    public PeerConfiguration getPeerConfiguration() {
 
-        return configurator;
+        return configuration;
     }
 
-    public void setPeerConfigurator(final PeerConfiguration configurator) {
+    public void setPeerConfiguration(final PeerConfiguration configuration) {
 
-        this.configurator = configurator;
-        properties.setProperty("scenario.peer_configurator", configurator.toString());
+        this.configuration = configuration;
+        properties.setProperty("scenario.peer_configurator", configuration.toString());
     }
 
     public long generateSeed() {
@@ -202,16 +200,7 @@ public class Scenario {
         final InetSocketAddress peer_address = InetSocketAddress.createUnresolved(host, nextPortByHost(host));
         final Churn churn = churn_provider.get();
         final Workload workload = workload_provider.get();
-        return new Participant(peer_key, peer_address, churn, workload, configurator);
-    }
-
-    private void checkAndSetSeed(final Object object) {
-
-        if (object instanceof Repeatable) {
-            Repeatable repeatable = (Repeatable) object;
-            repeatable.setSeed(generateSeed());
-        }
-
+        return new Participant(peer_key, peer_address, churn, workload, configuration);
     }
 
     private Integer nextPortByHost(final String host) {

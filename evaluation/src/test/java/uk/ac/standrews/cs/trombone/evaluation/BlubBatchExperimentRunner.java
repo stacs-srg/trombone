@@ -27,7 +27,7 @@ public class BlubBatchExperimentRunner {
 
         for (File zip_event : zip_events) {
             Experiment experiment = new Experiment(zip_event.getAbsolutePath(), "target/results/" + FilenameUtils.getBaseName(zip_event.getName()));
-            experiment.run();
+            experiment.doExperiment();
         }
     }
 }

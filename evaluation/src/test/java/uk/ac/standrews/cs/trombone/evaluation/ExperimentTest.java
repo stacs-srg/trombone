@@ -16,7 +16,7 @@ public class ExperimentTest {
 
         final File events_home = new File("results/PlatformJustificationSingleHost", "events.zip");
         Experiment experiment = new Experiment(events_home.getAbsolutePath(), events_home.getParent() + "/repetitions");
-        experiment.run();
+        experiment.doExperiment();
 
         //        final EventExecutionJob executionJob = new EventExecutionJob(events_home.getAbsolutePath(), 1, events_home.getParent() + "/PlatformJustificationSingleHost");
         //        executionJob.call();
