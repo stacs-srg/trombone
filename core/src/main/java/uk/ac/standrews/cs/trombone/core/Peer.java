@@ -42,10 +42,10 @@ public class Peer implements PeerRemote {
         state = new PeerState(key);
         metric = new PeerMetric(this);
         maintenance = configuration.getMaintenance(this);
-        remote_factory = new PeerClientFactory(this, configuration.getSyntheticDelay());
         server = SERVER_FACTORY.createServer(this);
         server.setBindAddress(address);
         server.setWrittenByteCountListener(metric);
+        remote_factory = new PeerClientFactory(this, configuration.getSyntheticDelay());
         refreshSelfReference();
     }
 
