@@ -1,20 +1,18 @@
 package uk.ac.standrews.cs.trombone.evaluation;
 
-import java.io.File;
-import java.net.URI;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import org.apache.commons.io.FileUtils;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collection;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.standrews.cs.trombone.evaluation.scenarios.PlatformJustificationMultipleHost;
-import uk.ac.standrews.cs.trombone.evaluation.scenarios.PlatformJustificationSingleHost;
+import uk.ac.standrews.cs.shabdiz.util.Combinations;
+import uk.ac.standrews.cs.trombone.evaluation.util.FileSystemUtils;
+import uk.ac.standrews.cs.trombone.evaluation.util.ScenarioUtils;
 import uk.ac.standrews.cs.trombone.event.EventGenerator;
 import uk.ac.standrews.cs.trombone.event.Participant;
 import uk.ac.standrews.cs.trombone.event.Scenario;
@@ -22,42 +20,55 @@ import uk.ac.standrews.cs.trombone.event.Scenario;
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
+@RunWith(Parameterized.class)
 public final class BatchEventGenerator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BatchEventGenerator.class);
-    private final List<Scenario> scenarios = new ArrayList<>();
+    private final Scenario scenario;
+    private String scenario_name;
+    private Path scenario_home;
+    private Path scenario_events;
 
-    static {
+    private static final Scenario[] SCENARIOS = {
+        
+    };
+
+    public BatchEventGenerator(Scenario scenario) {
+
+        this.scenario = scenario;
+    }
+
+    @Parameterized.Parameters(name = "{index} scenario: {0}")
+    public static Collection<Object[]> parameters() {
+
+        return Combinations.generateArgumentCombinations(new Object[][] {SCENARIOS});
     }
 
     @Before
     public void setUp() throws Exception {
 
-        scenarios.add(new PlatformJustificationSingleHost());
-        scenarios.add(new PlatformJustificationMultipleHost());
+        Participant.resetNextId();
+        scenario_name = scenario.getName();
+        scenario_home = ScenarioUtils.getScenarioHome(scenario_name);
+        Files.createDirectories(scenario_home);
+
+        scenario_events = ScenarioUtils.getScenarioEventsPath(scenario_name);
+        if (Files.exists(scenario_events)) {
+            LOGGER.warn("scenario events already exist: {}", scenario_events);
+            LOGGER.info("deleting existing events...");
+            Files.delete(scenario_events);
+        }
     }
 
     @Test
     public void testGeneration() throws Exception {
 
-        for (Scenario scenario : scenarios) {
-            Participant.resetNextId();
-            final String scenario_name = scenario.getName();
-            LOGGER.info("Generating events of scenario: {}", scenario_name);
-            final File scenario_home = new File("results", scenario_name);
-            FileUtils.forceMkdir(scenario_home);
-
-            final File events_home = new File(scenario_home, "events.zip");
-            FileUtils.deleteQuietly(events_home);
-            final URI events_uri = URI.create("jar:" + events_home.toURI());
-            final Map<String, String> environment = new HashMap<>();
-            environment.put("create", "true");
-
-            try (final FileSystem events_file_system = FileSystems.newFileSystem(events_uri, environment)) {
-                final EventGenerator generator = new EventGenerator(scenario, events_file_system.getPath("/"));
-                generator.generate();
-            }
-            LOGGER.info("Finished generating events of scenario: {}", scenario_name);
+        LOGGER.info("Generating events of scenario: {}", scenario_name);
+        try (final FileSystem events_file_system = FileSystemUtils.newZipFileSystem(scenario_events, true)) {
+            final Path root = events_file_system.getPath(events_file_system.getSeparator());
+            final EventGenerator generator = new EventGenerator(scenario, root);
+            generator.generate();
         }
+        LOGGER.info("Finished generating events of scenario: {}", scenario_name);
     }
 }

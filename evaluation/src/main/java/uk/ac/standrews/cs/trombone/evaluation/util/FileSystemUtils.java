@@ -9,9 +9,12 @@ import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.PathMatcher;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,12 +22,52 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public final class ZipFileSystemUtils {
+public final class FileSystemUtils {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ZipFileSystemUtils.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemUtils.class);
 
-    private ZipFileSystemUtils() {
+    private FileSystemUtils() {
 
+    }
+
+    public static List<Path> getMatchingFiles(final Path path, final PathMatcher matcher) throws IOException {
+
+        final List<Path> matched_files = new ArrayList<>();
+        Files.walkFileTree(path, new FileVisitor<Path>() {
+
+            @Override
+            public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) {
+
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) {
+
+                if (matcher.matches(file)) {
+                    matched_files.add(file);
+                }
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFileFailed(final Path file, final IOException exc) throws IOException {
+
+                throw exc;
+            }
+
+            @Override
+            public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) {
+
+                return FileVisitResult.CONTINUE;
+            }
+        });
+        return matched_files;
+    }
+
+    public static FileSystem newZipFileSystem(File zip_file, boolean create) throws IOException {
+
+        return newZipFileSystem(zip_file.getAbsolutePath(), create);
     }
 
     public static FileSystem newZipFileSystem(Path path_to_zip, boolean create) throws IOException {

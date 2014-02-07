@@ -6,4 +6,6 @@ import java.io.Serializable;
 public interface PeerConfiguration extends Serializable {
 
     Maintenance getMaintenance(Peer peer);
+
+    SyntheticDelay getSyntheticDelay();
 }

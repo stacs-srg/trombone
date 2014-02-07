@@ -4,6 +4,8 @@ import java.io.File;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,8 +17,11 @@ import java.util.concurrent.Future;
 import org.apache.commons.io.FilenameUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
@@ -27,8 +32,10 @@ import uk.ac.standrews.cs.shabdiz.host.SSHHost;
 import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
 import uk.ac.standrews.cs.shabdiz.job.Worker;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
+import uk.ac.standrews.cs.shabdiz.util.Combinations;
 import uk.ac.standrews.cs.trombone.evaluation.util.BlubHostProvider;
-import uk.ac.standrews.cs.trombone.evaluation.util.ZipFileSystemUtils;
+import uk.ac.standrews.cs.trombone.evaluation.util.ExperimentWatcher;
+import uk.ac.standrews.cs.trombone.evaluation.util.FileSystemUtils;
 import uk.ac.standrews.cs.trombone.event.EventReader;
 
 import static org.junit.Assert.assertTrue;
@@ -37,6 +44,7 @@ import static org.junit.Assert.assertTrue;
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 @Category(Experiment.class)
+@RunWith(Parameterized.class)
 public class Experiment {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Experiment.class);
@@ -51,7 +59,18 @@ public class Experiment {
     private FileSystem events_file_system;
     private ExecutorService executor;
 
-    protected Experiment(String events_path, String observations_path) {
+    @Rule
+    public ExperimentWatcher watcher = new ExperimentWatcher();
+    
+    @Parameterized.Parameters
+    public static Collection<Object[]> data() {
+
+        final File events_home = new File("results/PlatformJustificationSingleHost", "events.zip");
+        return Combinations.generateArgumentCombinations(new Object[][] {{events_home.getAbsolutePath()}, {events_home.getParent() + "/repetitions"}});
+
+    }
+
+    public Experiment(String events_path, String observations_path) {
 
         this.events_path = events_path;
         this.observations_path = observations_path;
@@ -65,7 +84,7 @@ public class Experiment {
 
         LOGGER.info("Setting up to execute events at {}", events_path);
         executor = Executors.newFixedThreadPool(100);
-        events_file_system = ZipFileSystemUtils.newZipFileSystem(events_path, false);
+        events_file_system = FileSystemUtils.newZipFileSystem(events_path, false);
         host_indices = EventReader.readHostNames(events_file_system.getPath("hosts.csv"));
         scenario_properties = EventReader.readScenarioProperties(events_file_system.getPath("/"));
         scenario_name = scenario_properties.getProperty("scenario.name");
@@ -101,13 +120,16 @@ public class Experiment {
             final Worker worker = descriptor.getApplicationReference();
             final Host host = descriptor.getHost();
             final int host_index = getHostIndexByName(host.getName());
+            LOGGER.info("Submitting job to {}", host);
             final Future<String> future_event_execution = worker.submit(new EventExecutionJob("/state/partition1/trombone/" + scenario_name + "/events.zip", host_index, "/state/partition1/trombone/" + scenario_name + "/repetitions"));
             host_event_executions.put(host, future_event_execution);
         }
+        LOGGER.info("host_event_executions size: {}", host_event_executions.size() );
 
         final String observations_file_name = EventExecutionJob.DATE_FORMAT.format(new Date());
-
-        try (FileSystem observations = ZipFileSystemUtils.newZipFileSystem("results/" + scenario_name + "/repetitions/" + observations_file_name + ".zip", true)) {
+        Files.createDirectories(Paths.get("results",scenario_name,"repetitions"));
+        
+        try (FileSystem observations = FileSystemUtils.newZipFileSystem("results/" + scenario_name + "/repetitions/" + observations_file_name + ".zip", true)) {
 
             final Path root_observations = observations.getPath("/");
 
@@ -130,8 +152,8 @@ public class Experiment {
                     final Path local_observations = root_observations.resolve(String.valueOf(host_index));
                     Files.createDirectories(local_observations);
 
-                    try (FileSystem fileSystem = ZipFileSystemUtils.newZipFileSystem(zip.getAbsolutePath(), false)) {
-                        ZipFileSystemUtils.copyRecursively(fileSystem.getPath("/"), local_observations);
+                    try (FileSystem fileSystem = FileSystemUtils.newZipFileSystem(zip.getAbsolutePath(), false)) {
+                        FileSystemUtils.copyRecursively(fileSystem.getPath("/"), local_observations);
                     }
 
                 }

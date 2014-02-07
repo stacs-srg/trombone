@@ -7,7 +7,7 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import uk.ac.standrews.cs.shabdiz.job.Job;
-import uk.ac.standrews.cs.trombone.evaluation.util.ZipFileSystemUtils;
+import uk.ac.standrews.cs.trombone.evaluation.util.FileSystemUtils;
 import uk.ac.standrews.cs.trombone.event.EventExecutor;
 
 /**
@@ -45,7 +45,7 @@ public class EventExecutionJob implements Job<String> {
             observations = observations_home_path.resolve(DATE_FORMAT.format(new Date()) + ".zip");
         }
 
-        try (FileSystem events_file_system = ZipFileSystemUtils.newZipFileSystem(events, false); FileSystem observations_file_system = ZipFileSystemUtils.newZipFileSystem(observations, true);) {
+        try (FileSystem events_file_system = FileSystemUtils.newZipFileSystem(events, false); FileSystem observations_file_system = FileSystemUtils.newZipFileSystem(observations, true);) {
 
             final Path events_root = events_file_system.getPath("/");
             final Path observations_root = observations_file_system.getPath("/");

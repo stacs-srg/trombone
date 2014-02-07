@@ -2,10 +2,12 @@ package uk.ac.standrews.cs.trombone.evaluation.scenarios;
 
 import java.util.concurrent.TimeUnit;
 import org.mashti.sina.distribution.ExponentialDistribution;
+import org.mashti.sina.distribution.UniformDistribution;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.core.Maintenance;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
+import uk.ac.standrews.cs.trombone.core.SyntheticDelay;
 import uk.ac.standrews.cs.trombone.core.key.RandomKeyProvider;
 import uk.ac.standrews.cs.trombone.core.key.ZipfKeyProvider;
 import uk.ac.standrews.cs.trombone.event.provider.ConstantRateUncorrelatedChurnProvider;
@@ -23,6 +25,8 @@ public final class Constants {
     private Constants() {
 
     }
+
+    public static final DistributedSyntheticDelay BLUB_UNIFORMLY_DISTRIBUTED_SYNTHETIC_DELAY = new DistributedSyntheticDelay(new UniformDistribution(551384, 866279));
 
     public static final int LOOKUP_RETRY_COUNT = 5;
     // Master random seed provider
@@ -59,6 +63,12 @@ public final class Constants {
         public Maintenance getMaintenance(final Peer peer) {
 
             return new Maintenance(peer);
+        }
+
+        @Override
+        public SyntheticDelay getSyntheticDelay() {
+
+            return BLUB_UNIFORMLY_DISTRIBUTED_SYNTHETIC_DELAY;
         }
     }
 

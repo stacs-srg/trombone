@@ -1,5 +1,6 @@
 package uk.ac.standrews.cs.trombone.core;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import org.mashti.jetson.exception.RPCException;
 import org.mashti.jetson.lean.LeanClientFactory;
@@ -11,6 +12,13 @@ public final class PeerFactory {
 
     static final LeanClientFactory<PeerRemote> CLIENT_FACTORY = new LeanClientFactory<PeerRemote>(PeerRemote.class, PeerCodecs.INSTANCE);
     static final PeerConfiguration DEFAULT_PEER_CONFIGURATION = new DefaultPeerConfiguration();
+    public static final SyntheticDelay NO_SYNTHETIC_DELAY = new SyntheticDelay() {
+
+        @Override
+        public void apply(final InetAddress from, final InetAddress to) throws InterruptedException {
+            // do nothing
+        }
+    };
 
     public static PeerRemote bind(PeerReference reference) {
 
@@ -49,6 +57,12 @@ public final class PeerFactory {
         public Maintenance getMaintenance(final Peer peer) {
 
             return new Maintenance(peer);
+        }
+
+        @Override
+        public SyntheticDelay getSyntheticDelay() {
+
+            return NO_SYNTHETIC_DELAY;
         }
     }
 }

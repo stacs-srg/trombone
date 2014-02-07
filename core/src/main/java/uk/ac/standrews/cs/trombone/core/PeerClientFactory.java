@@ -20,7 +20,6 @@ import org.mashti.jetson.lean.LeanClientChannelInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
-import uk.ac.standrews.cs.trombone.core.util.NetworkUtils;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 class PeerClientFactory extends ClientFactory<PeerRemote> {
@@ -44,17 +43,21 @@ class PeerClientFactory extends ClientFactory<PeerRemote> {
     }
 
     private final Peer peer;
+    private final SyntheticDelay synthetic_delay;
     private final PeerState peer_state;
     private final PeerMetric peer_metric;
     private final Maintenance peer_maintenance;
+    private final InetAddress peer_address;
 
-    PeerClientFactory(final Peer peer) {
+    PeerClientFactory(final Peer peer, final SyntheticDelay synthetic_delay) {
 
         super(PeerRemote.class, BOOTSTRAP, CHANNEL_POOL);
         this.peer = peer;
+        this.synthetic_delay = synthetic_delay;
         peer_state = peer.getPeerState();
         peer_metric = peer.getPeerMetric();
         peer_maintenance = peer.getMaintenance();
+        peer_address = peer.getAddress().getAddress();
     }
 
     PeerRemote get(final PeerReference reference) {
@@ -73,12 +76,14 @@ class PeerClientFactory extends ClientFactory<PeerRemote> {
 
     public class PeerClient extends Client {
 
+        private final InetAddress client_address;
         volatile InternalPeerReference reference;
 
         protected PeerClient(final InetSocketAddress address, final ChannelPool pool) {
 
             super(address, dispatch, pool);
             setWrittenByteCountListener(peer_metric);
+            client_address = address.getAddress();
         }
 
         @Override
@@ -88,7 +93,8 @@ class PeerClientFactory extends ClientFactory<PeerRemote> {
                 LOGGER.debug("remote procedure {} was invoked while the peer is unexposed", method);
                 throw new RPCException("peer is unexposed; cannot invoke remote procedure");
             }
-            addSyntheticDelay();
+
+            synthetic_delay.apply(peer_address, client_address);
             return super.invoke(proxy, method, params);
         }
 
@@ -137,21 +143,6 @@ class PeerClientFactory extends ClientFactory<PeerRemote> {
                 }
             }
             super.beforeFlush(channel, future_response);
-        }
-
-        private void addSyntheticDelay() throws RPCException {
-
-            final InetAddress remote_address = getAddress().getAddress();
-            if (NetworkUtils.isLocalAddress(remote_address)) {
-                try {
-
-                    //TODO parametrise through peer configuration
-                    Thread.sleep(0, 550000);
-                }
-                catch (InterruptedException e) {
-                    throw new RPCException("interrupted while inducing synthetic delay", e);
-                }
-            }
         }
     }
 }

@@ -69,7 +69,7 @@ public class EventExecutor {
     private final CsvReporter csv_reporter;
     private final Rate join_failure_rate = new Rate();
     private final Rate join_success_rate = new Rate();
-    private final Gauge<Integer> queue_size = new Gauge<Integer>() {
+    private final Gauge<Integer> queue_size_gauge = new Gauge<Integer>() {
 
         @Override
         public Integer get() {
@@ -118,7 +118,7 @@ public class EventExecutor {
         metric_registry.register("event_execution_duration_timer", event_execution_duration_timer);
         metric_registry.register("join_failure_rate", join_failure_rate);
         metric_registry.register("join_success_rate", join_success_rate);
-        metric_registry.register("queue_size", queue_size);
+        metric_registry.register("queue_size_gauge", queue_size_gauge);
 
         csv_reporter = new CsvReporter(metric_registry, observations_home);
         task_populator_future = startTaskQueuePopulator();

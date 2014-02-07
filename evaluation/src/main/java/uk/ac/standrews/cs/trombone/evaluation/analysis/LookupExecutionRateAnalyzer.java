@@ -1,39 +1,25 @@
 package uk.ac.standrews.cs.trombone.evaluation.analysis;
 
-import java.io.File;
 import java.io.IOException;
-import org.apache.commons.io.FileUtils;
-import org.jfree.chart.JFreeChart;
-import org.mashti.sight.ChartExportUtils;
+import java.nio.file.Path;
+import java.util.Collection;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class LookupExecutionRateAnalyzer extends GaugeCsvAnalyzer {
+public class LookupExecutionRateAnalyzer extends XYCsvAnalyzer.Rate {
 
-    protected LookupExecutionRateAnalyzer() {
+    private static final String LOOKUP_EXECUTION_RATE_CSV = "/lookup_execution_rate.csv";
 
-        super("lookup_execution_rate", AnalyticsUtil.getFilesByName(new File("results/PlatformJustificationMultipleHost/repetitions"), "lookup_execution_rate.csv"), "Time through experiment", "Lookup Execution Rate");
+    public LookupExecutionRateAnalyzer(Collection<Path> csv_repetitions) {
+
+        super("lookup_execution_rate", csv_repetitions);
+        setYAxisLabel("Lookup Execution Rate");
+        setChartTitle("Lookup Execution Rate per Second");
     }
 
-    public static void main(String[] args) throws IOException {
+    public LookupExecutionRateAnalyzer(final ScenarioAnalyzer scenario_analyzer) throws IOException {
 
-        saveAsSVG(new File("/Users/masih/Desktop"), new LookupExecutionRateAnalyzer());
-    }
-
-    static void saveAsSVG(final File destination_directory, Analyzer analyzer) throws IOException {
-
-        final JFreeChart chart = analyzer.getChart();
-        final File analysis_dir = makeAnalysisDirectory(destination_directory);
-        ChartExportUtils.saveAsSVG(chart, 1024, 768, new File(analysis_dir, analyzer.getName() + ".svg"));
-    }
-
-    private static File makeAnalysisDirectory(final File parent) throws IOException {
-
-        final File analysis_dir = new File(parent, "analysis");
-        if (!analysis_dir.isDirectory()) {
-            FileUtils.forceMkdir(analysis_dir);
-        }
-        return analysis_dir;
+        this(scenario_analyzer.getCsvsByName(LOOKUP_EXECUTION_RATE_CSV));
     }
 }
