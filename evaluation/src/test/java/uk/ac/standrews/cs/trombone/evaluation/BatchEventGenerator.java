@@ -11,11 +11,14 @@ import org.junit.runners.Parameterized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
+import uk.ac.standrews.cs.trombone.evaluation.scenarios.PlatformJustificationSingleHost;
 import uk.ac.standrews.cs.trombone.evaluation.util.FileSystemUtils;
 import uk.ac.standrews.cs.trombone.evaluation.util.ScenarioUtils;
 import uk.ac.standrews.cs.trombone.event.EventGenerator;
 import uk.ac.standrews.cs.trombone.event.Participant;
 import uk.ac.standrews.cs.trombone.event.Scenario;
+
+import static org.junit.Assume.assumeTrue;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
@@ -30,7 +33,8 @@ public final class BatchEventGenerator {
     private Path scenario_events;
 
     private static final Scenario[] SCENARIOS = {
-        
+//            new PlatformJustificationMultipleHost(), 
+            new PlatformJustificationSingleHost()
     };
 
     public BatchEventGenerator(Scenario scenario) {
@@ -62,6 +66,8 @@ public final class BatchEventGenerator {
 
     @Test
     public void testGeneration() throws Exception {
+
+        assumeTrue("events already exist", !Files.exists(scenario_events));
 
         LOGGER.info("Generating events of scenario: {}", scenario_name);
         try (final FileSystem events_file_system = FileSystemUtils.newZipFileSystem(scenario_events, true)) {

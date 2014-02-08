@@ -184,6 +184,14 @@ public class EventExecutor {
         return task_scheduler_future != null && !task_scheduler_future.isDone();
     }
 
+    public synchronized void shutdown() {
+
+        task_executor.shutdownNow();
+        task_executor2.shutdownNow();
+        task_populator.shutdownNow();
+        task_scheduler.shutdownNow();
+    }
+
     public synchronized void stop() {
 
         if (isStarted()) {

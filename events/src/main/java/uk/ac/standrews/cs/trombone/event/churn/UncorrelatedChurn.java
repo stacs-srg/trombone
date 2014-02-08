@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Trombone.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.trombone.event.churn;
 
 import java.util.Random;
@@ -38,6 +39,8 @@ public abstract class UncorrelatedChurn implements Churn {
     @Override
     public synchronized final Availability getAvailabilityAt(final long time) {
 
+        assert time >= 0;
+        
         try {
             final long duration_nanos = exposed ? getSessionLengthInNanosAt(time) : getDowntimeInNanosAt(time);
             return new Availability(duration_nanos, exposed);

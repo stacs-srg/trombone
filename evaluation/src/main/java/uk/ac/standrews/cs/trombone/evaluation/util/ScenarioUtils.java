@@ -7,16 +7,27 @@ import uk.ac.standrews.cs.trombone.event.Scenario;
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class ScenarioUtils {
+public final class ScenarioUtils {
+
+    private static final Path RESULTS_HOME = Paths.get("results");
+
+    private ScenarioUtils() {
+
+    }
 
     public static Path getScenarioHome(Scenario scenario) {
 
         return getScenarioHome(scenario.getName());
     }
 
+    public static Path getResultsHome() {
+
+        return RESULTS_HOME;
+    }
+
     public static Path getScenarioHome(String scenario_name) {
 
-        return Paths.get("results", scenario_name);
+        return RESULTS_HOME.resolve(scenario_name);
     }
 
     public static Path getScenarioRepetitionsHome(String scenario_name) {

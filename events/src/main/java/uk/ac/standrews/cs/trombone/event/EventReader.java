@@ -42,6 +42,7 @@ public class EventReader implements Closeable, Iterator<Event> {
     private final Map<Integer, PeerConfiguration> peer_configs_index;
     private final Map<PeerReference, PeerConfiguration> peer_configs_map = new HashMap<>();
     private final AtomicReference<List<String>> next_row_reference;
+    private Map<Integer, String> host_indices;
 
     public EventReader(Path events_home, int index) throws IOException, DecoderException, ClassNotFoundException {
 
@@ -53,6 +54,7 @@ public class EventReader implements Closeable, Iterator<Event> {
         event_reader = getReader(events_home.resolve(String.valueOf(index)).resolve("events.csv"));
         lookup_targets_index = readLookupTargets(events_home.resolve("lookup_targets.csv"));
         peer_configs_index = readPeerConfigurations(events_home.resolve("peer_configurations.csv"));
+        host_indices = readHostIndices(events_home.resolve("hosts.csv"));
         peers_index = readPeers(events_home.resolve("peers.csv"));
         next_row_reference = new AtomicReference<>();
 
@@ -73,6 +75,24 @@ public class EventReader implements Closeable, Iterator<Event> {
                 final Integer index = Integer.valueOf(row.get(0));
                 final String host_name = row.get(1);
                 host_indices.put(host_name, index);
+                row = reader.read();
+            } while (row != null);
+            return host_indices;
+        }
+    }
+
+    public static Map<Integer, String> readHostIndices(final Path hosts_csv) throws IOException {
+
+        final Map<Integer, String> host_indices = new HashMap<>();
+
+        try (final CsvListReader reader = getReader(hosts_csv)) {
+
+            reader.getHeader(true); //skip header
+            List<String> row = reader.read();
+            do {
+                final Integer index = Integer.valueOf(row.get(0));
+                final String host_name = row.get(1);
+                host_indices.put(index, host_name);
                 row = reader.read();
             } while (row != null);
             return host_indices;
@@ -142,7 +162,10 @@ public class EventReader implements Closeable, Iterator<Event> {
             do {
                 final Integer index = Integer.valueOf(row.get(0));
                 final Key key = Key.valueOf(row.get(1));
-                final InetSocketAddress address = new InetSocketAddress(row.get(2), Integer.valueOf(row.get(3)));
+
+                final Integer host_index = Integer.valueOf(row.get(2));
+                final String host_name = host_indices.get(host_index);
+                final InetSocketAddress address = new InetSocketAddress(host_name, Integer.valueOf(row.get(3)));
                 final Integer config_index = Integer.valueOf(row.get(4));
                 final PeerReference reference = new PeerReference(key, address);
                 peer_configs_map.put(reference, peer_configs_index.get(config_index));

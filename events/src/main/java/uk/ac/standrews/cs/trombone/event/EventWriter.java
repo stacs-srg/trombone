@@ -82,7 +82,8 @@ public class EventWriter implements Closeable {
 
         if (participants.add(participant)) {
             final int config_index = getPeerConfigurationIndex(participant.getPeerConfiguration());
-            peers_csv_writer.write(participant.getId(), participant.getKey(), participant.getHostName(), participant.getPort(), config_index);
+            int host_index = getHostIndex(participant.getHostName());
+            peers_csv_writer.write(participant.getId(), participant.getKey(), String.valueOf(host_index), participant.getPort(), config_index);
             peers_csv_writer.flush();
         }
     }

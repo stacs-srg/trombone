@@ -208,6 +208,12 @@ public class Scenario {
         return host_scenarios.get(host).getNextPort();
     }
 
+    @Override
+    public String toString() {
+
+        return name;
+    }
+
     private static class HostScenario {
 
         private final String host_name;

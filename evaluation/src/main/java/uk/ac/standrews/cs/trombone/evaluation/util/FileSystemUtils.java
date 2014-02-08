@@ -81,7 +81,6 @@ public final class FileSystemUtils {
         final URI zip_uri = URI.create("jar:" + zip.toURI().toString());
         final Map<String, String> environment = new HashMap<>();
         environment.put("create", String.valueOf(create));
-
         return FileSystems.newFileSystem(zip_uri, environment);
     }
 
