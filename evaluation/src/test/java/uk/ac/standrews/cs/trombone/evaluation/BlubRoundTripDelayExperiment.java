@@ -17,7 +17,7 @@ import uk.ac.standrews.cs.shabdiz.host.SSHHost;
 import uk.ac.standrews.cs.shabdiz.job.Worker;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.trombone.evaluation.util.BlubHostProvider;
+import uk.ac.standrews.cs.trombone.evaluation.util.BlubCluster;
 import uk.ac.standrews.cs.trombone.evaluation.util.MeanRoundTripDelaySamplingJob;
 
 /**
@@ -47,7 +47,7 @@ public class BlubRoundTripDelayExperiment {
         network = new WorkerNetwork();
         LOGGER.info("\tAdding nodes...");
         for (String host_name : BLUB_NODE_NAMES) {
-            network.add(new SSHHost(host_name, BlubHostProvider.SSHJ_AUTH));
+            network.add(new SSHHost(host_name, BlubCluster.getAuthMethod()));
             LOGGER.info("\t\tAdded {}", host_name);
         }
 
