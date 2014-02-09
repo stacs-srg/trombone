@@ -6,8 +6,10 @@ import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -29,6 +31,7 @@ import uk.ac.standrews.cs.shabdiz.host.SSHHost;
 import uk.ac.standrews.cs.shabdiz.job.Worker;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
+import uk.ac.standrews.cs.trombone.evaluation.scenarios.Constants;
 import uk.ac.standrews.cs.trombone.evaluation.util.BlubCluster;
 import uk.ac.standrews.cs.trombone.evaluation.util.ExperimentWatcher;
 import uk.ac.standrews.cs.trombone.evaluation.util.FileSystemUtils;
@@ -57,7 +60,7 @@ public class BlubExperiment {
     @Parameterized.Parameters(name = "{index} scenario: {0}")
     public static Collection<Object[]> data() {
 
-        final String[] directories = ScenarioUtils.getResultsHome().toFile().list(new FilenameFilter() {
+        final String[] scenarios = ScenarioUtils.getResultsHome().toFile().list(new FilenameFilter() {
 
             @Override
             public boolean accept(final File dir, final String name) {
@@ -66,8 +69,17 @@ public class BlubExperiment {
             }
         });
 
+       final List<String> scenarios_with_repetitions = new ArrayList<>();
+
+        for (int i = 0; i < Constants.NUMBER_OF_REPETITIONS; i++) {
+            for (int j = 0; j < scenarios.length; j++) {
+                String directory = scenarios[j];
+                scenarios_with_repetitions.add(directory);
+            }
+        }
+
         return Combinations.generateArgumentCombinations(new Object[][] {
-                directories
+                scenarios_with_repetitions.toArray()
         });
     }
 

@@ -11,6 +11,7 @@ import org.junit.runners.Parameterized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
+import uk.ac.standrews.cs.trombone.evaluation.scenarios.PlatformJustificationMultipleHost;
 import uk.ac.standrews.cs.trombone.evaluation.scenarios.PlatformJustificationSingleHost;
 import uk.ac.standrews.cs.trombone.evaluation.util.FileSystemUtils;
 import uk.ac.standrews.cs.trombone.evaluation.util.ScenarioUtils;
@@ -33,8 +34,7 @@ public final class BatchEventGenerator {
     private Path scenario_events;
 
     private static final Scenario[] SCENARIOS = {
-            new PlatformJustificationSingleHost()
-//            , new PlatformJustificationMultipleHost()
+            new PlatformJustificationSingleHost(), new PlatformJustificationMultipleHost()
     };
 
     public BatchEventGenerator(Scenario scenario) {

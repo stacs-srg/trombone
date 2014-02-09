@@ -22,6 +22,8 @@ import uk.ac.standrews.cs.trombone.event.provider.SequentialPortNumberProvider;
  */
 public final class Constants {
 
+    public static final int NUMBER_OF_REPETITIONS = 5;
+
     private Constants() {
 
     }
