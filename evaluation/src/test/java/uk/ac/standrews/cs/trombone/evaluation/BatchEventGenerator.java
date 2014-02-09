@@ -33,8 +33,8 @@ public final class BatchEventGenerator {
     private Path scenario_events;
 
     private static final Scenario[] SCENARIOS = {
-//            new PlatformJustificationMultipleHost(), 
             new PlatformJustificationSingleHost()
+//            , new PlatformJustificationMultipleHost()
     };
 
     public BatchEventGenerator(Scenario scenario) {

@@ -8,7 +8,6 @@ import org.junit.runners.Suite;
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses( {
-        BatchEventGenerator.class,
-        Experiment.class
+        BatchEventGenerator.class, BlubBatchEventUpload.class, Experiment.class
 })
-public class BlubExperimentations {}
+public interface BlubExperimentation {}

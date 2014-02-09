@@ -1,6 +1,7 @@
 package uk.ac.standrews.cs.trombone.evaluation.util;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.SortedSet;
@@ -8,6 +9,8 @@ import java.util.TreeSet;
 import net.schmizz.sshj.userauth.keyprovider.OpenSSHKeyFile;
 import net.schmizz.sshj.userauth.method.AuthMethod;
 import net.schmizz.sshj.userauth.method.AuthPublickey;
+import uk.ac.standrews.cs.shabdiz.host.Host;
+import uk.ac.standrews.cs.shabdiz.host.SSHHost;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
@@ -36,7 +39,7 @@ public final class BlubCluster {
 
     }
 
-    public static Collection<String> getBlubNodeHostNames() {
+    public static Collection<String> getNodeNames() {
 
         return BLUB_HOST_NAMES;
     }
@@ -50,5 +53,16 @@ public final class BlubCluster {
 
         return UNENCRYPTED_RSA_PUBLIC_KEY_AUTHENTICATION;
     }
-    
+
+    public static Host[] getHosts() throws IOException {
+
+        final Host[] hosts = new Host[BLUB_HOST_NAMES.size()];
+        int index = 0;
+        for (String host_name : BLUB_HOST_NAMES) {
+            hosts[index] = new SSHHost(host_name, getAuthMethod());
+            index++;
+        }
+
+        return hosts;
+    }
 }

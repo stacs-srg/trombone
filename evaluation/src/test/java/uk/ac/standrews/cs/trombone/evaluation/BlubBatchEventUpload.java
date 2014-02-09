@@ -15,8 +15,8 @@ import org.junit.runners.Parameterized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.Host;
-import uk.ac.standrews.cs.shabdiz.host.LocalHost;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
+import uk.ac.standrews.cs.trombone.evaluation.util.BlubCluster;
 import uk.ac.standrews.cs.trombone.evaluation.util.FileSystemUtils;
 import uk.ac.standrews.cs.trombone.evaluation.util.ScenarioUtils;
 
@@ -48,7 +48,7 @@ public class BlubBatchEventUpload {
     public static Collection<Object[]> data() throws IOException {
 
         return Combinations.generateArgumentCombinations(new Object[][] {
-                {new LocalHost()}, {BLUB_NODE_RESULTS_HOME}
+                BlubCluster.getHosts(), {BLUB_NODE_RESULTS_HOME}
         });
     }
 
