@@ -43,7 +43,7 @@ import static org.junit.Assume.assumeTrue;
 @RunWith(Parallelized.class)
 public class Experiment {
 
-    private static final LinkedBlockingQueue<String> AVAILABLE_HOSTS = new LinkedBlockingQueue<>(BlubCluster.getBlubNodeHostNames());
+    private static final LinkedBlockingQueue<String> AVAILABLE_HOSTS = new LinkedBlockingQueue<>(BlubCluster.getNodeNames());
     private WorkerNetwork worker_network;
     private Map<Integer, String> host_indices;
     private static final Logger LOGGER = LoggerFactory.getLogger(Experiment.class);
@@ -57,15 +57,17 @@ public class Experiment {
     @Parameterized.Parameters(name = "{index} scenario: {0}")
     public static Collection<Object[]> data() {
 
+        final String[] directories = ScenarioUtils.getResultsHome().toFile().list(new FilenameFilter() {
+
+            @Override
+            public boolean accept(final File dir, final String name) {
+
+                return dir.isDirectory() && !name.startsWith(".");
+            }
+        });
+
         return Combinations.generateArgumentCombinations(new Object[][] {
-                ScenarioUtils.getResultsHome().toFile().list(new FilenameFilter() {
-
-                    @Override
-                    public boolean accept(final File dir, final String name) {
-
-                        return dir.isDirectory() && !name.startsWith(".");
-                    }
-                })
+                directories
         });
     }
 
