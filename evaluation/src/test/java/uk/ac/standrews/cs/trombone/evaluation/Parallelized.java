@@ -5,39 +5,42 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.junit.runners.Parameterized;
 import org.junit.runners.model.RunnerScheduler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class Parallelized extends Parameterized {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(Parallelized.class);
+
     /**
      * Only called reflectively. Do not use programmatically.
      *
-     * @param klass
+     * @param test_class
      */
-    public Parallelized(final Class<?> klass) throws Throwable {
+    public Parallelized(final Class<?> test_class) throws Throwable {
 
-        super(klass);
-        final ExecutorService executorService = Executors.newFixedThreadPool(100);
+        super(test_class);
+        final ExecutorService executor = Executors.newFixedThreadPool(100);
         setScheduler(new RunnerScheduler() {
 
             @Override
             public void schedule(final Runnable childStatement) {
 
-                executorService.execute(childStatement);
-
+                executor.execute(childStatement);
             }
 
             @Override
             public void finished() {
 
-                executorService.shutdown();
+                executor.shutdown();
                 try {
-                    executorService.awaitTermination(800, TimeUnit.MINUTES);
+                    executor.awaitTermination(1, TimeUnit.HOURS);
                 }
                 catch (InterruptedException e) {
-                    e.printStackTrace();
+                    LOGGER.error("interrupted wile waiting for executor to terminate", e);
                 }
             }
         });

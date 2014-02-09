@@ -41,12 +41,12 @@ import static org.junit.Assume.assumeTrue;
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 @RunWith(Parallelized.class)
-public class Experiment {
+public class BlubExperiment {
 
     private static final LinkedBlockingQueue<String> AVAILABLE_HOSTS = new LinkedBlockingQueue<>(BlubCluster.getNodeNames());
     private WorkerNetwork worker_network;
     private Map<Integer, String> host_indices;
-    private static final Logger LOGGER = LoggerFactory.getLogger(Experiment.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BlubExperiment.class);
     private final Path events_zip;
     private final String scenario_name;
     private static final ReentrantLock lock = new ReentrantLock(true);
@@ -71,7 +71,7 @@ public class Experiment {
         });
     }
 
-    public Experiment(String scenario_name) {
+    public BlubExperiment(String scenario_name) {
 
         this.scenario_name = scenario_name;
         events_zip = ScenarioUtils.getScenarioEventsPath(scenario_name);
