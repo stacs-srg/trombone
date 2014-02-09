@@ -10,4 +10,4 @@ import org.junit.runners.Suite;
 @Suite.SuiteClasses( {
         BatchEventGenerator.class, BlubBatchEventUpload.class, Experiment.class
 })
-public interface BlubExperimentation {}
+public class BlubExperimentation {}

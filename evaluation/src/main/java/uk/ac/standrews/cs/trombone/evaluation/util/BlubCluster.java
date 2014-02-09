@@ -20,12 +20,12 @@ public final class BlubCluster {
     private static final Collection<String> BLUB_HOST_NAMES;
     private static final int BLUB_CLUSTER_SIZE = 48;
     private static final String BLUB_HOST_NAME_FORMAT = "compute-0-%d.local";
-    public static final AuthPublickey UNENCRYPTED_RSA_PUBLIC_KEY_AUTHENTICATION;
+
+    static final OpenSSHKeyFile SSH_KEY_FILE;
 
     static {
-        final OpenSSHKeyFile key_provider = new OpenSSHKeyFile();
-        key_provider.init(new File(System.getProperty("user.home") + File.separator + ".ssh", "id_rsa"));
-        UNENCRYPTED_RSA_PUBLIC_KEY_AUTHENTICATION = new AuthPublickey(key_provider);
+        SSH_KEY_FILE = new OpenSSHKeyFile();
+        SSH_KEY_FILE.init(new File(System.getProperty("user.home") + File.separator + ".ssh", "id_rsa"));
 
         final SortedSet<String> blub_host_names = new TreeSet<>();
         for (int index = 0; index < BLUB_CLUSTER_SIZE; index++) {
@@ -51,7 +51,8 @@ public final class BlubCluster {
 
     public static AuthMethod getAuthMethod() {
 
-        return UNENCRYPTED_RSA_PUBLIC_KEY_AUTHENTICATION;
+        // AuthPublicKey is not thread-safe. To avoid concurrency issues, we make a new instance with a static key provider
+        return new AuthPublickey(SSH_KEY_FILE);
     }
 
     public static Host[] getHosts() throws IOException {
