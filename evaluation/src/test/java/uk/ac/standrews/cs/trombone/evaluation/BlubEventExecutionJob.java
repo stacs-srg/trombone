@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.job.Job;
@@ -23,11 +24,18 @@ public class BlubEventExecutionJob implements Job<String> {
     static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss-SSS");
     private final String scenario_name;
     private final int host_index;
+    private final HashMap<Integer, String> host_indices;
 
     public BlubEventExecutionJob(String scenario_name, int host_index) {
 
+        this(scenario_name, host_index, null);
+    }
+
+    public BlubEventExecutionJob(String scenario_name, int host_index, HashMap<Integer, String> host_indices) {
+
         this.scenario_name = scenario_name;
         this.host_index = host_index;
+        this.host_indices = host_indices;
     }
 
     @Override
@@ -52,7 +60,7 @@ public class BlubEventExecutionJob implements Job<String> {
 
             final Path events_root = events_fs.getPath(events_fs.getSeparator());
             final Path observations_root = observations_fs.getPath(observations_fs.getSeparator());
-            final EventExecutor event_executor = new EventExecutor(events_root, host_index, observations_root);
+            final EventExecutor event_executor = new EventExecutor(events_root, host_index, observations_root, host_indices);
 
             LOGGER.info("starting event executor...");
             event_executor.start();

@@ -34,7 +34,6 @@ public class EventReader implements Closeable, Iterator<Event> {
 
     public static final Charset EVENT_CSV_CHARSET = StandardCharsets.UTF_8;
     private static final Logger LOGGER = LoggerFactory.getLogger(EventReader.class);
-    private static final boolean DEFAULT_SKIP_FIRST_ROW = true;
     private static final Pattern LOOKUP_EVENT_PARAM_PATTERN = Pattern.compile(":");
     private final CsvListReader event_reader;
     private final Map<Integer, Key> lookup_targets_index;
@@ -46,21 +45,19 @@ public class EventReader implements Closeable, Iterator<Event> {
 
     public EventReader(Path events_home, int index) throws IOException, DecoderException, ClassNotFoundException {
 
-        this(events_home, index, DEFAULT_SKIP_FIRST_ROW);
+        this(events_home, index, null);
     }
 
-    public EventReader(Path events_home, int index, boolean skip_first_row) throws IOException, DecoderException, ClassNotFoundException {
+    public EventReader(final Path events_home, final int index, final HashMap<Integer, String> host_indices) throws IOException, DecoderException, ClassNotFoundException {
 
         event_reader = getReader(events_home.resolve(String.valueOf(index)).resolve("events.csv"));
         lookup_targets_index = readLookupTargets(events_home.resolve("lookup_targets.csv"));
         peer_configs_index = readPeerConfigurations(events_home.resolve("peer_configurations.csv"));
-        host_indices = readHostIndices(events_home.resolve("hosts.csv"));
+        this.host_indices = host_indices != null ? host_indices : readHostIndices(events_home.resolve("hosts.csv"));
         peers_index = readPeers(events_home.resolve("peers.csv"));
         next_row_reference = new AtomicReference<>();
 
-        if (skip_first_row) {
-            skipFirstRow();
-        }
+        skipFirstRow();
     }
 
     public static Map<String, Integer> readHostNames(final Path hosts_csv) throws IOException {
@@ -81,9 +78,9 @@ public class EventReader implements Closeable, Iterator<Event> {
         }
     }
 
-    public static Map<Integer, String> readHostIndices(final Path hosts_csv) throws IOException {
+    public static HashMap<Integer, String> readHostIndices(final Path hosts_csv) throws IOException {
 
-        final Map<Integer, String> host_indices = new HashMap<>();
+        final HashMap<Integer, String> host_indices = new HashMap<>();
 
         try (final CsvListReader reader = getReader(hosts_csv)) {
 

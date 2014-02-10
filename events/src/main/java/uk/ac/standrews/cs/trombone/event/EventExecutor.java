@@ -2,6 +2,7 @@ package uk.ac.standrews.cs.trombone.event;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
@@ -88,7 +89,12 @@ public class EventExecutor {
 
     public EventExecutor(final Path events_home, int host_index, Path observations_home) throws IOException, DecoderException, ClassNotFoundException {
 
-        event_reader = new EventReader(events_home, host_index);
+        this(events_home, host_index, observations_home, null);
+    }
+
+    public EventExecutor(final Path events_home, int host_index, Path observations_home, final HashMap<Integer, String> host_indices) throws IOException, DecoderException, ClassNotFoundException {
+
+        event_reader = new EventReader(events_home, host_index, host_indices);
         runnable_events = new DelayQueue<RunnableExperimentEvent>();
         task_populator = Executors.newFixedThreadPool(100, new NamedThreadFactory("task_populator_"));
         task_scheduler = Executors.newFixedThreadPool(10, new NamedThreadFactory("task_scheduler_"));

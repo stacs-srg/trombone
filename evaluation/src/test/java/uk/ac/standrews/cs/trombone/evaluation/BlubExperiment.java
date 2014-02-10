@@ -48,7 +48,7 @@ public class BlubExperiment {
 
     private static final LinkedBlockingQueue<String> AVAILABLE_HOSTS = new LinkedBlockingQueue<>(BlubCluster.getNodeNames());
     private WorkerNetwork worker_network;
-    private Map<Integer, String> host_indices;
+    private HashMap<Integer, String> host_indices;
     private static final Logger LOGGER = LoggerFactory.getLogger(BlubExperiment.class);
     private final Path events_zip;
     private final String scenario_name;
@@ -69,7 +69,7 @@ public class BlubExperiment {
             }
         });
 
-       final List<String> scenarios_with_repetitions = new ArrayList<>();
+        final List<String> scenarios_with_repetitions = new ArrayList<>();
 
         for (int i = 0; i < Constants.NUMBER_OF_REPETITIONS; i++) {
             for (int j = 0; j < scenarios.length; j++) {
@@ -134,7 +134,7 @@ public class BlubExperiment {
             final int host_index = getHostIndexByName(host.getName());
 
             LOGGER.info("submitting job to {} indexed as {}", host, host_index);
-            final Future<String> future_event_execution = worker.submit(new BlubEventExecutionJob(scenario_name, host_index));
+            final Future<String> future_event_execution = worker.submit(new BlubEventExecutionJob(scenario_name, host_index, host_indices));
             host_event_executions.put(host, future_event_execution);
         }
 
