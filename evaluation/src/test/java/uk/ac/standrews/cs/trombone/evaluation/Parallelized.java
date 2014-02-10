@@ -37,7 +37,7 @@ public class Parallelized extends Parameterized {
 
                 executor.shutdown();
                 try {
-                    executor.awaitTermination(1, TimeUnit.HOURS);
+                    executor.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
                 }
                 catch (InterruptedException e) {
                     LOGGER.error("interrupted wile waiting for executor to terminate", e);
