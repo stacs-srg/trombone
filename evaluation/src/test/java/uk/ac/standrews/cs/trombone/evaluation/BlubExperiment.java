@@ -115,6 +115,7 @@ public class BlubExperiment {
 
         LOGGER.info("deploying worker network...");
         worker_network.deployAll();
+        worker_network.setAutoDeployEnabled(false);
 
         LOGGER.info("awaiting RUNNING state...");
         worker_network.awaitAnyOfStates(ApplicationState.RUNNING);
@@ -183,6 +184,7 @@ public class BlubExperiment {
     public void tearDown() throws Exception {
 
         LOGGER.info("tearing down...");
+        killAllJavaProcessesOnHosts();
 
         for (String host_name : host_indices.values()) {
             AVAILABLE_HOSTS.put(host_name);
@@ -190,6 +192,21 @@ public class BlubExperiment {
         LOGGER.info("shutting down worker network");
         worker_network.shutdown();
         LOGGER.info("Done");
+    }
+
+    private void killAllJavaProcessesOnHosts() {
+
+        for (ApplicationDescriptor descriptor : worker_network) {
+            final Host host = descriptor.getHost();
+            try {
+                final Process killall_java = host.execute("killall java");
+                killall_java.waitFor();
+                killall_java.destroy();
+            }
+            catch (IOException | InterruptedException e) {
+                LOGGER.error("failed to kill all java processes on host" + host, e);
+            }
+        }
     }
 
     private void adjustHostNamesByAvailability() throws InterruptedException {
