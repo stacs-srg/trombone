@@ -4,7 +4,17 @@ package uk.ac.standrews.cs.trombone.evaluation.analysis;
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 
+import com.google.visualization.datasource.base.TypeMismatchException;
+import com.google.visualization.datasource.datatable.ColumnDescription;
+import com.google.visualization.datasource.datatable.DataTable;
+import com.google.visualization.datasource.datatable.TableRow;
+import com.google.visualization.datasource.datatable.value.ValueType;
+import com.google.visualization.datasource.render.CsvRenderer;
+import com.google.visualization.datasource.render.JsonRenderer;
+import com.ibm.icu.util.ULocale;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -16,17 +26,20 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYErrorRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.YIntervalDataItem;
 import org.jfree.data.xy.YIntervalSeries;
 import org.jfree.data.xy.YIntervalSeriesCollection;
 import org.mashti.sight.ChartExportUtils;
 import org.mashti.sight.PlainChartTheme;
 import org.mashti.sina.distribution.statistic.Statistics;
+import org.mashti.sina.distribution.statistic.StatisticsStateless;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.evaluation.scenarios.Constants;
 
 import static uk.ac.standrews.cs.trombone.evaluation.analysis.AnalyticsUtil.DOUBLE_PROCESSOR;
 import static uk.ac.standrews.cs.trombone.evaluation.analysis.AnalyticsUtil.LONG_PROCESSOR;
+import static uk.ac.standrews.cs.trombone.evaluation.analysis.AnalyticsUtil.NANOSECONDS_TO_MILLISECONDS_PROCESSOR;
 import static uk.ac.standrews.cs.trombone.evaluation.analysis.AnalyticsUtil.RELATIVE_TIME_IN_SECONDS_PROCESSOR;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
@@ -45,8 +58,9 @@ public abstract class XYCsvAnalyzer implements Analyzer {
     private boolean show_error_bars;
     private XYPlot plot;
     private YIntervalSeriesCollection xy_dataset;
-    private YIntervalSeries series;
+    protected YIntervalSeries series;
     protected Collection<Statistics[]> rows_statistics;
+    private DataTable data_table;
 
     private XYCsvAnalyzer(String name, Collection<Path> csv_repetitions) {
 
@@ -121,15 +135,64 @@ public abstract class XYCsvAnalyzer implements Analyzer {
         return chart;
     }
 
-    public void saveAsSVG(final File destination_directory) throws IOException {
+    public XYCsvAnalyzer saveAsSVG(final File destination_directory) throws IOException {
 
-        saveAsSVG(destination_directory, DEFAULT_CSV_WIDTH, DEFAULT_CSV_HEIGHT);
+        return saveAsSVG(destination_directory, DEFAULT_CSV_WIDTH, DEFAULT_CSV_HEIGHT);
     }
 
-    public void saveAsSVG(final File destination_directory, int width, int height) throws IOException {
+    public XYCsvAnalyzer saveAsSVG(final File destination_directory, int width, int height) throws IOException {
 
         final JFreeChart chart = getChart();
         ChartExportUtils.saveAsSVG(chart, width, height, new File(destination_directory, getName() + ".svg"));
+        return this;
+    }
+
+    public XYCsvAnalyzer saveAsJson(final File destination_directory) throws IOException, TypeMismatchException {
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File(destination_directory, getName() + ".json")))) {
+            writer.write(String.valueOf(JsonRenderer.renderDataTable(toDataTable(), true, true, true)));
+        }
+
+        return this;
+    }
+
+    public XYCsvAnalyzer saveAsCsv(final File destination_directory) throws IOException, TypeMismatchException {
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File(destination_directory, getName() + ".csv")))) {
+            writer.write(String.valueOf(CsvRenderer.renderDataTable(toDataTable(), ULocale.ENGLISH, ",")));
+        }
+
+        return this;
+    }
+
+    private synchronized DataTable toDataTable() throws IOException, TypeMismatchException {
+
+        if (data_table == null) {
+            final YIntervalSeries y_interval_series = getYIntervalSeries();
+            data_table = new DataTable();
+
+            final ColumnDescription x = new ColumnDescription("x", ValueType.NUMBER, getXAxisLabel());
+            final ColumnDescription y = new ColumnDescription("y", ValueType.NUMBER, getYAxisLabel());
+            final ColumnDescription y_low = new ColumnDescription("y_low", ValueType.NUMBER, getYAxisLabel() + " Low");
+            final ColumnDescription y_high = new ColumnDescription("y_high", ValueType.NUMBER, getYAxisLabel() + " High");
+            y_low.setCustomProperty("role", "interval");
+            y_high.setCustomProperty("role", "interval");
+            data_table.addColumn(x);
+            data_table.addColumn(y);
+            data_table.addColumn(y_low);
+            data_table.addColumn(y_high);
+
+            for (int i = 0; i < y_interval_series.getItemCount(); i++) {
+                final YIntervalDataItem dataItem = (YIntervalDataItem) y_interval_series.getDataItem(i);
+                final TableRow row = new TableRow();
+                row.addCell(dataItem.getX());
+                row.addCell(dataItem.getYValue());
+                row.addCell(dataItem.getYLowValue());
+                row.addCell(dataItem.getYHighValue());
+                data_table.addRow(row);
+            }
+        }
+        return data_table;
     }
 
     protected synchronized XYPlot getPlot() throws IOException {
@@ -261,7 +324,7 @@ public abstract class XYCsvAnalyzer implements Analyzer {
         @Override
         protected CellProcessor[] getCellProcessors() {
 
-            return new CellProcessor[] {RELATIVE_TIME_IN_SECONDS_PROCESSOR, LONG_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR};
+            return new CellProcessor[] {RELATIVE_TIME_IN_SECONDS_PROCESSOR, LONG_PROCESSOR, DOUBLE_PROCESSOR, NANOSECONDS_TO_MILLISECONDS_PROCESSOR, DOUBLE_PROCESSOR, NANOSECONDS_TO_MILLISECONDS_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR};
         }
 
         @Override
@@ -269,9 +332,30 @@ public abstract class XYCsvAnalyzer implements Analyzer {
             // FIXME UNSHARD
             return new Integer[] {0, 3};
         }
+
+        protected synchronized YIntervalSeries getYIntervalSeries() throws IOException {
+
+            if (series == null) {
+                series = new YIntervalSeries(getName());
+                final Collection<AnalyticsUtil.CombinedStandardDeviation> combinedTimerCsvStatistics = AnalyticsUtil.getCombinedTimerCsvStatistics(csv_repetitions, getCellProcessors());
+                final long bucket_size = getReportInterval().getLength(TimeUnit.SECONDS);
+                long time_bucket = 0;
+
+                for (final AnalyticsUtil.CombinedStandardDeviation standardDeviation : combinedTimerCsvStatistics) {
+                    final double mean = standardDeviation.getWeightedAverage();
+                    final double stdev = standardDeviation.getCombinedStandardDeviation();
+                    final double ci = StatisticsStateless.confidenceInterval(standardDeviation.getSampleSize(), stdev, StatisticsStateless.CONFIDENCE_LEVEL_95_PERCENT).doubleValue();
+                    final double low = mean - ci;
+                    final double high = mean + ci;
+                    series.add(time_bucket, Double.isNaN(mean) ? 0 : mean, Double.isNaN(low) ? 0 : low, Double.isNaN(high) ? 0 : high);
+                    time_bucket += bucket_size;
+                }
+            }
+            return series;
+        }
     }
 
-    public static class Timer extends XYCsvAnalyzer {
+    public static class Timer extends Sampler {
 
         protected Timer(final String name, final Collection<Path> csv_repetitions) {
 
@@ -281,13 +365,7 @@ public abstract class XYCsvAnalyzer implements Analyzer {
         @Override
         protected CellProcessor[] getCellProcessors() {
 
-            return new CellProcessor[] {RELATIVE_TIME_IN_SECONDS_PROCESSOR, LONG_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, null};
-        }
-
-        @Override
-        protected Integer[] getCsvColumnIndices() {
-
-            return new Integer[] {0, 3};
+            return new CellProcessor[] {RELATIVE_TIME_IN_SECONDS_PROCESSOR, LONG_PROCESSOR, DOUBLE_PROCESSOR, NANOSECONDS_TO_MILLISECONDS_PROCESSOR, DOUBLE_PROCESSOR, NANOSECONDS_TO_MILLISECONDS_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, null};
         }
 
     }

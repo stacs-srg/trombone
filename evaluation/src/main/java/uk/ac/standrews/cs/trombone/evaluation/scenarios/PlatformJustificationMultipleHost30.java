@@ -6,13 +6,13 @@ import uk.ac.standrews.cs.trombone.event.provider.SequentialPortNumberProvider;
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class PlatformJustificationMultipleHost extends Scenario {
+public class PlatformJustificationMultipleHost30 extends Scenario {
 
    
 
-    public PlatformJustificationMultipleHost() {
+    public PlatformJustificationMultipleHost30() {
 
-        super("PlatformJustificationMultipleHost", Constants.SCENARIO_MASTER_SEED);
+        super("PlatformJustificationMultipleHost48", Constants.SCENARIO_MASTER_SEED);
         setChurnProvider(Constants.NO_CHURN);
         setWorkloadProvider(Constants.WORKLOAD_1.clone());
         setExperimentDuration(Constants.EXPERIMENT_DURATION);
@@ -21,7 +21,7 @@ public class PlatformJustificationMultipleHost extends Scenario {
         setPeerKeyProvider(Constants.PEER_KEY_PROVIDER.clone());
         setPeerConfiguration(Constants.NO_MAINTENANCE);
 
-        for (int i = 0; i < 48; i++) {
+        for (int i = 0; i < 30; i++) {
             addHost("compute-0-" + i + ".local", 1, new SequentialPortNumberProvider(45000));
         }
     }

@@ -1,5 +1,6 @@
 package uk.ac.standrews.cs.trombone.evaluation.analysis;
 
+import com.google.visualization.datasource.base.TypeMismatchException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,13 +10,12 @@ import java.util.List;
  */
 public class Main {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, TypeMismatchException {
 
         List<ScenarioAnalyzer> scenarioAnalyzers = new ArrayList<>();
-        scenarioAnalyzers.add(new ScenarioAnalyzer("PlatformJustificationMultipleHost"));
-        scenarioAnalyzers.add(new ScenarioAnalyzer("PlatformJustificationSingleHost"));
+        scenarioAnalyzers.add(new ScenarioAnalyzer("PlatformJustificationMultipleHost48"));
+        scenarioAnalyzers.add(new ScenarioAnalyzer("PlatformJustificationSingleHost48"));
         for (ScenarioAnalyzer scenarioAnalyzer : scenarioAnalyzers) {
-
             try (ScenarioAnalyzer scenario_analyzer = scenarioAnalyzer) {
 
                 new AvailablePeerCountAnalyzer(scenario_analyzer).saveAsSVG(scenario_analyzer.getAnalysisDirectory().toFile());

@@ -30,7 +30,7 @@ public class FileSystemUtilsTest {
     @Test
     public void testCopyRecursively() throws Exception {
 
-        final FileSystem existing_zip = FileSystemUtils.newZipFileSystem("/Users/masih/Documents/PhD/Code/t3/evaluation/results/PlatformJustificationMultipleHost/Archive.zip", false);
+        final FileSystem existing_zip = FileSystemUtils.newZipFileSystem("/Users/masih/Documents/PhD/Code/t3/evaluation/results/PlatformJustificationMultipleHost48/Archive.zip", false);
         FileSystemUtils.copyRecursively(existing_zip.getPath("/"), zip_file_system.getPath("/"));
     }
 }

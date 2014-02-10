@@ -26,8 +26,8 @@ public class ScenarioAnalyzer implements Closeable {
 
         this.scenario_name = scenario_name;
         repetitions = getRepetitions();
-        //        Combiner.unshard(repetitions);
-                
+        AnalyticsUtil.unshard(repetitions);
+
         file_systems = new ArrayList<>();
         for (Path repetition : repetitions) {
             file_systems.add(FileSystemUtils.newZipFileSystem(repetition, false));

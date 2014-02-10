@@ -22,4 +22,5 @@ public class AvailablePeerCountAnalyzer extends XYCsvAnalyzer.Counter {
 
         this(scenario_analyzer.getCsvsByName(AVAILABLE_PEER_COUNTER_CSV));
     }
+
 }

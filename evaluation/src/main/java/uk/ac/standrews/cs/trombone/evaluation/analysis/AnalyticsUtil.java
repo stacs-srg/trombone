@@ -7,8 +7,10 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -18,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
@@ -30,12 +33,14 @@ import org.supercsv.cellprocessor.CellProcessorAdaptor;
 import org.supercsv.cellprocessor.ParseDouble;
 import org.supercsv.cellprocessor.ParseLong;
 import org.supercsv.cellprocessor.ift.CellProcessor;
+import org.supercsv.cellprocessor.ift.DoubleCellProcessor;
 import org.supercsv.cellprocessor.ift.LongCellProcessor;
 import org.supercsv.io.CsvListReader;
 import org.supercsv.io.CsvListWriter;
 import org.supercsv.prefs.CsvPreference;
 import org.supercsv.util.CsvContext;
 import uk.ac.standrews.cs.shabdiz.util.ArrayUtil;
+import uk.ac.standrews.cs.trombone.evaluation.util.FileSystemUtils;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 final class AnalyticsUtil {
@@ -46,6 +51,7 @@ final class AnalyticsUtil {
     static final NumberConverter NANOSECOND_TO_SECOND = new NanosecondToSecond();
     static final CellProcessor RELATIVE_TIME_IN_SECONDS_PROCESSOR = new ParseRelativeTime(new ConvertTime(TimeUnit.NANOSECONDS, TimeUnit.SECONDS));
     static final CellProcessor DOUBLE_PROCESSOR = new ParseDouble();
+    static final CellProcessor NANOSECONDS_TO_MILLISECONDS_PROCESSOR = new NanosecondProcessor(TimeUnit.MILLISECONDS);
     static final CellProcessor LONG_PROCESSOR = new ParseLong();
     static final CellProcessor[] DEFAULT_GAUGE_CSV_PROCESSORS = new CellProcessor[] {RELATIVE_TIME_IN_SECONDS_PROCESSOR, DOUBLE_PROCESSOR};
     private static final NumberConverter AS_IS_CONVERTER = new AsIsConverter();
@@ -278,7 +284,7 @@ final class AnalyticsUtil {
     static class WeightedAverage {
 
         private final AtomicDouble a = new AtomicDouble();
-        private final AtomicDouble b = new AtomicDouble();
+        private final AtomicLong b = new AtomicLong();
 
         public void add(double mean, long sample_size) {
 
@@ -328,10 +334,59 @@ final class AnalyticsUtil {
             return Math.sqrt((a.get() - wa.b.get() * Math.pow(wa.getWeightedAverage(), 2)) / (wa.b.get() - 1));
         }
 
+        public double getWeightedAverage() {
+
+            return wa.getWeightedAverage();
+        }
+
         public void reset() {
 
             a.set(0);
             wa.reset();
+        }
+
+        public Long getSampleSize() {
+
+            return wa.b.get();
+
+        }
+    }
+
+    public static void unshard(Collection<Path> raw_zip_files) throws IOException {
+
+        for (Path raw_zip_file : raw_zip_files) {
+            try (FileSystem fileSystem = FileSystemUtils.newZipFileSystem(raw_zip_file, false)) {
+
+                final Path host_1 = fileSystem.getPath("1");
+                final List<Path> csv_list = FileSystemUtils.getMatchingFiles(host_1, fileSystem.getPathMatcher("glob:/1/*.csv"));
+
+                for (Path path : csv_list) {
+                    final Path csv_file = path.getFileName();
+                    final List<Path> all_csvs = FileSystemUtils.getMatchingFiles(fileSystem.getPath(fileSystem.getSeparator()), fileSystem.getPathMatcher("glob:/[0-9]*/" + csv_file));
+
+                    final String csv_file_name = path.toString();
+                    if (csv_file_name.contains("_counter") || csv_file_name.contains("_gauge") || csv_file_name.contains("_size")) {
+
+                        unshardCountCsv(all_csvs, Files.newBufferedWriter(csv_file, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING));
+                    }
+                    else if (csv_file_name.contains("_rate")) {
+
+                        unshardRateCsv(all_csvs, Files.newBufferedWriter(csv_file, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING));
+                    }
+                    else if (csv_file_name.contains("_sampler")) {
+
+                        unshardSamplerCsv(all_csvs, Files.newBufferedWriter(csv_file, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING));
+                    }
+                    else if (csv_file_name.contains("_timer")) {
+
+                        unshardTimerCsv(all_csvs, Files.newBufferedWriter(csv_file, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING));
+                    }
+                    else {
+                        LOGGER.warn("unknown csv type : {}. Skipped.", csv_file);
+                    }
+                }
+
+            }
         }
     }
 
@@ -460,6 +515,35 @@ final class AnalyticsUtil {
             if (combined_statistics[0] != null) {
                 point_statistics.add(combined_statistics);
             }
+        }
+
+        return point_statistics;
+    }
+
+    static Collection<CombinedStandardDeviation> getCombinedTimerCsvStatistics(final Collection<Path> csv_files, CellProcessor[] processors) throws IOException {
+
+        final List<CombinedStandardDeviation> point_statistics = new ArrayList<>();
+        final List<CsvListReader> readers = getCsvListReaders(csv_files, true);
+
+        while (!readers.isEmpty()) {
+
+            final Iterator<CsvListReader> readers_iterator = readers.iterator();
+            final CombinedStandardDeviation combinedStandardDeviation = new CombinedStandardDeviation(true);
+            while (readers_iterator.hasNext()) {
+                final CsvListReader reader = readers_iterator.next();
+                final List<Object> row = reader.read(processors);
+                if (row != null) {
+                    long count = (long) row.get(1);
+                    double mean = (double) row.get(3);
+                    double stdev = (double) row.get(5);
+                    combinedStandardDeviation.add(stdev, mean, count);
+                }
+                else {
+                    reader.close();
+                    readers_iterator.remove();
+                }
+            }
+            point_statistics.add(combinedStandardDeviation);
         }
 
         return point_statistics;
@@ -641,6 +725,24 @@ final class AnalyticsUtil {
         public Object execute(final Object value, final CsvContext context) {
 
             return next.execute(target_unit.convert((Long) value, source_unit), context);
+        }
+    }
+
+    private static class NanosecondProcessor extends ParseDouble {
+
+        private NanosecondProcessor(final TimeUnit unit) {
+
+            super(new DoubleCellProcessor() {
+
+                final long conversion_rate = TimeUnit.NANOSECONDS.convert(1, unit);
+
+                @Override
+                public Object execute(final Object value, final CsvContext context) {
+
+                    return ((double) value) / conversion_rate;
+                }
+            });
+
         }
     }
 }
