@@ -28,7 +28,7 @@ public final class Constants {
 
     }
 
-    public static final DistributedSyntheticDelay BLUB_UNIFORMLY_DISTRIBUTED_SYNTHETIC_DELAY = new DistributedSyntheticDelay(new UniformDistribution(551384, 866279));
+    public static final DistributedSyntheticDelay BLUB_UNIFORMLY_DISTRIBUTED_SYNTHETIC_DELAY = new DistributedSyntheticDelay(new UniformDistribution(233763 * 2, 866279 * 2));
 
     public static final int LOOKUP_RETRY_COUNT = 5;
     // Master random seed provider

@@ -10,7 +10,7 @@ public class PlatformJustificationSingleHost30 extends Scenario {
 
     public PlatformJustificationSingleHost30() {
 
-        super("PlatformJustificationSingleHost48", Constants.SCENARIO_MASTER_SEED);
+        super("PlatformJustificationSingleHost30", Constants.SCENARIO_MASTER_SEED);
         setChurnProvider(Constants.NO_CHURN);
         setWorkloadProvider(Constants.WORKLOAD_1.clone());
         setExperimentDuration(Constants.EXPERIMENT_DURATION);
