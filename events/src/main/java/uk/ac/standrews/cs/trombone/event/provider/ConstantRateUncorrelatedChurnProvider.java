@@ -69,7 +69,7 @@ public class ConstantRateUncorrelatedChurnProvider implements Provider<Churn>, R
     }
 
     @Override
-    public ConstantRateUncorrelatedChurnProvider clone() throws CloneNotSupportedException {
+    public ConstantRateUncorrelatedChurnProvider clone()  {
 
         return new ConstantRateUncorrelatedChurnProvider(session_length_distribution, downtime_distribution, seed_provider.clone());
     }

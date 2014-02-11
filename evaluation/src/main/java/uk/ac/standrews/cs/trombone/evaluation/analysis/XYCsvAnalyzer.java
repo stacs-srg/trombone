@@ -150,7 +150,7 @@ public abstract class XYCsvAnalyzer implements Analyzer {
     public XYCsvAnalyzer saveAsJson(final File destination_directory) throws IOException, TypeMismatchException {
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File(destination_directory, getName() + ".json")))) {
-            writer.write(String.valueOf(JsonRenderer.renderDataTable(toDataTable(), true, true, true)));
+            writer.write(String.valueOf(JsonRenderer.renderDataTable(getDataTable(), true, true, true)));
         }
 
         return this;
@@ -159,13 +159,38 @@ public abstract class XYCsvAnalyzer implements Analyzer {
     public XYCsvAnalyzer saveAsCsv(final File destination_directory) throws IOException, TypeMismatchException {
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File(destination_directory, getName() + ".csv")))) {
-            writer.write(String.valueOf(CsvRenderer.renderDataTable(toDataTable(), ULocale.ENGLISH, ",")));
+            writer.write(String.valueOf(CsvRenderer.renderDataTable(getDataTable(), ULocale.ENGLISH, ",")));
         }
 
         return this;
     }
 
-    private synchronized DataTable toDataTable() throws IOException, TypeMismatchException {
+    public static DataTable mergeAsDataTable(XYCsvAnalyzer... analyzers) throws IOException, TypeMismatchException {
+
+        if (analyzers == null || analyzers.length == 0) { return null;}
+
+        final DataTable merged = new DataTable();
+        merged.addColumn(analyzers[0].getDataTable().getColumnDescription(0));
+
+        int i = 1;
+        for (XYCsvAnalyzer analyzer : analyzers) {
+            final DataTable data_table = analyzer.getDataTable();
+
+            final ColumnDescription y_col = data_table.getColumnDescription(1);
+            final ColumnDescription y_col_low = data_table.getColumnDescription(2);
+            final ColumnDescription y_col_high = data_table.getColumnDescription(3);
+            merged.addColumn(new ColumnDescription(y_col.getId() + "_" + i, y_col.getType(), y_col.getLabel()));
+            merged.addColumn(new ColumnDescription(y_col_low.getId() + "_" + i, y_col_low.getType(), y_col_low.getLabel()));
+            merged.addColumn(new ColumnDescription(y_col_high.getId() + "_" + i, y_col_high.getType(), y_col_high.getLabel()));
+            i++;
+        }
+
+        TableRow row = new TableRow();
+
+        return merged;
+    }
+
+    public synchronized DataTable getDataTable() throws IOException, TypeMismatchException {
 
         if (data_table == null) {
             final YIntervalSeries y_interval_series = getYIntervalSeries();

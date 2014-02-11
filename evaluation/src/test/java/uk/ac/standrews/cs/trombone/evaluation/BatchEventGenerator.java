@@ -11,14 +11,8 @@ import org.junit.runners.Parameterized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
-import uk.ac.standrews.cs.trombone.evaluation.scenarios.PlatformJustificationMultipleHost10;
-import uk.ac.standrews.cs.trombone.evaluation.scenarios.PlatformJustificationMultipleHost20;
-import uk.ac.standrews.cs.trombone.evaluation.scenarios.PlatformJustificationMultipleHost30;
-import uk.ac.standrews.cs.trombone.evaluation.scenarios.PlatformJustificationMultipleHost48;
-import uk.ac.standrews.cs.trombone.evaluation.scenarios.PlatformJustificationSingleHost10;
-import uk.ac.standrews.cs.trombone.evaluation.scenarios.PlatformJustificationSingleHost20;
-import uk.ac.standrews.cs.trombone.evaluation.scenarios.PlatformJustificationSingleHost30;
-import uk.ac.standrews.cs.trombone.evaluation.scenarios.PlatformJustificationSingleHost48;
+import uk.ac.standrews.cs.trombone.evaluation.scenarios.PlatformJustificationMultipleHost;
+import uk.ac.standrews.cs.trombone.evaluation.scenarios.PlatformJustificationSingleHost;
 import uk.ac.standrews.cs.trombone.evaluation.util.FileSystemUtils;
 import uk.ac.standrews.cs.trombone.evaluation.util.ScenarioUtils;
 import uk.ac.standrews.cs.trombone.event.EventGenerator;
@@ -40,14 +34,16 @@ public final class BatchEventGenerator {
     private Path scenario_events;
 
     private static final Scenario[] SCENARIOS = {
-            new PlatformJustificationSingleHost10(), 
-            new PlatformJustificationSingleHost20(), 
-            new PlatformJustificationSingleHost30(), 
-            new PlatformJustificationSingleHost48(), 
-            new PlatformJustificationMultipleHost10(),
-            new PlatformJustificationMultipleHost20(),
-            new PlatformJustificationMultipleHost30(),
-            new PlatformJustificationMultipleHost48()
+            new PlatformJustificationSingleHost(10), 
+            new PlatformJustificationSingleHost(20), 
+            new PlatformJustificationSingleHost(30), 
+            new PlatformJustificationSingleHost(40), 
+            new PlatformJustificationSingleHost(48), 
+            new PlatformJustificationMultipleHost(10),
+            new PlatformJustificationMultipleHost(20),
+            new PlatformJustificationMultipleHost(30),
+            new PlatformJustificationMultipleHost(40),
+            new PlatformJustificationMultipleHost(48)
     };
 
     public BatchEventGenerator(Scenario scenario) {

@@ -24,11 +24,6 @@ public class SequentialPortNumberProvider implements Provider<Integer>, Serializ
         return next_port.getAndIncrement();
     }
 
-    public SequentialPortNumberProvider copy() {
-
-        return new SequentialPortNumberProvider(start);
-    }
-
     @Override
     public String toString() {
 
@@ -39,7 +34,7 @@ public class SequentialPortNumberProvider implements Provider<Integer>, Serializ
     }
 
     @Override
-    protected Object clone() {
+    public SequentialPortNumberProvider clone() {
 
         return new SequentialPortNumberProvider(start);
     }

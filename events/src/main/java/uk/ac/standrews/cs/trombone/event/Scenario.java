@@ -68,7 +68,7 @@ public class Scenario {
     public void addHost(String host, Integer peer_count, SequentialPortNumberProvider port_number_provider) {
         //TODO add per host config
         //TODO don't use hostname as key; this allows user to add multiple scenarios on a single host
-        final HostScenario host_scenario = new HostScenario(host, peer_count, port_number_provider.copy());
+        final HostScenario host_scenario = new HostScenario(host, peer_count, port_number_provider.clone());
         host_scenarios.put(host, host_scenario);
         properties.setProperty("scenario.host." + host + ".peer_count", String.valueOf(peer_count));
         properties.setProperty("scenario.host." + host + ".port_number_provider", port_number_provider.toString());
