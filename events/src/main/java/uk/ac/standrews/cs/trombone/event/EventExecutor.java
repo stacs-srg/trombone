@@ -26,17 +26,22 @@ import org.mashti.gauge.MetricRegistry;
 import org.mashti.gauge.Rate;
 import org.mashti.gauge.Sampler;
 import org.mashti.gauge.Timer;
+import org.mashti.gauge.jvm.SystemLoadAverageGauge;
+import org.mashti.gauge.jvm.ThreadCountGauge;
+import org.mashti.gauge.jvm.ThreadCpuUsageGauge;
 import org.mashti.gauge.reporter.CsvReporter;
 import org.mashti.jetson.exception.RPCException;
 import org.mashti.jetson.util.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
+import uk.ac.standrews.cs.trombone.core.InternalPeerReference;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
 import uk.ac.standrews.cs.trombone.core.PeerFactory;
 import uk.ac.standrews.cs.trombone.core.PeerMetric;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
+import uk.ac.standrews.cs.trombone.core.PeerState;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class EventExecutor {
@@ -70,6 +75,29 @@ public class EventExecutor {
     private final CsvReporter csv_reporter;
     private final Rate join_failure_rate = new Rate();
     private final Rate join_success_rate = new Rate();
+    private final ThreadCountGauge thread_count_gauge = new ThreadCountGauge();
+    private final SystemLoadAverageGauge system_load_average_gauge = new SystemLoadAverageGauge();
+    private final ThreadCpuUsageGauge thread_cpu_usage_gauge = new ThreadCpuUsageGauge();
+    private final Gauge reachable_state_size_per_alive_peer_gauge = new Gauge() {
+
+        @Override
+        public Object get() {
+
+            double number_of_reachable_state = 0;
+            for (Peer peer : peers_map.values()) {
+                if (peer.isExposed()) {
+                    final PeerState state = peer.getPeerState();
+                    for (InternalPeerReference reference : state) {
+                        if (reference.isReachable()) {
+                            number_of_reachable_state++;
+                        }
+                    }
+                }
+            }
+            return number_of_reachable_state / available_peer_counter.get();
+        }
+    };
+
     private final Gauge<Integer> queue_size_gauge = new Gauge<Integer>() {
 
         @Override
@@ -125,6 +153,10 @@ public class EventExecutor {
         metric_registry.register("join_failure_rate", join_failure_rate);
         metric_registry.register("join_success_rate", join_success_rate);
         metric_registry.register("queue_size_gauge", queue_size_gauge);
+        metric_registry.register("reachable_state_size_per_alive_peer_gauge", reachable_state_size_per_alive_peer_gauge);
+        metric_registry.register("thread_count_gauge", thread_count_gauge);
+        metric_registry.register("system_load_average_gauge", system_load_average_gauge);
+        metric_registry.register("thread_cpu_usage_gauge", thread_cpu_usage_gauge);
 
         csv_reporter = new CsvReporter(metric_registry, observations_home);
         task_populator_future = startTaskQueuePopulator();
@@ -210,10 +242,10 @@ public class EventExecutor {
         if (isStarted()) {
             task_populator_future.get();
             task_scheduler_future.get();
-            //            task_executor.shutdown();
-            //            task_executor2.shutdown();
-            //            task_executor.awaitTermination(10, TimeUnit.MINUTES);
-            //            task_executor2.awaitTermination(10, TimeUnit.MINUTES);
+            task_populator.shutdownNow();
+            task_scheduler.shutdownNow();
+            task_executor.shutdownNow();
+            task_executor2.shutdownNow();
         }
     }
 
