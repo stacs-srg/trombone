@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Chart Example</title>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="../js/charts.js"></script>
+
+
+</head>
+<body>
+<input type='button' onclick='openEditor();' value='Edit Chart'/>
+<input type='button' onclick='getOptions();' value='Current Chart Options'/>
+
+<div id="chart" style="width:800px; height:500px;">
+
+</div>
+
+<script>
+
+    // load the visualization library from Google and set a listener
+    google.load("visualization", "1", {packages: ["corechart"]});
+    google.load('visualization', '1', {packages: ['charteditor']});
+
+    var wrapper;
+    function drawChart() {
+
+//        var metric = "lookup_incorrectness_delay_timer.json";
+        var metric = "lookup_correctness_delay_timer.json";
+//        var metric = "lookup_correctness_rate.json";
+//        var metric = "lookup_incorrectness_rate.json";
+//        var metric = "lookup_execution_rate.json";
+//        var metric = "lookup_failure_rate.json";
+
+        var single_48 = getDataTable("PlatformJustificationSingleHost48", metric);
+        var single_40 = getDataTable("PlatformJustificationSingleHost40", metric);
+        var single_30 = getDataTable("PlatformJustificationSingleHost30", metric);
+        var single_20 = getDataTable("PlatformJustificationSingleHost20", metric);
+        var single_10 = getDataTable("PlatformJustificationSingleHost10", metric);
+
+        var multiple_10 = getDataTable("PlatformJustificationMultipleHost10", metric);
+        var multiple_20 = getDataTable("PlatformJustificationMultipleHost20", metric);
+        var multiple_30 = getDataTable("PlatformJustificationMultipleHost30", metric);
+        var multiple_40 = getDataTable("PlatformJustificationMultipleHost40", metric);
+        var multiple_48 = getDataTable("PlatformJustificationMultipleHost48", metric);
+
+        var summary = google.visualization.arrayToDataTable([
+            ['Network Size', 'Single Machine', 'Multiple Machine'],
+            [10, getAverageOfColumn(single_10, 1) , getAverageOfColumn(multiple_10, 1) ],
+            [20, getAverageOfColumn(single_20, 1) , getAverageOfColumn(multiple_20, 1) ],
+            [30, getAverageOfColumn(single_30, 1) , getAverageOfColumn(multiple_30, 1) ],
+            [40, getAverageOfColumn(single_40, 1) , getAverageOfColumn(multiple_40, 1) ],
+            [48, getAverageOfColumn(single_48, 1) , getAverageOfColumn(multiple_48, 1) ]
+
+        ]);
+
+        wrapper = new google.visualization.ChartWrapper({
+            chartType: 'ScatterChart',
+            dataTable: summary,
+            options: {width: 800, height: 400, intervals: {style: "area"}, legend: {position: "bottom"}, hAxis: {title: "Network Size"}, vAxis: {title: "Average correct lookup Rate per Second"} },
+            containerId: 'chart'
+        });
+        wrapper.draw();
+    }
+
+    function getOptions() {
+        var ss = JSON.stringify(wrapper.getOptions());
+        alert(ss);
+    }
+    google.setOnLoadCallback(drawChart);
+</script>
+</body>
+</html>

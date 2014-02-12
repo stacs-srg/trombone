@@ -186,6 +186,7 @@ public abstract class XYCsvAnalyzer implements Analyzer {
         }
 
         TableRow row = new TableRow();
+        
 
         return merged;
     }

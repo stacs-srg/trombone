@@ -47,6 +47,10 @@ public class Main {
                 new PeerArrivalRateAnalyzer(scenario_analyzer).saveAsSVG(destination_directory).saveAsJson(destination_directory);
                 new PeerDepartureRateAnalyzer(scenario_analyzer).saveAsSVG(destination_directory).saveAsJson(destination_directory);
                 new SentBytesRateAnalyzer(scenario_analyzer).saveAsSVG(destination_directory).saveAsJson(destination_directory);
+                new ReachableStateSizePerPeerAnalyzer(scenario_analyzer).saveAsSVG(destination_directory).saveAsJson(destination_directory);
+                new SystemLoadAverageAnalyzer(scenario_analyzer).saveAsSVG(destination_directory).saveAsJson(destination_directory);
+                new ThreadCountAnalyzer(scenario_analyzer).saveAsSVG(destination_directory).saveAsJson(destination_directory);
+                new ThreadCpuUsageAnalyzer(scenario_analyzer).saveAsSVG(destination_directory).saveAsJson(destination_directory);
             }
         }
     }

@@ -254,18 +254,19 @@ final class AnalyticsUtil {
         result_writer.writeHeader(header);
 
         final Statistics time_sampler = new Statistics();
-        long counter = 0;
+        double counter = 0;
 
         while (!readers.isEmpty()) {
 
             final Iterator<CsvListReader> readers_iterator = readers.iterator();
             while (readers_iterator.hasNext()) {
                 final CsvListReader reader = readers_iterator.next();
-                final List<Object> row = reader.read(LONG_PROCESSOR, LONG_PROCESSOR);
+                final List<Object> row = reader.read(LONG_PROCESSOR, DOUBLE_PROCESSOR);
 
                 if (row != null) {
                     time_sampler.addSample((Long) row.get(0));
-                    counter += (Long) row.get(1);
+                    final Double aDouble = (Double) row.get(1);
+                    counter += aDouble.isNaN()? 0 : aDouble;
                 }
                 else {
                     reader.close();

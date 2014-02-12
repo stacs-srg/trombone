@@ -10,7 +10,7 @@ public class PlatformJustification extends Scenario {
     public PlatformJustification(String name) {
 
         super(name, Constants.SCENARIO_MASTER_SEED);
-        setChurnProvider(Constants.CHURN_1.clone());
+        setChurnProvider(Constants.NO_CHURN);
         setWorkloadProvider(Constants.WORKLOAD_1.clone());
         setExperimentDuration(Constants.EXPERIMENT_DURATION);
         setObservationInterval(Constants.OBSERVATION_INTERVAL);
