@@ -66,7 +66,7 @@ public class EventExecutor {
     private final ExecutorService task_populator;
     private final ExecutorService task_scheduler;
     private final ThreadPoolExecutor task_executor;
-    private final ThreadPoolExecutor task_executor2;
+//    private final ThreadPoolExecutor task_executor2;
     private final Semaphore load_balancer;
     private final Map<PeerReference, Peer> peers_map = new ConcurrentSkipListMap<PeerReference, Peer>();
     private final EventReader event_reader;
@@ -129,7 +129,7 @@ public class EventExecutor {
         //        task_executor.prestartAllCoreThreads();
         task_executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
         //        task_executor2 = new ThreadPoolExecutor(100, 100, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("task_executor2_"));
-        task_executor2 = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+        //        task_executor2 = (ThreadPoolExecutor) Executors.newCachedThreadPool();
         load_balancer = new Semaphore(MAX_BUFFERED_EVENTS, true);
         scenario_properties = EventReader.readScenarioProperties(events_home);
         lookup_retry_count = getLookupRetryCount();
@@ -226,7 +226,6 @@ public class EventExecutor {
     public synchronized void shutdown() {
 
         task_executor.shutdownNow();
-        task_executor2.shutdownNow();
         task_populator.shutdownNow();
         task_scheduler.shutdownNow();
     }
@@ -246,7 +245,6 @@ public class EventExecutor {
             task_populator.shutdownNow();
             task_scheduler.shutdownNow();
             task_executor.shutdownNow();
-            task_executor2.shutdownNow();
         }
     }
 
@@ -340,7 +338,7 @@ public class EventExecutor {
 
         if (known_peers != null && !known_peers.isEmpty()) {
 
-            final Future<Boolean> future_join = task_executor2.submit(new Callable<Boolean>() {
+            final Future<Boolean> future_join = task_executor.submit(new Callable<Boolean>() {
 
                 @Override
                 public Boolean call() throws Exception {
