@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Chart Example</title>
+
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="../js/jquery.csv-0.71.min.js"></script>
+    <script src="../js/json2.js"></script>
+    <script src="../js/charts.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/default.css"/>
+
+</head>
+<body>
+
+
+<div class="chart" id="chart0"></div>
+<div class="chart" id="chart1"></div>
+<div class="chart" id="chart2"></div>
+<div class="chart" id="chart3"></div>
+<div class="chart" id="chart4"></div>
+<div class="chart" id="chart5"></div>
+<div class="chart" id="chart6"></div>
+<div class="chart" id="chart7"></div>
+<div class="chart" id="chart8"></div>
+<div class="chart" id="chart9"></div>
+<div class="chart" id="chart10"></div>
+<div class="chart" id="chart11"></div>
+
+
+<script>
+
+
+    function drawChart(metric, containerId) {
+
+
+        var network_size = 48;
+        var single = getDataTable("PlatformJustificationSingleHost" + network_size, metric);
+        var multiple = getDataTable("PlatformJustificationMultipleHost" + network_size, metric);
+
+
+        var data = new google.visualization.DataTable();
+        data.addColumn('number', 'Time Through Experiment (s)');
+        data.addColumn('number', 'Single Machine');
+        data.addColumn({type: 'number', label: 'single Machine Lower', role: 'interval' });
+        data.addColumn({type: 'number', label: 'single Machine Upper', role: 'interval' });
+        data.addColumn('number', 'Multiple Machine');
+        data.addColumn({type: 'number', label: 'Multiple Machine Lower', role: 'interval' });
+        data.addColumn({type: 'number', label: 'Multiple Machine Upper', role: 'interval' });
+
+        for (var i = 1; i < Math.min(single.getNumberOfRows(), multiple.getNumberOfRows()); i++) {
+            data.addRow([single.getValue(i, 0), single.getValue(i, 1), single.getValue(i, 2), single.getValue(i, 3), multiple.getValue(i, 1), multiple.getValue(i, 2), multiple.getValue(i, 3)]);
+        }
+
+
+        var title = replaceAll(metric, '_', ' ');
+        title = replaceAll(title, '.json', '');
+        title = replaceAll(title, '.csv', '');
+        title = toTitleCase(title);
+
+
+        var wrapper = new google.visualization.ChartWrapper({
+            chartType: 'LineChart',
+            lineWidth: 1,
+            dataTable: data,
+            options: {
+                title: title, width: 600, height: 300, lineWidth: 1,
+                intervals: { 'style': 'area' }, legend: {position: "bottom"},
+                hAxis: {title: "Time Through Experiment (s)"}, vAxis: {title: title, viewWindow: {min: 0}}
+            },
+            containerId: containerId
+        });
+        wrapper.draw();
+    }
+
+    function getOptions() {
+        var ss = JSON.stringify(wrapper.getOptions());
+        alert(ss);
+    }
+    google.setOnLoadCallback(drawChart("available_peer_count.json", "chart0"));
+    google.setOnLoadCallback(drawChart("lookup_incorrectness_delay_timer.json", "chart1"));
+    google.setOnLoadCallback(drawChart("lookup_correctness_delay_timer.json", "chart2"));
+    google.setOnLoadCallback(drawChart("lookup_correctness_rate.json", "chart3"));
+    google.setOnLoadCallback(drawChart("lookup_incorrectness_rate.json", "chart4"));
+    google.setOnLoadCallback(drawChart("lookup_execution_rate.json", "chart5"));
+    google.setOnLoadCallback(drawChart("lookup_failure_rate.json", "chart6"));
+    google.setOnLoadCallback(drawChart("event_execution_duration_timer.json", "chart7"));
+    google.setOnLoadCallback(drawChart("event_execution_lag_sampler.json", "chart8"));
+    google.setOnLoadCallback(drawChart("sent_bytes_rate.json", "chart9"));
+    google.setOnLoadCallback(drawChart("lookup_correctness_hop_count_sampler.json", "chart10"));
+    google.setOnLoadCallback(drawChart("lookup_incorrectness_hop_count_sampler.json", "chart11"));
+
+</script>
+
+</body>
+</html>

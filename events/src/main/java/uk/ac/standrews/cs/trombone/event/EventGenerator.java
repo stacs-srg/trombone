@@ -29,7 +29,7 @@ public class EventGenerator {
     private final TreeSet<Event> events = new TreeSet<>();
     private final AtomicLong last_persisted_event_time = new AtomicLong();
     private final EventWriter event_writer;
-    private final Semaphore load_balancer = new Semaphore(5_000, true);
+    private final Semaphore load_balancer = new Semaphore(50_000, true);
     private final long experiment_duration;
     private final Random random;
     private final Scenario scenario;
@@ -84,16 +84,21 @@ public class EventGenerator {
         @Override
         public Void call() throws Exception {
 
-            while (!Thread.currentThread().isInterrupted() && !event_iterators.isEmpty()) {
-
-                final ParticipantEventIterator first = event_iterators.pollFirst();
-                if (first.hasNext()) {
-                    load_balancer.acquire();
-                    synchronized (events) {
-                        events.add(first.next());
+            try {
+                while (!Thread.currentThread().isInterrupted() && !event_iterators.isEmpty()) {
+    
+                    final ParticipantEventIterator first = event_iterators.pollFirst();
+                    if (first.hasNext()) {
+                        load_balancer.acquire();
+                        synchronized (events) {
+                            events.add(first.next());
+                        }
+                        event_iterators.add(first);
                     }
-                    event_iterators.add(first);
                 }
+            }
+            catch (Exception e) {
+                e.printStackTrace();
             }
             return null;
         }
@@ -129,50 +134,62 @@ public class EventGenerator {
         @Override
         public Void call() throws Exception {
 
-            while (!Thread.currentThread().isInterrupted() && !(events.isEmpty() && event_populator.isDone())) {
-                final Event event;
-                synchronized (events) {
-                    event = events.pollFirst();
-                }
-
-                if (event == null) {
-                    continue;
-                }
-
-                final Long event_time = event.getTimeInNanos();
-
-                //Sanity check
-                if (event_time < last_persisted_event_time.get()) {
-                    throw new IllegalStateException("WTF events are out of order; concurrency error, probably due to bad bad code");
-                }
-
-                last_persisted_event_time.set(event_time);
-
-                final Participant participant = event.getParticipant();
-                final Key peer_key = participant.getKey();
-                if (event instanceof JoinEvent) {
-
-                    final JoinEvent join_event = (JoinEvent) event;
-                    final Set<Participant> known_peers = pickRandomly(5, alive_peers.values());
-                    join_event.setKnownPeers(known_peers);
-                    alive_peers.put(peer_key, participant);
-                }
-                else if (event instanceof LeaveEvent) {
-                    alive_peers.remove(peer_key);
-                }
-                else {
-                    final LookupEvent lookupEvent = (LookupEvent) event;
-                    if (alive_peers.isEmpty()) { throw new IllegalStateException("no peer is alive at the given time and a lookup is happening?! something is wrong"); }
-
-                    Map.Entry<Key, Participant> expected_result = alive_peers.ceilingEntry(lookupEvent.getTarget());
-                    if (expected_result == null) {
-                        expected_result = alive_peers.firstEntry();
+            try {
+                while (!Thread.currentThread().isInterrupted() && !(events.isEmpty() && event_populator.isDone())) {
+                    final Event event;
+                    synchronized (events) {
+                        event = events.pollFirst();
                     }
-                    lookupEvent.setExpectedResult(expected_result.getValue());
-                }
 
-                event_writer.write(event);
-                load_balancer.release();
+                    if (event == null) {
+                        load_balancer.release(1000);
+                        continue;
+                    }
+
+                    final Long event_time = event.getTimeInNanos();
+
+                    //Sanity check
+                    if (event_time < last_persisted_event_time.get()) {
+                        synchronized (events) {
+                            events.add(event);
+                        }
+                        load_balancer.release(1000);
+                        LOGGER.warn("WTF events are out of order; concurrency error, probably due to bad bad code");
+                        continue;
+                        //                        throw new IllegalStateException("WTF events are out of order; concurrency error, probably due to bad bad code");
+                    }
+
+                    last_persisted_event_time.set(event_time);
+
+                    final Participant participant = event.getParticipant();
+                    final Key peer_key = participant.getKey();
+                    if (event instanceof JoinEvent) {
+
+                        final JoinEvent join_event = (JoinEvent) event;
+                        final Set<Participant> known_peers = pickRandomly(5, alive_peers.values());
+                        join_event.setKnownPeers(known_peers);
+                        alive_peers.put(peer_key, participant);
+                    }
+                    else if (event instanceof LeaveEvent) {
+                        alive_peers.remove(peer_key);
+                    }
+                    else {
+                        final LookupEvent lookupEvent = (LookupEvent) event;
+                        if (alive_peers.isEmpty()) { throw new IllegalStateException("no peer is alive at the given time and a lookup is happening?! something is wrong"); }
+
+                        Map.Entry<Key, Participant> expected_result = alive_peers.ceilingEntry(lookupEvent.getTarget());
+                        if (expected_result == null) {
+                            expected_result = alive_peers.firstEntry();
+                        }
+                        lookupEvent.setExpectedResult(expected_result.getValue());
+                    }
+
+                    event_writer.write(event);
+                    load_balancer.release();
+                }
+            }
+            catch (Exception e) {
+                e.printStackTrace();
             }
 
             return null;

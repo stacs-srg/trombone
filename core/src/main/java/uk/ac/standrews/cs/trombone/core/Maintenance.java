@@ -9,12 +9,13 @@ import org.mashti.jetson.exception.RPCException;
 import org.mashti.jetson.util.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.standrews.cs.trombone.core.selector.RandomSelector;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class Maintenance {
 
     //FIXME think of how not to use this fixed size pool; needs to be reconfigured based on the size of the network
-    protected static final ScheduledExecutorService SCHEDULER = Executors.newScheduledThreadPool(500, new NamedThreadFactory("maintenance_", true));
+    protected static final ScheduledExecutorService SCHEDULER = Executors.newScheduledThreadPool(50, new NamedThreadFactory("maintenance_", true));
     private static final Logger LOGGER = LoggerFactory.getLogger(Maintenance.class);
     private static final int ACTIVE_MAINTENANCE_INTERVAL_MILLIS = 1500;
     private final AtomicReference<DisseminationStrategy> dissemination_strategy;
@@ -32,7 +33,9 @@ public class Maintenance {
 
         this.local = local;
         this.active_maintenance_interval_millis = active_maintenance_interval_millis;
-        dissemination_strategy = new AtomicReference<>();
+        DisseminationStrategy disseminationStrategy = new DisseminationStrategy();
+        disseminationStrategy.addAction(new DisseminationStrategy.Action(false, false, new RandomSelector(2), new RandomSelector(2)));
+        dissemination_strategy = new AtomicReference<>(disseminationStrategy);
     }
 
     public synchronized boolean isStarted() {

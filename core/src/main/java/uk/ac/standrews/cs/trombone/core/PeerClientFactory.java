@@ -5,7 +5,6 @@ import com.google.common.util.concurrent.Futures;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -30,16 +29,16 @@ class PeerClientFactory extends ClientFactory<PeerRemote> {
     private static final ChannelPool CHANNEL_POOL = new ChannelPool(BOOTSTRAP);
 
     static {
-        BOOTSTRAP.group(new NioEventLoopGroup(100));
-        //        BOOTSTRAP.group(PeerServerFactory.child_event_loop);
+        //        BOOTSTRAP.group(new NioEventLoopGroup(100));
+        BOOTSTRAP.group(PeerServerFactory.child_event_loop);
         BOOTSTRAP.channel(NioSocketChannel.class);
         BOOTSTRAP.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5_000);
         BOOTSTRAP.option(ChannelOption.TCP_NODELAY, true);
         BOOTSTRAP.handler(new LeanClientChannelInitializer(PeerRemote.class, PeerCodecs.INSTANCE));
 
         CHANNEL_POOL.setTestOnBorrow(true);
-        CHANNEL_POOL.setTestOnReturn(false);
-        CHANNEL_POOL.setMaxTotalPerKey(4);
+        CHANNEL_POOL.setTestOnReturn(true);
+        CHANNEL_POOL.setMaxTotalPerKey(400);
         CHANNEL_POOL.setBlockWhenExhausted(false);
     }
 

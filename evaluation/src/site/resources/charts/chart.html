@@ -1,37 +1,38 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE html>
 <html>
 <head>
     <title>Google Chart Example</title>
+
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
-    <script type="text/javascript" src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
-    <script src="../js/charts.js"></script>
-
-
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script type="text/javascript" src="../js/jquery.csv-0.71.min.js"></script>
+    <script type="text/javascript" src="../js/json2.js"></script>
+    <script type="text/javascript" src="../js/charts.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/default.css"/>
 </head>
 <body>
-<input type='button' onclick='openEditor();' value='Edit Chart'/>
-<input type='button' onclick='getOptions();' value='Current Chart Options'/>
 
-<div id="chart" style="width:800px; height:500px;">
 
-</div>
+<div class="chart" id="chart0"></div>
+<div class="chart" id="chart1"></div>
+<div class="chart" id="chart2"></div>
+<div class="chart" id="chart3"></div>
+<div class="chart" id="chart4"></div>
+<div class="chart" id="chart5"></div>
+<div class="chart" id="chart6"></div>
+<div class="chart" id="chart7"></div>
+<div class="chart" id="chart8"></div>
+<div class="chart" id="chart9"></div>
+<div class="chart" id="chart10"></div>
+<div class="chart" id="chart11"></div>
+<div class="chart" id="chart12"></div>
+<div class="chart" id="chart13"></div>
+
 
 <script>
 
-    // load the visualization library from Google and set a listener
-    google.load("visualization", "1", {packages: ["corechart"]});
-    google.load('visualization', '1', {packages: ['charteditor']});
-
     var wrapper;
-    function drawChart() {
-
-//        var metric = "lookup_incorrectness_delay_timer.json";
-        var metric = "lookup_correctness_delay_timer.json";
-//        var metric = "lookup_correctness_rate.json";
-//        var metric = "lookup_incorrectness_rate.json";
-//        var metric = "lookup_execution_rate.json";
-//        var metric = "lookup_failure_rate.json";
+    function drawChart(metric, containerId) {
 
         var single_48 = getDataTable("PlatformJustificationSingleHost48", metric);
         var single_40 = getDataTable("PlatformJustificationSingleHost40", metric);
@@ -47,28 +48,49 @@
 
         var summary = google.visualization.arrayToDataTable([
             ['Network Size', 'Single Machine', 'Multiple Machine'],
-            [10, getAverageOfColumn(single_10, 1) , getAverageOfColumn(multiple_10, 1) ],
-            [20, getAverageOfColumn(single_20, 1) , getAverageOfColumn(multiple_20, 1) ],
-            [30, getAverageOfColumn(single_30, 1) , getAverageOfColumn(multiple_30, 1) ],
-            [40, getAverageOfColumn(single_40, 1) , getAverageOfColumn(multiple_40, 1) ],
-            [48, getAverageOfColumn(single_48, 1) , getAverageOfColumn(multiple_48, 1) ]
-
+            [10, getAverageOfColumn(single_10, 1) , getAverageOfColumn(multiple_10, 1)],
+            [20, getAverageOfColumn(single_20, 1) , getAverageOfColumn(multiple_20, 1)],
+            [30, getAverageOfColumn(single_30, 1) , getAverageOfColumn(multiple_30, 1)],
+            [40, getAverageOfColumn(single_40, 1) , getAverageOfColumn(multiple_40, 1)],
+            [48, getAverageOfColumn(single_48, 1) , getAverageOfColumn(multiple_48, 1)]
         ]);
+
+        var title = replaceAll(metric, '_', ' ');
+        title = replaceAll(title, '.json', '');
+        title = toTitleCase(title);
+
 
         wrapper = new google.visualization.ChartWrapper({
             chartType: 'ScatterChart',
             dataTable: summary,
-            options: {width: 800, height: 400, intervals: {style: "area"}, legend: {position: "bottom"}, hAxis: {title: "Network Size"}, vAxis: {title: "Average correct lookup Rate per Second"} },
-            containerId: 'chart'
+            options: {
+                title: title,
+                width: 600,
+                height: 300,
+                legend: {position: "bottom"},
+                hAxis: {title: "Network Size"},
+                vAxis: {title: title, viewWindow: {min: 0}}
+            },
+            containerId: containerId
         });
         wrapper.draw();
     }
 
-    function getOptions() {
-        var ss = JSON.stringify(wrapper.getOptions());
-        alert(ss);
-    }
-    google.setOnLoadCallback(drawChart);
+    google.setOnLoadCallback(drawChart("available_peer_count.json", "chart0"));
+    google.setOnLoadCallback(drawChart("lookup_incorrectness_delay_timer.json", "chart1"));
+    google.setOnLoadCallback(drawChart("lookup_correctness_delay_timer.json", "chart2"));
+    google.setOnLoadCallback(drawChart("lookup_correctness_rate.json", "chart3"));
+    google.setOnLoadCallback(drawChart("lookup_incorrectness_rate.json", "chart4"));
+    google.setOnLoadCallback(drawChart("lookup_execution_rate.json", "chart5"));
+    google.setOnLoadCallback(drawChart("lookup_failure_rate.json", "chart6"));
+    google.setOnLoadCallback(drawChart("event_execution_duration_timer.json", "chart7"));
+    google.setOnLoadCallback(drawChart("event_execution_lag_sampler.json", "chart8"));
+    google.setOnLoadCallback(drawChart("sent_bytes_rate.json", "chart9"));
+    google.setOnLoadCallback(drawChart("lookup_correctness_hop_count_sampler.json", "chart10"));
+    google.setOnLoadCallback(drawChart("lookup_incorrectness_hop_count_sampler.json", "chart11"));
+    google.setOnLoadCallback(drawChart("thread_cpu_usage_gauge.json", "chart12"));
+    google.setOnLoadCallback(drawChart("thread_count_gauge.json", "chart13"));
+
 </script>
 </body>
 </html>

@@ -15,6 +15,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -66,7 +67,6 @@ public class EventExecutor {
     private final ExecutorService task_populator;
     private final ExecutorService task_scheduler;
     private final ThreadPoolExecutor task_executor;
-//    private final ThreadPoolExecutor task_executor2;
     private final Semaphore load_balancer;
     private final Map<PeerReference, Peer> peers_map = new ConcurrentSkipListMap<PeerReference, Peer>();
     private final EventReader event_reader;
@@ -112,7 +112,6 @@ public class EventExecutor {
     private long start_time;
 
     //FIXME Add timeout for lookup execution or maybe any event execution
-    //FIXME get lookup retry count from scenario
 
     public EventExecutor(final Path events_home, int host_index, Path observations_home) throws IOException, DecoderException, ClassNotFoundException {
 
@@ -125,11 +124,9 @@ public class EventExecutor {
         runnable_events = new DelayQueue<RunnableExperimentEvent>();
         task_populator = Executors.newFixedThreadPool(100, new NamedThreadFactory("task_populator_"));
         task_scheduler = Executors.newFixedThreadPool(10, new NamedThreadFactory("task_scheduler_"));
-        //        task_executor = new ThreadPoolExecutor(400, 800, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("task_executor_"));
-        //        task_executor.prestartAllCoreThreads();
-        task_executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
-        //        task_executor2 = new ThreadPoolExecutor(100, 100, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("task_executor2_"));
-        //        task_executor2 = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+        task_executor = new ThreadPoolExecutor(100, 1000, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("task_executor_"));
+        task_executor.prestartAllCoreThreads();
+        //        task_executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
         load_balancer = new Semaphore(MAX_BUFFERED_EVENTS, true);
         scenario_properties = EventReader.readScenarioProperties(events_home);
         lookup_retry_count = getLookupRetryCount();
@@ -338,44 +335,24 @@ public class EventExecutor {
 
         if (known_peers != null && !known_peers.isEmpty()) {
 
-            final Future<Boolean> future_join = task_executor.submit(new Callable<Boolean>() {
-
-                @Override
-                public Boolean call() throws Exception {
-
-                    final Iterator<PeerReference> iterator = known_peers.iterator();
-                    boolean successful = false;
-                    while (!Thread.currentThread().isInterrupted() && !successful && iterator.hasNext()) {
-                        final PeerReference reference = iterator.next();
-                        try {
-                            peer.join(reference);
-                            successful = true;
-                        }
-                        catch (RPCException e) {
-                            LOGGER.trace("error while attempting to join ", e);
-                            successful = false;
-                        }
-                    }
-                    return successful;
+            final Iterator<PeerReference> iterator = known_peers.iterator();
+            boolean successful = false;
+            while (!Thread.currentThread().isInterrupted() && !successful && iterator.hasNext()) {
+                final PeerReference reference = iterator.next();
+                try {
+                    peer.join(reference);
+                    successful = true;
                 }
-            });
-            try {
-                final boolean successfully_joined = future_join.get(timeout_nanos, TimeUnit.NANOSECONDS);
-
-                if (successfully_joined) {
-                    join_success_rate.mark();
-                }
-                else {
-                    join_failure_rate.mark();
+                catch (RPCException e) {
+                    LOGGER.trace("error while attempting to join ", e);
+                    successful = false;
                 }
             }
-            catch (final Exception e) {
+            if (successful) {
+                join_success_rate.mark();
+            }
+            else {
                 join_failure_rate.mark();
-                LOGGER.warn("failed to join: {}", e.getMessage());
-                LOGGER.debug("failed to join", e);
-            }
-            finally {
-                future_join.cancel(true);
             }
         }
     }

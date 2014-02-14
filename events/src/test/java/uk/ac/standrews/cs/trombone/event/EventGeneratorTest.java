@@ -56,6 +56,9 @@ public class EventGeneratorTest {
             generator.generate();
         }
 
+        
+        
+        
         final FileSystem fileSystem = FileSystems.newFileSystem(URI.create("jar:file:/Users/masih/Desktop/test.zip"), new HashMap<String, String>());
 
         //        EventExecutor executor = new EventExecutor(fileSystem);

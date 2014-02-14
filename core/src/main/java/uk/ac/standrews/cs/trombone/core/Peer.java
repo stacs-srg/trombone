@@ -82,7 +82,7 @@ public class Peer implements PeerRemote {
         if (isExposed() && member != null) {
 
             push(member);
-            getRemote(member).push(self);     //TODO NEED THIS?
+            getRemote(member).push(self);
         }
     }
 
