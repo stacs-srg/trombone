@@ -38,7 +38,7 @@ class PeerClientFactory extends ClientFactory<PeerRemote> {
 
         CHANNEL_POOL.setTestOnBorrow(true);
         CHANNEL_POOL.setTestOnReturn(true);
-        CHANNEL_POOL.setMaxTotalPerKey(400);
+        CHANNEL_POOL.setMaxTotalPerKey(4);
         CHANNEL_POOL.setBlockWhenExhausted(false);
     }
 

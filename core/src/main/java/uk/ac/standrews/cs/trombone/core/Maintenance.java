@@ -15,7 +15,7 @@ import uk.ac.standrews.cs.trombone.core.selector.RandomSelector;
 public class Maintenance {
 
     //FIXME think of how not to use this fixed size pool; needs to be reconfigured based on the size of the network
-    protected static final ScheduledExecutorService SCHEDULER = Executors.newScheduledThreadPool(50, new NamedThreadFactory("maintenance_", true));
+    protected static final ScheduledExecutorService SCHEDULER = Executors.newScheduledThreadPool(5, new NamedThreadFactory("maintenance_", true));
     private static final Logger LOGGER = LoggerFactory.getLogger(Maintenance.class);
     private static final int ACTIVE_MAINTENANCE_INTERVAL_MILLIS = 1500;
     private final AtomicReference<DisseminationStrategy> dissemination_strategy;

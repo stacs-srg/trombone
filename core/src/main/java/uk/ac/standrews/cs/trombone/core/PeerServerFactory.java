@@ -23,7 +23,7 @@ class PeerServerFactory extends ServerFactory<PeerRemote> {
 
     static final NioEventLoopGroup child_event_loop = new NioEventLoopGroup(100, new NamedThreadFactory("server_child_event_loop_"));
     private static final ServerBootstrap SERVER_BOOTSTRAP = new ServerBootstrap();
-    private static final ThreadPoolExecutor SERVER_REQUEST_EXECUTOR = new ThreadPoolExecutor(5, 100, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+    private static final ThreadPoolExecutor SERVER_REQUEST_EXECUTOR = new ThreadPoolExecutor(5, 300, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
     static {
 
         final NioEventLoopGroup parent_event_loop = new NioEventLoopGroup(100, new NamedThreadFactory("server_parent_event_loop_"));
