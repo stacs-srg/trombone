@@ -56,6 +56,12 @@
             <groupId>org.uncommons.maths</groupId>
             <artifactId>uncommons-maths</artifactId>
             <version>1.2.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>jfree</groupId>
+                    <artifactId>jfreechart</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
 
