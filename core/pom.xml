@@ -53,9 +53,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.uncommons.watchmaker</groupId>
-            <artifactId>watchmaker-framework</artifactId>
-            <version>0.7.1</version>
+            <groupId>org.uncommons.maths</groupId>
+            <artifactId>uncommons-maths</artifactId>
+            <version>1.2.2</version>
         </dependency>
 
 

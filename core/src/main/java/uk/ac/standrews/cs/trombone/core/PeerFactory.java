@@ -11,14 +11,22 @@ import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
 public final class PeerFactory {
 
     static final LeanClientFactory<PeerRemote> CLIENT_FACTORY = new LeanClientFactory<PeerRemote>(PeerRemote.class, PeerCodecs.INSTANCE);
-    static final PeerConfiguration DEFAULT_PEER_CONFIGURATION = new DefaultPeerConfiguration();
     public static final SyntheticDelay NO_SYNTHETIC_DELAY = new SyntheticDelay() {
 
+        private static final long serialVersionUID = 8318814582661151942L;
+
         @Override
-        public void apply(final InetAddress from, final InetAddress to) throws InterruptedException {
+        public void apply(final InetAddress from, final InetAddress to) {
             // do nothing
         }
+
+        @Override
+        public String getName() {
+
+            return "NoSyntheticDelay";
+        }
     };
+    static final PeerConfiguration DEFAULT_PEER_CONFIGURATION = new PeerConfiguration(new Maintenance(), NO_SYNTHETIC_DELAY);
 
     public static PeerRemote bind(PeerReference reference) {
 
@@ -47,22 +55,5 @@ public final class PeerFactory {
     public static Peer createPeer(final InetSocketAddress address, final Key key, final PeerConfiguration configuration) {
 
         return new Peer(address, key, configuration);
-    }
-
-    private static class DefaultPeerConfiguration implements PeerConfiguration {
-
-        private static final long serialVersionUID = -6578481188286774616L;
-
-        @Override
-        public Maintenance getMaintenance(final Peer peer) {
-
-            return new Maintenance(peer);
-        }
-
-        @Override
-        public SyntheticDelay getSyntheticDelay() {
-
-            return NO_SYNTHETIC_DELAY;
-        }
     }
 }

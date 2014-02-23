@@ -1,5 +1,8 @@
 package uk.ac.standrews.cs.trombone.core;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.Serializable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -9,79 +12,122 @@ import org.mashti.jetson.exception.RPCException;
 import org.mashti.jetson.util.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.standrews.cs.trombone.core.selector.RandomSelector;
+import uk.ac.standrews.cs.trombone.core.util.Named;
+import uk.ac.standrews.cs.trombone.core.util.NamingUtils;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class Maintenance {
+public class Maintenance implements Serializable, Named {
 
     //FIXME think of how not to use this fixed size pool; needs to be reconfigured based on the size of the network
-    protected static final ScheduledExecutorService SCHEDULER = Executors.newScheduledThreadPool(5, new NamedThreadFactory("maintenance_", true));
+    protected static final ScheduledExecutorService SCHEDULER = Executors.newScheduledThreadPool(500, new NamedThreadFactory("maintenance_", true));
     private static final Logger LOGGER = LoggerFactory.getLogger(Maintenance.class);
-    private static final int ACTIVE_MAINTENANCE_INTERVAL_MILLIS = 1500;
-    private final AtomicReference<DisseminationStrategy> dissemination_strategy;
-    private final Peer local;
-    private final int active_maintenance_interval_millis;
-    private final Runnable non_opportunistic_disseminator = new NonOpportunisticDisseminator();
-    private ScheduledFuture<?> active_maintenance;
+    private static final long serialVersionUID = -15296211081078575L;
+    private final DisseminationStrategy strategy;
 
-    public Maintenance(final Peer local) {
+    public Maintenance() {
 
-        this(local, ACTIVE_MAINTENANCE_INTERVAL_MILLIS);
+        this(null);
     }
 
-    protected Maintenance(final Peer local, int active_maintenance_interval_millis) {
+    public Maintenance(DisseminationStrategy strategy) {
 
-        this.local = local;
-        this.active_maintenance_interval_millis = active_maintenance_interval_millis;
-        DisseminationStrategy disseminationStrategy = new DisseminationStrategy();
-        disseminationStrategy.addAction(new DisseminationStrategy.Action(false, false, new RandomSelector(2), new RandomSelector(2)));
-        dissemination_strategy = new AtomicReference<>(disseminationStrategy);
+        this.strategy = strategy;
     }
 
-    public synchronized boolean isStarted() {
+    @Override
+    public String getName() {
 
-        return active_maintenance != null && !active_maintenance.isDone();
+        return NamingUtils.name(this);
     }
 
-    protected synchronized void start() {
+    public DisseminationStrategy getStrategy() {
 
-        if (!isStarted()) {
-            active_maintenance = SCHEDULER.scheduleWithFixedDelay(non_opportunistic_disseminator, active_maintenance_interval_millis, active_maintenance_interval_millis, TimeUnit.MILLISECONDS);
+        return strategy;
+    }
+
+    protected PeerMaintainer maintain(Peer peer) {
+
+        final PeerMaintainer listener = new PeerMaintainer(peer, strategy);
+        peer.addExposureChangeListener(listener);
+        return listener;
+    }
+
+    protected class PeerMaintainer implements PropertyChangeListener {
+
+        private final Peer peer;
+        protected final AtomicReference<DisseminationStrategy> strategy;
+        private final NonOpportunisticDisseminator nonOpportunisticDisseminator;
+        private volatile boolean started;
+        private ScheduledFuture<?> non_opp_maintenance;
+
+        protected PeerMaintainer(Peer peer, DisseminationStrategy strategy) {
+
+            this.peer = peer;
+            this.strategy = new AtomicReference<>(strategy);
+            nonOpportunisticDisseminator = new NonOpportunisticDisseminator();
         }
-    }
 
-    protected synchronized void stop() {
+        DisseminationStrategy getDisseminationStrategy() {
 
-        if (isStarted()) {
-            active_maintenance.cancel(true);
+            return strategy.get();
         }
-    }
-
-    protected DisseminationStrategy getDisseminationStrategy() {
-
-        return dissemination_strategy.get();
-    }
-
-    protected DisseminationStrategy getAndSet(DisseminationStrategy dissemination_strategy) {
-
-        return this.dissemination_strategy.getAndSet(dissemination_strategy);
-    }
-
-    private class NonOpportunisticDisseminator implements Runnable {
 
         @Override
-        public void run() {
+        public void propertyChange(final PropertyChangeEvent event) {
 
-            final DisseminationStrategy strategy = getDisseminationStrategy();
+            if (peer.equals(event.getSource())) {
+                final boolean exposed = (boolean) event.getNewValue();
+                if (exposed) {
+                    start();
+                }
+                else {
+                    stop();
+                }
+            }
+            else {
+                LOGGER.warn("bad code! same listener is registered to multiple peers");
+            }
+        }
 
-            if (strategy != null) {
-                for (DisseminationStrategy.Action action : strategy) {
-                    if (!action.isOpportunistic()) {
-                        try {
-                            action.nonOpportunistically(local);
-                        }
-                        catch (RPCException e) {
-                            LOGGER.debug("failed to execute non opportunistic dissemination strategy", e);
+        protected synchronized void start() {
+
+            if (!isStarted()) {
+                final DisseminationStrategy current_strategy = strategy.get();
+                if (current_strategy != null) {
+                    non_opp_maintenance = SCHEDULER.scheduleWithFixedDelay(nonOpportunisticDisseminator, 0, current_strategy.getInterval(), TimeUnit.MILLISECONDS);
+                    started = true;
+                }
+            }
+        }
+
+        protected synchronized void stop() {
+
+            if (isStarted()) {
+                non_opp_maintenance.cancel(true);
+                started = false;
+            }
+        }
+
+        protected synchronized boolean isStarted() {
+
+            return started;
+        }
+
+        private class NonOpportunisticDisseminator implements Runnable {
+
+            @Override
+            public void run() {
+
+                final DisseminationStrategy current_strategy = strategy.get();
+                if (current_strategy != null) {
+                    for (DisseminationStrategy.Action action : current_strategy) {
+                        if (!action.isOpportunistic()) {
+                            try {
+                                action.nonOpportunistically(peer);
+                            }
+                            catch (RPCException e) {
+                                LOGGER.debug("failed to execute non opportunistic dissemination strategy", e);
+                            }
                         }
                     }
                 }

@@ -5,17 +5,18 @@ import java.net.InetSocketAddress;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.mashti.jetson.exception.RPCException;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
-import uk.ac.standrews.cs.trombone.core.key.RandomKeyProvider;
+import uk.ac.standrews.cs.trombone.core.key.KeyProvider;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class SingleProcessPeerManager implements ApplicationManager {
 
-    private static final RandomKeyProvider KEY_PROVIDER = new RandomKeyProvider(1222, 32);
+    private static final KeyProvider KEY_PROVIDER = new KeyProvider(32, DigestUtils.md5("sss"));
     private static final AttributeKey<Peer> PEER_KEY = new AttributeKey<Peer>();
     private static final Random RANDOM = new Random(545454);
     private final Set<PeerReference> joined_peers = new HashSet<PeerReference>();

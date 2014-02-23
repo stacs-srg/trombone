@@ -10,7 +10,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,6 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.SerializationUtils;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.supercsv.io.CsvListWriter;
@@ -75,7 +75,7 @@ public class EventWriter implements Closeable {
         }
 
         writer.write(event.getTimeInNanos(), event.getParticipant().getId(), event.getCode(), event.getParameters());
-        if (write_counter.incrementAndGet() % 10000 == 0) {
+        if (write_counter.incrementAndGet() % 10_000 == 0) {
             writer.flush();
             write_counter.set(0);
         }
@@ -90,11 +90,9 @@ public class EventWriter implements Closeable {
 
     public void write(Scenario scenario) throws IOException {
 
-        final Properties properties = scenario.getProperties();
-        final Path properties_path = events_home.resolve("scenario.properties");
-        try (final BufferedWriter writer = Files.newBufferedWriter(properties_path, StandardCharsets.UTF_8)) {
-            properties.store(writer, "");
-        }
+        final JSONObject scenario_json = ScenarioJSON.toJSON(scenario);
+        final Path json_path = events_home.resolve("scenario.json");
+        Files.write(json_path, scenario_json.toString(4).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
     }
 
     @Override
@@ -144,13 +142,15 @@ public class EventWriter implements Closeable {
         if (!host_event_writers.containsKey(host_name)) {
             final int host_index = getHostIndex(host_name);
             final Path host_event_csv = getHostEventCsv(host_index);
-            writer = new CsvListWriter(Files.newBufferedWriter(host_event_csv, StandardCharsets.UTF_8, StandardOpenOption.CREATE), CsvPreference.STANDARD_PREFERENCE);
+            final BufferedWriter buffered_writer = Files.newBufferedWriter(host_event_csv, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+            writer = new CsvListWriter(buffered_writer, CsvPreference.STANDARD_PREFERENCE);
             writer.writeHeader("time", "peer_index", "event_code", "event_params");
             host_event_writers.put(host_name, writer);
         }
         else {
             writer = host_event_writers.get(host_name);
         }
+
         return writer;
     }
 

@@ -65,7 +65,7 @@ public class BlubExperiment {
             @Override
             public boolean accept(final File dir, final String name) {
 
-                return dir.isDirectory() && !name.startsWith(".");
+                return dir.isDirectory() && !name.startsWith(".") && !name.endsWith(".log");
             }
         });
 
@@ -144,6 +144,8 @@ public class BlubExperiment {
         final Path observations = BlubEventExecutionJob.newObservationsPath(repetitions);
         LOGGER.info("collected observations will be stored at {}", observations.toAbsolutePath());
 
+        boolean failed = false;
+
         try (FileSystem observations_fs = FileSystemUtils.newZipFileSystem(observations, true)) {
 
             final Path root_observations = observations_fs.getPath(observations_fs.getSeparator());
@@ -175,8 +177,13 @@ public class BlubExperiment {
                 catch (InterruptedException | ExecutionException e) {
                     LOGGER.error("Event execution on host {} failed due to {}", host, e);
                     LOGGER.error("Failure details", e);
+                    failed = true;
+                    break;
                 }
             }
+        }
+        if (failed) {
+            Files.deleteIfExists(observations);
         }
     }
 

@@ -32,8 +32,8 @@ import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.Scanner;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.trombone.core.selector.FirstReachable;
-import uk.ac.standrews.cs.trombone.core.selector.LastReachable;
+import uk.ac.standrews.cs.trombone.core.selector.First;
+import uk.ac.standrews.cs.trombone.core.selector.Last;
 
 class RingSizeScanner extends Scanner {
 
@@ -41,6 +41,8 @@ class RingSizeScanner extends Scanner {
     private static final String RING_SIZE_PROPERTY_NAME = "ring_size";
     private static final Duration DELAY = new Duration(1, TimeUnit.SECONDS);
     private static final Duration TIMEOUT = new Duration(3, TimeUnit.MINUTES);
+    private static final First FIRST_REACHABLE = new First(1, true);
+    private static final Last LAST_REACHABLE = new Last(1, true);
     private final AtomicInteger ring_size;
 
     protected RingSizeScanner() {
@@ -62,7 +64,7 @@ class RingSizeScanner extends Scanner {
             cycle_length++;
             final PeerRemote proxy = PeerFactory.bind(node);
             try {
-                node = forwards ? proxy.pull(FirstReachable.getInstance())[0] : proxy.pull(LastReachable.getInstance())[0];
+                node = forwards ? proxy.pull(FIRST_REACHABLE)[0] : proxy.pull(LAST_REACHABLE)[0];
             }
             catch (final RPCException e) {
 

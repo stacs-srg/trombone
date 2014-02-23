@@ -7,9 +7,7 @@ import java.util.Random;
 import java.util.Set;
 import uk.ac.standrews.cs.trombone.core.DisseminationStrategy;
 import uk.ac.standrews.cs.trombone.core.selector.First;
-import uk.ac.standrews.cs.trombone.core.selector.FirstReachable;
 import uk.ac.standrews.cs.trombone.core.selector.Last;
-import uk.ac.standrews.cs.trombone.core.selector.LastReachable;
 import uk.ac.standrews.cs.trombone.core.selector.RandomSelector;
 import uk.ac.standrews.cs.trombone.core.selector.Selector;
 import uk.ac.standrews.cs.trombone.core.selector.Self;
@@ -23,10 +21,10 @@ public class DisseminationStrategyGenerator {
     private static final Set<Selector> SELECTORS = new HashSet<>();
 
     static {
-        SELECTORS.add(First.getInstance());
-        SELECTORS.add(FirstReachable.getInstance());
-        SELECTORS.add(Last.getInstance());
-        SELECTORS.add(LastReachable.getInstance());
+        SELECTORS.add(new First(1, false));
+        SELECTORS.add(new First(1, true));
+        SELECTORS.add(new Last(1, false));
+        SELECTORS.add(new Last(1, true));
         SELECTORS.add(Self.getInstance());
         SELECTORS.add(new RandomSelector(1));
         SELECTORS.add(new RandomSelector(2));

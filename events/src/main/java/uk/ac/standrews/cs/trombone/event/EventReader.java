@@ -1,9 +1,9 @@
 package uk.ac.standrews.cs.trombone.event;
 
-import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -14,13 +14,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.SerializationUtils;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.supercsv.io.CsvListReader;
@@ -96,14 +96,11 @@ public class EventReader implements Closeable, Iterator<Event> {
         }
     }
 
-    public static Properties readScenarioProperties(Path events_home) throws IOException {
+    public static JSONObject readScenario(Path events_home) throws IOException {
 
-        final Properties properties = new Properties();
-        final Path properties_path = events_home.resolve("scenario.properties");
-        try (final BufferedReader reader = Files.newBufferedReader(properties_path, StandardCharsets.UTF_8)) {
-            properties.load(reader);
-        }
-        return properties;
+        final Path json_path = events_home.resolve("scenario.json");
+        final String scenario_json_string = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(json_path))).toString();
+        return new JSONObject(scenario_json_string);
     }
 
     public PeerConfiguration getConfiguration(PeerReference reference) {

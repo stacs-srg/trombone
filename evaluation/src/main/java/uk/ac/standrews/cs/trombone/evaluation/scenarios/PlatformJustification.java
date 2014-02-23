@@ -10,12 +10,9 @@ public class PlatformJustification extends Scenario {
     public PlatformJustification(String name) {
 
         super(name, Constants.SCENARIO_MASTER_SEED);
-        setChurnProvider(Constants.NO_CHURN);
-        setWorkloadProvider(Constants.WORKLOAD_1.clone());
         setExperimentDuration(Constants.EXPERIMENT_DURATION);
         setObservationInterval(Constants.OBSERVATION_INTERVAL);
         setLookupRetryCount(Constants.LOOKUP_RETRY_COUNT);
-        setPeerKeyProvider(Constants.PEER_KEY_PROVIDER.clone());
-        setPeerConfiguration(Constants.NO_MAINTENANCE);
+        setPeerKeyProvider(Constants.PEER_KEY_PROVIDER.copy());
     }
 }

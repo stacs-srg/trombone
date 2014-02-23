@@ -2,11 +2,13 @@ package uk.ac.standrews.cs.trombone.event;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReentrantLock;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.event.churn.Churn;
-import uk.ac.standrews.cs.trombone.event.workload.Workload;
+import uk.ac.standrews.cs.trombone.event.churn.Workload;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
@@ -19,13 +21,17 @@ public class ParticipantEventIterator implements Iterator<Event>, Comparable<Par
     private final Churn churn;
     private final Workload workload;
     private final int hashcode;
+    private final Random random;
     private boolean available;
     private long session_end_time;
 
-    public ParticipantEventIterator(Participant participant, long experiment_duration_nanos) {
+    private final ReentrantLock lock = new ReentrantLock(true);
+
+    public ParticipantEventIterator(Participant participant, long experiment_duration_nanos, final Random random) {
 
         this.participant = participant;
         this.experiment_duration_nanos = experiment_duration_nanos;
+        this.random = random;
         churn = participant.getChurn();
         workload = participant.getWorkload();
         hashcode = new HashCodeBuilder(23, 91).append(participant).append(experiment_duration_nanos).toHashCode();
@@ -89,14 +95,13 @@ public class ParticipantEventIterator implements Iterator<Event>, Comparable<Par
         return hashcode;
     }
 
-    private Event nextLookupEvent() {
+    private synchronized Event nextLookupEvent() {
 
         assert available;
         final long current_time = current_time_nanos.get();
-        final Workload.Lookup lookup = workload.getLookupAt(current_time);
-        final Key target = lookup.getTarget();
-        final long interval = lookup.getIntervalInNanos();
-        final long occurrence_time = current_time + interval;
+        final Key target = workload.getTargetKeyAt(current_time);
+        final long interval = workload.getIntervalAt(current_time);
+        final long occurrence_time = Math.abs(current_time + interval);
 
         final Event next_event;
         if (session_end_time > occurrence_time) {
@@ -126,18 +131,34 @@ public class ParticipantEventIterator implements Iterator<Event>, Comparable<Par
 
         assert !isTimeUp();
         final Long current_time = getCurrentTime();
-        Churn.Availability availability = churn.getAvailabilityAt(current_time);
-        final long duration_nanos = Math.min(availability.getDurationInNanos(), experiment_duration_nanos - current_time);
-        available = availability.isAvailable();
+
+        available = isFirstEvent(current_time) ? churn.getAvailabilityAt(0).nextEvent(random) : !available;
 
         if (available) {
-            session_end_time = current_time + duration_nanos;
-            return new JoinEvent(participant, current_time, duration_nanos);
+            final long session_length = normalize(churn.getSessionLengthAt(current_time));
+            session_end_time = current_time + session_length;
+            return new JoinEvent(participant, current_time, session_length);
         }
         else {
-            current_time_nanos.addAndGet(duration_nanos);
+            final long downtime = normalize(churn.getDowntimeAt(current_time));
+            current_time_nanos.addAndGet(downtime);
             return new LeaveEvent(participant, current_time);
         }
+    }
+
+    private static boolean isFirstEvent(final Long current_time) {
+
+        return current_time == 0;
+    }
+
+    private long normalize(long duration_nanos) {
+
+        return Math.min(duration_nanos, getRemainingExperimentTime());
+    }
+
+    private long getRemainingExperimentTime() {
+
+        return experiment_duration_nanos - getCurrentTime();
     }
 
     private boolean isTimeUp() {

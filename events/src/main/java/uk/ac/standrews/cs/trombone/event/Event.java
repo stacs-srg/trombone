@@ -53,7 +53,6 @@ public abstract class Event extends EventObject implements Comparable<Event> {
     @Override
     public int compareTo(final Event other) {
 
-        //TODO give higher priority to churn event if times are the same
         final int time_comparison = time_nanos.compareTo(other.time_nanos);
         return time_comparison != 0 ? time_comparison : id.compareTo(other.id);
     }

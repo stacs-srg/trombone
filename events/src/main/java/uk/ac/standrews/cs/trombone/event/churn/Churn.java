@@ -16,41 +16,83 @@
  * You should have received a copy of the GNU General Public License
  * along with Trombone.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.trombone.event.churn;
 
-public interface Churn {
+import java.util.concurrent.TimeUnit;
+import org.uncommons.maths.random.Probability;
+import uk.ac.standrews.cs.shabdiz.util.Duration;
+import uk.ac.standrews.cs.trombone.core.util.Copyable;
 
-    Churn NONE = new Churn() {
+/**
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
+public class Churn implements Copyable {
 
-        @Override
-        public Availability getAvailabilityAt(final long time) {
+    public static final Churn NONE = new Churn(new ConstantIntervalGenerator(Duration.MAX_DURATION), new ConstantIntervalGenerator(new Duration(0, TimeUnit.SECONDS)));
 
-            return Availability.MAX_AVAILABILITY;
+    private final IntervalGenerator session_lengths;
+    private final IntervalGenerator downtimes;
+
+    public Churn(final IntervalGenerator session_lengths, final IntervalGenerator downtimes) {
+
+        this.session_lengths = session_lengths;
+        this.downtimes = downtimes;
+    }
+
+    public IntervalGenerator getSessionLength() {
+
+        return session_lengths;
+    }
+
+    public IntervalGenerator getDowntime() {
+
+        return downtimes;
+    }
+
+    public Probability getAvailabilityAt(final long time_nanos) {
+
+        checkTime(time_nanos);
+
+        final double mean_session_length = session_lengths.getMeanAt(time_nanos);
+        final double mean_downtime = downtimes.getMeanAt(time_nanos);
+        final double sum_of_mean_downtime_and_session_length = mean_downtime + mean_session_length;
+
+        return new Probability(sum_of_mean_downtime_and_session_length != 0 ? mean_session_length / sum_of_mean_downtime_and_session_length : 1);
+    }
+
+    public long getSessionLengthAt(final long time_nanos) {
+
+        checkTime(time_nanos);
+        return session_lengths.get(time_nanos);
+    }
+
+    public long getDowntimeAt(final long time_nanos) {
+
+        checkTime(time_nanos);
+        return downtimes.get(time_nanos);
+    }
+
+    private void checkTime(final long time_nanos) {
+
+        if (time_nanos < 0) {
+            throw new IllegalArgumentException("time through experiment cannot be negative: " + time_nanos);
         }
-    };
+    }
 
-    Availability getAvailabilityAt(long time_nanos);
+    @Override
+    public Churn copy() {
 
-    final class Availability {
+        return new Churn(session_lengths.copy(), downtimes.copy());
+    }
 
-        public static final Availability MAX_AVAILABILITY = new Availability(Long.MAX_VALUE, true);
-        private final boolean available;
-        private final long duration_nanos;
+    @Override
+    public String toString() {
 
-        public Availability(final long duration_nanos, final boolean available) {
-
-            this.duration_nanos = duration_nanos;
-            this.available = available;
-        }
-
-        public boolean isAvailable() {
-
-            return available;
-        }
-
-        public long getDurationInNanos() {
-
-            return duration_nanos;
-        }
+        final StringBuilder sb = new StringBuilder("Churn{");
+        sb.append("session_lengths=").append(session_lengths);
+        sb.append(", downtimes=").append(downtimes);
+        sb.append('}');
+        return sb.toString();
     }
 }

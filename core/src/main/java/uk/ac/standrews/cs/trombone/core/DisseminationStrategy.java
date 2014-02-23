@@ -1,5 +1,6 @@
 package uk.ac.standrews.cs.trombone.core;
 
+import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -7,22 +8,24 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.reflect.MethodUtils;
 import org.mashti.jetson.exception.RPCException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.uncommons.util.reflection.ReflectionUtils;
 import uk.ac.standrews.cs.trombone.core.selector.Selector;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class DisseminationStrategy implements Iterable<DisseminationStrategy.Action> {
+public class DisseminationStrategy implements Iterable<DisseminationStrategy.Action>, Serializable {
 
-    private static final Method PUSH_METHOD = ReflectionUtils.findKnownMethod(PeerRemote.class, "push", PeerReference[].class);
-    private static final Method PULL_METHOD = ReflectionUtils.findKnownMethod(PeerRemote.class, "pull", Selector.class);
+    private static final long serialVersionUID = 7398182589384122556L;
+    private static final Method PUSH_METHOD = MethodUtils.getAccessibleMethod(PeerRemote.class, "push", PeerReference[].class);
+    private static final Method PULL_METHOD = MethodUtils.getAccessibleMethod(PeerRemote.class, "pull", Selector.class);
     private static final PeerReference[] EMPTY_REFERENCES = new PeerReference[0];
     private static final Logger LOGGER = LoggerFactory.getLogger(DisseminationStrategy.class);
     private final ArrayList<Action> actions;
+    private int non_opportunistic_interval_millis = 2_000;
 
     public DisseminationStrategy() {
 
@@ -38,6 +41,16 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
     public boolean addAction(Action action) {
 
         return actions.add(action);
+    }
+
+    public int getInterval() {
+
+        return non_opportunistic_interval_millis;
+    }
+
+    public void setInterval(int non_opportunistic_interval_millis) {
+
+        this.non_opportunistic_interval_millis = non_opportunistic_interval_millis;
     }
 
     public Action getActionAt(int index) {
@@ -74,7 +87,7 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
         return sb.toString();
     }
 
-    public static class Action {
+    public static class Action implements Serializable {
 
         private final boolean opportunistic;
         private final boolean push;

@@ -4,15 +4,19 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.ConcurrentSkipListSet;
 import org.mashti.jetson.Server;
 import org.mashti.jetson.ServerFactory;
 import org.mashti.jetson.exception.RPCException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.core.selector.Selector;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class Peer implements PeerRemote {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(Peer.class);
     private static final String EXPOSURE_PROPERTY_NAME = "exposure";
     private static final ServerFactory<PeerRemote> SERVER_FACTORY = new PeerServerFactory();
     private final PeerState state;
@@ -21,8 +25,10 @@ public class Peer implements PeerRemote {
     private final Server server;
     private final PropertyChangeSupport property_change_support;
     private final PeerMetric metric;
-    private final Maintenance maintenance;
+    private final Maintenance.PeerMaintainer maintainer;
     private volatile PeerReference self;
+
+    public static final ConcurrentSkipListSet<Integer> EXPOSED_PORTS = new ConcurrentSkipListSet<>();
 
     Peer(final Key key) {
 
@@ -41,7 +47,7 @@ public class Peer implements PeerRemote {
 
         state = new PeerState(key);
         metric = new PeerMetric(this);
-        maintenance = configuration.getMaintenance(this);
+        maintainer = configuration.getMaintenance().maintain(this);
         server = SERVER_FACTORY.createServer(this);
         server.setBindAddress(address);
         server.setWrittenByteCountListener(metric);
@@ -53,9 +59,11 @@ public class Peer implements PeerRemote {
 
         final boolean exposed = server.expose();
         if (exposed) {
+            EXPOSED_PORTS.add(getAddress().getPort());
             refreshSelfReference();
-            maintenance.start();
             property_change_support.firePropertyChange(EXPOSURE_PROPERTY_NAME, false, true);
+            LOGGER.trace("exposed {} on {}", key, getAddress());
+
         }
         return exposed;
     }
@@ -64,7 +72,7 @@ public class Peer implements PeerRemote {
 
         final boolean unexposed = server.unexpose();
         if (unexposed) {
-            maintenance.stop();
+            EXPOSED_PORTS.remove(getAddress().getPort());
             property_change_support.firePropertyChange(EXPOSURE_PROPERTY_NAME, true, false);
         }
         return unexposed;
@@ -122,6 +130,22 @@ public class Peer implements PeerRemote {
         return next_hop;
     }
 
+    @Override
+    public boolean equals(final Object other) {
+
+        if (this == other) { return true; }
+        if (!(other instanceof Peer)) { return false; }
+
+        final Peer that = (Peer) other;
+        return key.equals(that.key);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return key.hashCode();
+    }
+
     public InetSocketAddress getAddress() {
 
         return server.getLocalSocketAddress();
@@ -177,9 +201,9 @@ public class Peer implements PeerRemote {
         return measurement;
     }
 
-    public Maintenance getMaintenance() {
+    public DisseminationStrategy getDisseminationStrategy() {
 
-        return maintenance;
+        return maintainer.getDisseminationStrategy();
     }
 
     private PeerReference lookup(final Key target, final PeerMetric.LookupMeasurement measurement) throws RPCException {
@@ -187,7 +211,6 @@ public class Peer implements PeerRemote {
         PeerReference current_hop = self;
         PeerRemote current_hop_remote = this;
         PeerReference next_hop = current_hop_remote.nextHop(target);
-
         while (!current_hop.equals(next_hop)) {
 
             final PeerRemote next_hop_remote = getRemote(next_hop);
@@ -195,6 +218,7 @@ public class Peer implements PeerRemote {
                 next_hop = next_hop_remote.nextHop(target);
             }
             catch (final RPCException error) {
+                next_hop.setReachable(false);
                 current_hop_remote.push(next_hop); // Notify current hop of the broken next hop
                 throw error;
             }
@@ -202,6 +226,7 @@ public class Peer implements PeerRemote {
                 if (measurement != null) {
                     measurement.incrementHopCount();
                 }
+                push(next_hop);
             }
             current_hop = next_hop;
             current_hop_remote = next_hop_remote;

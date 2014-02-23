@@ -2,25 +2,25 @@ package uk.ac.standrews.cs.trombone.core.selector;
 
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
+import uk.ac.standrews.cs.trombone.core.PeerState;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class Last implements Selector {
 
-    public static final Last LAST_REACHABLE_SELECTOR_INSTANCE = new Last();
-    private static final long serialVersionUID = -1251875528485423902L;
+    private static final long serialVersionUID = 4969898731774717311L;
+    private final int size;
+    private final boolean reachable;
 
-    private Last() {
+    public Last(int size, boolean reachable) {
 
-    }
-
-    public static Last getInstance() {
-
-        return LAST_REACHABLE_SELECTOR_INSTANCE;
+        this.size = size;
+        this.reachable = reachable;
     }
 
     @Override
-    public PeerReference[] select(final Peer peer){
+    public PeerReference[] select(final Peer peer) {
 
-        return new PeerReference[]{peer.getPeerState().last()};
+        final PeerState state = peer.getPeerState();
+        return reachable ? state.lastReachable(size) : state.last(size);
     }
 }

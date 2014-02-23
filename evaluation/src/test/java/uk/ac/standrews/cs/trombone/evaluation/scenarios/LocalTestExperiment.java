@@ -21,10 +21,14 @@ public class LocalTestExperiment {
     private static final Logger LOGGER = LoggerFactory.getLogger(LocalTestExperiment.class);
     private static final LocalTestScenario LOCAL_TEST_SCENARIO_500 = new LocalTestScenario(500);
     private static final LocalTestScenario LOCAL_TEST_SCENARIO_1000 = new LocalTestScenario(1000);
+    private static final LocalTestScenario LOCAL_TEST_SCENARIO_20 = new LocalTestScenario(20);
+    private static final LocalTestScenario LOCAL_TEST_SCENARIO_100 = new LocalTestScenario(100);
 
     @Test
-    public void testGeneration() throws Exception {
+    public void testAGeneration() throws Exception {
 
+        testGeneration(LOCAL_TEST_SCENARIO_100);
+        testGeneration(LOCAL_TEST_SCENARIO_20);
         testGeneration(LOCAL_TEST_SCENARIO_1000);
         testGeneration(LOCAL_TEST_SCENARIO_500);
     }
@@ -34,7 +38,7 @@ public class LocalTestExperiment {
         final Path scenarioHome = ScenarioUtils.getScenarioHome(scenario);
         Files.createDirectories(scenarioHome);
 
-        try (FileSystem events_fs = FileSystemUtils.newZipFileSystem(ScenarioUtils.getScenarioEventsPath(scenario.getName()), true)) {
+        try (FileSystem events_fs = FileSystemUtils.newZipFileSystem(Paths.get("/Users", "masih", "Desktop", scenario.getName() + ".zip"), true)) {
 
             LOGGER.info("generating events...");
             final EventGenerator generator = new EventGenerator(scenario, events_fs.getPath("/"));
@@ -45,12 +49,16 @@ public class LocalTestExperiment {
 
     @Test
     public void testExecution() throws Exception {
-//        testExecution(LOCAL_TEST_SCENARIO_500);
+
+        //        testExecution(LOCAL_TEST_SCENARIO_500);
         testExecution(LOCAL_TEST_SCENARIO_1000);
+        //        testExecution(LOCAL_TEST_SCENARIO_20);
+        //        testExecution(LOCAL_TEST_SCENARIO_100);
     }
+
     private void testExecution(final Scenario scenario) throws Exception {
 
-        final Path events_path = ScenarioUtils.getScenarioEventsPath(scenario.getName());
+        final Path events_path = Paths.get("/Users", "masih", "Desktop", scenario.getName() + ".zip");
         final Path observations_path = Paths.get("/Users", "masih", "Desktop", String.valueOf(System.currentTimeMillis()));
         Files.createDirectories(observations_path);
 

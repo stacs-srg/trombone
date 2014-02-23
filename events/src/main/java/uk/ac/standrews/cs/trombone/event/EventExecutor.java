@@ -5,7 +5,6 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -20,12 +19,14 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.codec.DecoderException;
+import org.json.JSONObject;
 import org.mashti.gauge.Counter;
 import org.mashti.gauge.Gauge;
 import org.mashti.gauge.MetricRegistry;
 import org.mashti.gauge.Rate;
 import org.mashti.gauge.Sampler;
 import org.mashti.gauge.Timer;
+import org.mashti.gauge.jvm.MemoryUsageGauge;
 import org.mashti.gauge.jvm.SystemLoadAverageGauge;
 import org.mashti.gauge.jvm.ThreadCountGauge;
 import org.mashti.gauge.jvm.ThreadCpuUsageGauge;
@@ -46,10 +47,14 @@ import uk.ac.standrews.cs.trombone.core.PeerState;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class EventExecutor {
 
-    private static final int MAX_BUFFERED_EVENTS = 20000;
+    private static final int MAX_BUFFERED_EVENTS = 20_000;
     private static final Logger LOGGER = LoggerFactory.getLogger(EventExecutor.class);
+
     private final Rate lookup_execution_rate = new Rate();
     private final Rate lookup_failure_rate = new Rate();
+    private final Sampler lookup_failure_hop_count_sampler = new Sampler();
+    private final Sampler lookup_failure_retry_count_sampler = new Sampler();
+    private final Timer lookup_failure_delay_timer = new Timer();
     private final Rate lookup_correctness_rate = new Rate();
     private final Sampler lookup_correctness_hop_count_sampler = new Sampler();
     private final Sampler lookup_correctness_retry_count_sampler = new Sampler();
@@ -63,6 +68,8 @@ public class EventExecutor {
     private final Rate peer_departure_rate = new Rate();
     private final Sampler event_execution_lag_sampler = new Sampler();
     private final Timer event_execution_duration_timer = new Timer();
+    private final Rate event_scheduling_rate = new Rate();
+    private final Rate event_completion_rate = new Rate();
     private final DelayQueue<RunnableExperimentEvent> runnable_events;
     private final ExecutorService task_populator;
     private final ExecutorService task_scheduler;
@@ -77,6 +84,15 @@ public class EventExecutor {
     private final ThreadCountGauge thread_count_gauge = new ThreadCountGauge();
     private final SystemLoadAverageGauge system_load_average_gauge = new SystemLoadAverageGauge();
     private final ThreadCpuUsageGauge thread_cpu_usage_gauge = new ThreadCpuUsageGauge();
+    private final MemoryUsageGauge memory_usage_gauge = new MemoryUsageGauge();
+    private final Gauge event_executor_queue_size = new Gauge() {
+
+        @Override
+        public Object get() {
+
+            return task_executor.getQueue().size();
+        }
+    };
     private final Gauge reachable_state_size_per_alive_peer_gauge = new Gauge() {
 
         @Override
@@ -96,6 +112,25 @@ public class EventExecutor {
             return number_of_reachable_state / available_peer_counter.get();
         }
     };
+    private final Gauge unreachable_state_size_per_alive_peer_gauge = new Gauge() {
+
+        @Override
+        public Object get() {
+
+            double number_of_unreachable_state = 0;
+            for (Peer peer : peers_map.values()) {
+                if (peer.isExposed()) {
+                    final PeerState state = peer.getPeerState();
+                    for (InternalPeerReference reference : state) {
+                        if (!reference.isReachable()) {
+                            number_of_unreachable_state++;
+                        }
+                    }
+                }
+            }
+            return number_of_unreachable_state / available_peer_counter.get();
+        }
+    };
 
     private final Gauge<Integer> queue_size_gauge = new Gauge<Integer>() {
 
@@ -106,7 +141,7 @@ public class EventExecutor {
         }
     };
     private final Future<Void> task_populator_future;
-    private final Properties scenario_properties;
+    private final JSONObject scenario_properties;
     private final int lookup_retry_count;
     private Future<Void> task_scheduler_future;
     private long start_time;
@@ -122,18 +157,20 @@ public class EventExecutor {
 
         event_reader = new EventReader(events_home, host_index, host_indices);
         runnable_events = new DelayQueue<RunnableExperimentEvent>();
-        task_populator = Executors.newFixedThreadPool(100, new NamedThreadFactory("task_populator_"));
-        task_scheduler = Executors.newFixedThreadPool(10, new NamedThreadFactory("task_scheduler_"));
-        task_executor = new ThreadPoolExecutor(100, 700, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("task_executor_"));
+        task_populator = Executors.newFixedThreadPool(1, new NamedThreadFactory("task_populator_"));
+        task_scheduler = Executors.newFixedThreadPool(1, new NamedThreadFactory("task_scheduler_"));
+        task_executor = new ThreadPoolExecutor(200, 800, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("task_executor_"));
         task_executor.prestartAllCoreThreads();
-        //        task_executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
-        load_balancer = new Semaphore(MAX_BUFFERED_EVENTS, true);
-        scenario_properties = EventReader.readScenarioProperties(events_home);
-        lookup_retry_count = getLookupRetryCount();
 
+        load_balancer = new Semaphore(MAX_BUFFERED_EVENTS, true);
+        scenario_properties = EventReader.readScenario(events_home);
+        lookup_retry_count = getLookupRetryCount();
         metric_registry = new MetricRegistry("test");
         metric_registry.register("lookup_execution_rate", lookup_execution_rate);
         metric_registry.register("lookup_failure_rate", lookup_failure_rate);
+        metric_registry.register("lookup_failure_hop_count_sampler", lookup_failure_hop_count_sampler);
+        metric_registry.register("lookup_failure_retry_count_sampler", lookup_failure_retry_count_sampler);
+        metric_registry.register("lookup_failure_delay_timer", lookup_failure_delay_timer);
         metric_registry.register("lookup_correctness_rate", lookup_correctness_rate);
         metric_registry.register("lookup_correctness_hop_count_sampler", lookup_correctness_hop_count_sampler);
         metric_registry.register("lookup_correctness_retry_count_sampler", lookup_correctness_retry_count_sampler);
@@ -146,15 +183,20 @@ public class EventExecutor {
         metric_registry.register("peer_arrival_rate", peer_arrival_rate);
         metric_registry.register("peer_departure_rate", peer_departure_rate);
         metric_registry.register("sent_bytes_rate", PeerMetric.getGlobalSentBytesRate());
+        metric_registry.register("event_executor_queue_size", event_executor_queue_size);
         metric_registry.register("event_execution_lag_sampler", event_execution_lag_sampler);
         metric_registry.register("event_execution_duration_timer", event_execution_duration_timer);
+        metric_registry.register("event_scheduling_rate", event_scheduling_rate);
+        metric_registry.register("event_completion_rate", event_completion_rate);
         metric_registry.register("join_failure_rate", join_failure_rate);
         metric_registry.register("join_success_rate", join_success_rate);
         metric_registry.register("queue_size_gauge", queue_size_gauge);
         metric_registry.register("reachable_state_size_per_alive_peer_gauge", reachable_state_size_per_alive_peer_gauge);
+        metric_registry.register("unreachable_state_size_per_alive_peer_gauge", unreachable_state_size_per_alive_peer_gauge);
         metric_registry.register("thread_count_gauge", thread_count_gauge);
         metric_registry.register("system_load_average_gauge", system_load_average_gauge);
         metric_registry.register("thread_cpu_usage_gauge", thread_cpu_usage_gauge);
+        metric_registry.register("memory_usage_gauge", memory_usage_gauge);
 
         csv_reporter = new CsvReporter(metric_registry, observations_home);
         task_populator_future = startTaskQueuePopulator();
@@ -162,16 +204,14 @@ public class EventExecutor {
 
     private Duration getObservationInterval() {
 
-        final String duration_as_string = scenario_properties.getProperty("scenario.observation_interval");
-        return Duration.valueOf(duration_as_string);
+        final JSONObject observation_interval_json = scenario_properties.getJSONObject("observationInterval");
+        return new Duration(observation_interval_json.getLong("length"), TimeUnit.valueOf(observation_interval_json.getString("timeUnit")));
 
     }
 
     private int getLookupRetryCount() {
 
-        final String retry_count = scenario_properties.getProperty("scenario.lookup.retry_count");
-        return Integer.valueOf(retry_count);
-
+        return scenario_properties.getInt("lookupRetryCount");
     }
 
     public long getCurrentTimeInNanos() {
@@ -199,14 +239,16 @@ public class EventExecutor {
                         while (!Thread.currentThread().isInterrupted() && !task_populator_future.isDone() || !runnable_events.isEmpty()) {
                             final RunnableExperimentEvent runnable = runnable_events.take();
                             task_executor.execute(runnable);
+                            event_scheduling_rate.mark();
                             load_balancer.release();
+
                         }
                     }
-                    catch (Exception e) {
+                    catch (Throwable e) {
                         LOGGER.error("failure occurred while executing events", e);
                     }
                     finally {
-                        LOGGER.info("finished executing events");
+                        LOGGER.info("finished executing events ");
                         csv_reporter.stop();
                     }
                     return null;
@@ -311,7 +353,7 @@ public class EventExecutor {
                         queueNextEvent();
                     }
                 }
-                catch (Exception e) {
+                catch (Throwable e) {
                     LOGGER.error("failure occurred while queuing events", e);
                 }
                 finally {
@@ -344,7 +386,7 @@ public class EventExecutor {
                     successful = true;
                 }
                 catch (RPCException e) {
-                    LOGGER.trace("error while attempting to join ", e);
+                    LOGGER.debug("error while attempting to join ", e);
                     successful = false;
                 }
             }
@@ -397,6 +439,7 @@ public class EventExecutor {
             }
             finally {
                 time.stop();
+                event_completion_rate.mark();
             }
         }
 
@@ -486,6 +529,9 @@ public class EventExecutor {
 
                 if (measurement.isDoneInError()) {
                     lookup_failure_rate.mark();
+                    lookup_failure_hop_count_sampler.update(hop_count);
+                    lookup_failure_retry_count_sampler.update(retry_count);
+                    lookup_failure_delay_timer.update(duration_in_nanos, TimeUnit.NANOSECONDS);
                 }
                 else if (measurement.getResult().equals(expected_result)) {
                     lookup_correctness_rate.mark();

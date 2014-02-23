@@ -4,11 +4,12 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import uk.ac.standrews.cs.trombone.core.key.Key;
-import uk.ac.standrews.cs.trombone.core.key.RandomKeyProvider;
+import uk.ac.standrews.cs.trombone.core.key.KeyProvider;
 import uk.ac.standrews.cs.trombone.core.selector.Self;
 
 import static org.junit.Assert.assertEquals;
@@ -21,7 +22,7 @@ import static org.junit.Assert.assertTrue;
 public class PeerTest {
 
     private final InetSocketAddress initial_address = new InetSocketAddress(0);
-    private final Key peer_key = new RandomKeyProvider(555, 32).get();
+    private final Key peer_key = new KeyProvider(32, DigestUtils.md5("ddd")).get();
     private final Peer peer = new Peer(initial_address, peer_key);
     private final PeerState peer_state = peer.getPeerState();
     private PeerReference peer_reference;

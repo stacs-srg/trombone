@@ -9,6 +9,7 @@ import java.util.TreeSet;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.uncommons.maths.random.MersenneTwisterRNG;
@@ -24,148 +25,155 @@ import uk.ac.standrews.cs.trombone.core.PeerMetric;
 public class EvolutionaryMaintenance extends Maintenance {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EvolutionaryMaintenance.class);
-    private static final Probability MUTATION_PROBABILITY = new Probability(0.1d);
     private static final int DISSEMINATION_STRATEGY_LIST_SIZE = 5;
     private static final DisseminationStrategyGenerator STRATEGY_GENERATOR = new DisseminationStrategyGenerator(DISSEMINATION_STRATEGY_LIST_SIZE);
-    private static final int POPULATION_SIZE = 5;
-    private static final int ELITE_COUNT = 1;
-    private final MersenneTwisterRNG random;
-    private final AtomicInteger current_candidate_index = new AtomicInteger();
-    private final PeerMetric metric;
-    private final List<DisseminationStrategy> population;
-    private final TreeSet<EvaluatedDisseminationStrategy> evaluated_strategies;
+
     private final int population_size;
     private final int elite_count;
     private final Probability mutation_probability;
-    private final AtomicDouble total_fitness = new AtomicDouble();
-    private final AtomicInteger generation = new AtomicInteger();
-    private ScheduledFuture<?> evolution;
+    private final long evolution_cycle_length;
+    private final TimeUnit evolution_cycle_unit;
 
-    public EvolutionaryMaintenance(final Peer local) {
+    @Override
+    protected PeerMaintainer maintain(Peer peer) {
 
-        this(local, POPULATION_SIZE, ELITE_COUNT, MUTATION_PROBABILITY);
+        final PeerMaintainer listener = new EvolutionaryPeerMaintainer(peer);
+        peer.addExposureChangeListener(listener);
+        return listener;
     }
 
-    public EvolutionaryMaintenance(final Peer local, int population_size, int elite_count, Probability mutation_probability) {
+    public EvolutionaryMaintenance(int population_size, int elite_count, Probability mutation_probability, long evolution_cycle_length, TimeUnit evolution_cycle_unit) {
 
-        super(local);
         this.population_size = population_size;
         this.elite_count = elite_count;
         this.mutation_probability = mutation_probability;
-        random = new MersenneTwisterRNG();            //FIXME seed
-        metric = local.getPeerMetric();
-
-        population = generateInitialPopulation();
-        evaluated_strategies = new TreeSet<>();
+        this.evolution_cycle_length = evolution_cycle_length;
+        this.evolution_cycle_unit = evolution_cycle_unit;
     }
 
-    @Override
-    public synchronized boolean isStarted() {
+    class EvolutionaryPeerMaintainer extends PeerMaintainer {
 
-        return evolution != null && !evolution.isDone() && super.isStarted();
-    }
+        private final MersenneTwisterRNG random;
+        private final AtomicInteger current_candidate_index = new AtomicInteger();
+        private final PeerMetric metric;
+        private final List<DisseminationStrategy> population;
+        private final TreeSet<EvaluatedDisseminationStrategy> evaluated_strategies;
+        private final AtomicDouble total_fitness = new AtomicDouble();
+        private final AtomicInteger generation = new AtomicInteger();
+        private ScheduledFuture<?> evolution;
 
-    @Override
-    protected synchronized void start() {
+        private EvolutionaryPeerMaintainer(final Peer peer) {
 
-        if (isStarted()) {
-            return;
+            super(peer, null);
+            random = new MersenneTwisterRNG(DigestUtils.md5(peer.getKey().getValue()));
+            metric = peer.getPeerMetric();
+
+            population = generateInitialPopulation();
+            evaluated_strategies = new TreeSet<>();
         }
-        evolution = SCHEDULER.scheduleWithFixedDelay(new Runnable() {
 
-            @Override
-            public void run() {
+        @Override
+        protected synchronized void start() {
 
-                int index = current_candidate_index.getAndIncrement();
-                if (index < population_size) {
-
-                    final DisseminationStrategy new_candidate = population.get(index);
-                    final EnvironmentSnapshot environment_snapshot = metric.getSnapshot();
-                    final DisseminationStrategy old_candidate = getAndSet(new_candidate);
-
-                    LOGGER.info("changed strategy to {}", new_candidate);
-                    if (index > 0 && old_candidate != null) {
-                        final EvaluatedDisseminationStrategy evaluated_strategy = new EvaluatedDisseminationStrategy(old_candidate, environment_snapshot);
-                        evaluated_strategies.add(evaluated_strategy);
-                        total_fitness.addAndGet(evaluated_strategy.getFitness());
-                    }
-                }
-                else {
-                    final int generation_count = generation.incrementAndGet();
-                    LOGGER.info("end of generation {}", generation_count);
-                    LOGGER.info("the fittest: {}, the least fit: {}", evaluated_strategies.first(), evaluated_strategies.last());
-
-                    population.clear();
-
-                    final Iterator<EvaluatedDisseminationStrategy> iterator = evaluated_strategies.iterator();
-                    while (iterator.hasNext() && population.size() < ELITE_COUNT) {
-                        final EvaluatedDisseminationStrategy next_fittest = iterator.next();
-                        population.add(next_fittest.getStrategy());
-                    }
-
-                    final TreeMap<Double, EvaluatedDisseminationStrategy> cumulative_evaluated_strategies = getCumulativeFitness();
-
-                    for (int i = 0; i < population_size - elite_count; i++) {
-
-                        final DisseminationStrategy one = select(cumulative_evaluated_strategies);
-                        final DisseminationStrategy other = select(cumulative_evaluated_strategies);
-                        final DisseminationStrategy offspring = STRATEGY_GENERATOR.mate(one, other, random);
-
-                        if (mutation_probability.nextEvent(random)) {
-                            STRATEGY_GENERATOR.mutate(offspring, random);
-                        }
-                        population.add(offspring);
-                    }
-                    current_candidate_index.set(0);
-                    total_fitness.set(0);
-
-                    //TODO clustering should happen here
-                    evaluated_strategies.clear();
-                }
+            if (isStarted()) {
+                return;
             }
-        }, 0, 30, TimeUnit.SECONDS);
+            evolution = SCHEDULER.scheduleWithFixedDelay(new Runnable() {
 
-        super.start();
-    }
+                @Override
+                public void run() {
 
-    @Override
-    protected synchronized void stop() {
+                    int index = current_candidate_index.getAndIncrement();
+                    if (index < population_size) {
 
-        if (isStarted()) {
-            evolution.cancel(true);
+                        final DisseminationStrategy new_candidate = population.get(index);
+                        final EnvironmentSnapshot environment_snapshot = metric.getSnapshot();
+                        final DisseminationStrategy old_candidate = strategy.getAndSet(new_candidate);
+
+                        LOGGER.debug("changed strategy to {}", new_candidate);
+                        if (index > 0 && old_candidate != null) {
+                            final EvaluatedDisseminationStrategy evaluated_strategy = new EvaluatedDisseminationStrategy(old_candidate, environment_snapshot);
+                            evaluated_strategies.add(evaluated_strategy);
+                            total_fitness.addAndGet(evaluated_strategy.getFitness());
+                        }
+                    }
+                    else {
+                        final int generation_count = generation.incrementAndGet();
+                        LOGGER.debug("end of generation {}", generation_count);
+                        LOGGER.info("the fittest: {}, the least fit: {}", evaluated_strategies.first(), evaluated_strategies.last());
+
+                        population.clear();
+
+                        final Iterator<EvaluatedDisseminationStrategy> iterator = evaluated_strategies.iterator();
+                        while (iterator.hasNext() && population.size() < elite_count) {
+                            final EvaluatedDisseminationStrategy next_fittest = iterator.next();
+                            population.add(next_fittest.getStrategy());
+                        }
+
+                        final TreeMap<Double, EvaluatedDisseminationStrategy> cumulative_evaluated_strategies = getCumulativeFitness();
+
+                        for (int i = 0; i < population_size - elite_count; i++) {
+
+                            final DisseminationStrategy one = select(cumulative_evaluated_strategies);
+                            final DisseminationStrategy other = select(cumulative_evaluated_strategies);
+                            final DisseminationStrategy offspring = STRATEGY_GENERATOR.mate(one, other, random);
+
+                            if (mutation_probability.nextEvent(random)) {
+                                STRATEGY_GENERATOR.mutate(offspring, random);
+                            }
+                            population.add(offspring);
+                        }
+                        current_candidate_index.set(0);
+                        total_fitness.set(0);
+
+                        //TODO clustering should happen here
+                        evaluated_strategies.clear();
+                    }
+                }
+            }, 0, evolution_cycle_length, evolution_cycle_unit);
+
+            super.start();
         }
-        super.stop();
-    }
 
-    private List<DisseminationStrategy> generateInitialPopulation() {
+        @Override
+        protected synchronized void stop() {
 
-        List<DisseminationStrategy> initial_population = new ArrayList<>();
-        for (int i = 0; i < population_size; i++) {
-            initial_population.add(STRATEGY_GENERATOR.generate(random));
+            if (isStarted()) {
+                evolution.cancel(true);
+            }
+            super.stop();
         }
 
-        return initial_population;
-    }
+        private List<DisseminationStrategy> generateInitialPopulation() {
 
-    private DisseminationStrategy select(final TreeMap<Double, EvaluatedDisseminationStrategy> normalized_evaluated_strategies) {
+            List<DisseminationStrategy> initial_population = new ArrayList<>();
+            for (int i = 0; i < population_size; i++) {
+                initial_population.add(STRATEGY_GENERATOR.generate(random));
+            }
 
-        final double dice = random.nextDouble();
-        final EvaluatedDisseminationStrategy selected = normalized_evaluated_strategies.ceilingEntry(dice).getValue();
-        return selected.getStrategy();
-    }
-
-    private TreeMap<Double, EvaluatedDisseminationStrategy> getCumulativeFitness() {
-
-        final TreeMap<Double, EvaluatedDisseminationStrategy> cumulative_evaluated_strategies = new TreeMap<>();
-
-        final double total_fitness = this.total_fitness.get();
-        double cumulative_normalized_fitness = 0;
-        for (final EvaluatedDisseminationStrategy evaluated_strategy : evaluated_strategies) {
-            final double fitness = evaluated_strategy.getFitness();
-            final double normalized_fitness = fitness / total_fitness;
-            cumulative_normalized_fitness += normalized_fitness;
-            cumulative_evaluated_strategies.put(cumulative_normalized_fitness, evaluated_strategy);
+            return initial_population;
         }
-        return cumulative_evaluated_strategies;
+
+        private DisseminationStrategy select(final TreeMap<Double, EvaluatedDisseminationStrategy> normalized_evaluated_strategies) {
+
+            final double dice = random.nextDouble();
+            final EvaluatedDisseminationStrategy selected = normalized_evaluated_strategies.ceilingEntry(dice).getValue();
+            return selected.getStrategy();
+        }
+
+        private TreeMap<Double, EvaluatedDisseminationStrategy> getCumulativeFitness() {
+
+            final TreeMap<Double, EvaluatedDisseminationStrategy> cumulative_evaluated_strategies = new TreeMap<>();
+
+            final double total_fitness = this.total_fitness.get();
+            double cumulative_normalized_fitness = 0;
+            for (final EvaluatedDisseminationStrategy evaluated_strategy : evaluated_strategies) {
+                final double fitness = evaluated_strategy.getFitness();
+                final double normalized_fitness = fitness / total_fitness;
+                cumulative_normalized_fitness += normalized_fitness;
+                cumulative_evaluated_strategies.put(cumulative_normalized_fitness, evaluated_strategy);
+            }
+            return cumulative_evaluated_strategies;
+        }
     }
 }

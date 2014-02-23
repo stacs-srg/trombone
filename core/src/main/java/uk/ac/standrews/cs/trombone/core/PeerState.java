@@ -66,7 +66,7 @@ public class PeerState implements Iterable<InternalPeerReference> {
         return getEntryValue(higher_entry);
     }
 
-    public PeerReference[] topReachable(final int size) {
+    public PeerReference[] firstReachable(final int size) {
 
         final PeerReference[] references = new PeerReference[size];
         final Iterator<InternalPeerReference> iterator = state.values().iterator();
@@ -81,7 +81,7 @@ public class PeerState implements Iterable<InternalPeerReference> {
         return references;
     }
 
-    public PeerReference[] bottomReachable(final int size) {
+    public PeerReference[] lastReachable(final int size) {
 
         final PeerReference[] references = new PeerReference[size];
         final Iterator<Key> iterator = state.descendingKeySet().iterator();
@@ -114,6 +114,30 @@ public class PeerState implements Iterable<InternalPeerReference> {
     public PeerReference first() {
 
         return getEntryValue(state.firstEntry());
+    }
+
+    public PeerReference[] first(int count) {
+
+        final PeerReference[] references = new PeerReference[count];
+        final Iterator<InternalPeerReference> iterator = state.values().iterator();
+        int index = 0;
+        while (iterator.hasNext() && index < count) {
+            references[index] = iterator.next();
+            index++;
+        }
+        return references;
+    }
+
+    public PeerReference[] last(int count) {
+
+        final PeerReference[] references = new PeerReference[count];
+        final Iterator<InternalPeerReference> iterator = state.descendingMap().values().iterator();
+        int index = 0;
+        while (iterator.hasNext() && index < count) {
+            references[index] = iterator.next();
+            index++;
+        }
+        return references;
     }
 
     public PeerReference firstReachable() {

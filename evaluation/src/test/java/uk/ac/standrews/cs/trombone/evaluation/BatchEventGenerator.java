@@ -11,11 +11,10 @@ import org.junit.runners.Parameterized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
-import uk.ac.standrews.cs.trombone.evaluation.scenarios.PlatformJustificationSingleHost;
+import uk.ac.standrews.cs.trombone.evaluation.scenarios.BaseScenario;
 import uk.ac.standrews.cs.trombone.evaluation.util.FileSystemUtils;
 import uk.ac.standrews.cs.trombone.evaluation.util.ScenarioUtils;
 import uk.ac.standrews.cs.trombone.event.EventGenerator;
-import uk.ac.standrews.cs.trombone.event.Participant;
 import uk.ac.standrews.cs.trombone.event.Scenario;
 
 import static org.junit.Assume.assumeTrue;
@@ -32,27 +31,28 @@ public final class BatchEventGenerator {
     private Path scenario_home;
     private Path scenario_events;
 
-    private static final Scenario[] SCENARIOS = {
-            new PlatformJustificationSingleHost(100), 
-            new PlatformJustificationSingleHost(200), 
-            new PlatformJustificationSingleHost(300), 
-            new PlatformJustificationSingleHost(400), 
-            new PlatformJustificationSingleHost(500), 
-            new PlatformJustificationSingleHost(600), 
-            new PlatformJustificationSingleHost(700), 
-            new PlatformJustificationSingleHost(800), 
-            new PlatformJustificationSingleHost(900) 
-//            new PlatformJustificationSingleHost(10), 
-//            new PlatformJustificationSingleHost(20), 
-//            new PlatformJustificationSingleHost(30), 
-//            new PlatformJustificationSingleHost(40), 
-//            new PlatformJustificationSingleHost(48), 
-//            new PlatformJustificationMultipleHost(10),
-//            new PlatformJustificationMultipleHost(20),
-//            new PlatformJustificationMultipleHost(30),
-//            new PlatformJustificationMultipleHost(40),
-//            new PlatformJustificationMultipleHost(48)
-    };
+    private static final Object[] SCENARIOS = BaseScenario.generateAll().toArray();
+    //    private static final Scenario[] SCENARIOS = {
+    //            new PlatformJustificationSingleHost(100),
+    //            new PlatformJustificationSingleHost(200),
+    //            new PlatformJustificationSingleHost(300),
+    //            new PlatformJustificationSingleHost(400),
+    //            new PlatformJustificationSingleHost(500),
+    //            new PlatformJustificationSingleHost(600),
+    //            new PlatformJustificationSingleHost(700),
+    //            new PlatformJustificationSingleHost(800),
+    //            new PlatformJustificationSingleHost(900),
+    //            new PlatformJustificationSingleHost(10),
+    //            new PlatformJustificationSingleHost(20),
+    //            new PlatformJustificationSingleHost(30),
+    //            new PlatformJustificationSingleHost(40),
+    //            new PlatformJustificationSingleHost(48),
+    //            new PlatformJustificationMultipleHost(10),
+    //            new PlatformJustificationMultipleHost(20),
+    //            new PlatformJustificationMultipleHost(30),
+    //            new PlatformJustificationMultipleHost(40),
+    //            new PlatformJustificationMultipleHost(48)
+    //    };
 
     public BatchEventGenerator(Scenario scenario) {
 
@@ -68,7 +68,6 @@ public final class BatchEventGenerator {
     @Before
     public void setUp() throws Exception {
 
-        Participant.resetNextId();
         scenario_name = scenario.getName();
         scenario_home = ScenarioUtils.getScenarioHome(scenario_name);
         Files.createDirectories(scenario_home);

@@ -1,18 +1,16 @@
 package uk.ac.standrews.cs.trombone.event;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.atomic.AtomicInteger;
 import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
 import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.event.churn.Churn;
-import uk.ac.standrews.cs.trombone.event.workload.Workload;
+import uk.ac.standrews.cs.trombone.event.churn.Workload;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class Participant implements Comparable<Participant> {
 
-    private static final AtomicInteger NEXT_ID = new AtomicInteger();
     private final Integer id;
     private final Key key;
     private final InetSocketAddress address;
@@ -21,20 +19,15 @@ public class Participant implements Comparable<Participant> {
     private final PeerConfiguration configuration;
     private final PeerReference reference;
 
-    public Participant(final Key key, final InetSocketAddress address, final Churn churn, final Workload workload, final PeerConfiguration configuration) {
+    public Participant(int id, final Key key, final InetSocketAddress address, final Churn churn, final Workload workload, final PeerConfiguration configuration) {
 
-        id = NEXT_ID.incrementAndGet();
+        this.id = id;
         this.key = key;
         this.address = address;
         this.churn = churn;
         this.workload = workload;
         this.configuration = configuration;
         reference = new PeerReference(key, address);
-    }
-
-    public static void resetNextId() {
-
-        NEXT_ID.set(0);
     }
 
     public Integer getId() {

@@ -4,11 +4,12 @@
     <title>Google Chart Example</title>
 
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
-    <script type="text/javascript" src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
-    <script type="text/javascript" src="../js/jquery.csv-0.71.min.js"></script>
-    <script type="text/javascript" src="../js/json2.js"></script>
-    <script type="text/javascript" src="../js/charts.js"></script>
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="../js/jquery.csv-0.71.min.js"></script>
+    <script src="../js/json2.js"></script>
+    <script src="../js/charts.js"></script>
     <link rel="stylesheet" type="text/css" href="../css/default.css"/>
+
 </head>
 <body>
 
@@ -27,49 +28,33 @@
 <div class="chart" id="chart11"></div>
 <div class="chart" id="chart12"></div>
 <div class="chart" id="chart13"></div>
-  <input type="button" onclick="ff()">
+<div class="chart" id="chart14"></div>
+<div class="chart" id="chart15"></div>
+
 
 <script>
 
-    var wrapper;
+
     function drawChart(metric, containerId) {
 
-        var single_48 = getDataTable("PlatformJustificationSingleHost48", metric);
-        var single_40 = getDataTable("PlatformJustificationSingleHost40", metric);
-        var single_30 = getDataTable("PlatformJustificationSingleHost30", metric);
-        var single_20 = getDataTable("PlatformJustificationSingleHost20", metric);
-        var single_10 = getDataTable("PlatformJustificationSingleHost10", metric);
 
-        var multiple_10 = getDataTable("PlatformJustificationMultipleHost10", metric);
-        var multiple_20 = getDataTable("PlatformJustificationMultipleHost20", metric);
-        var multiple_30 = getDataTable("PlatformJustificationMultipleHost30", metric);
-        var multiple_40 = getDataTable("PlatformJustificationMultipleHost40", metric);
-        var multiple_48 = getDataTable("PlatformJustificationMultipleHost48", metric);
-
-        var summary = google.visualization.arrayToDataTable([
-            ['Network Size', 'Single Machine', 'Multiple Machine'],
-            [10, getAverageOfColumn(single_10, 1) , getAverageOfColumn(multiple_10, 1)],
-            [20, getAverageOfColumn(single_20, 1) , getAverageOfColumn(multiple_20, 1)],
-            [30, getAverageOfColumn(single_30, 1) , getAverageOfColumn(multiple_30, 1)],
-            [40, getAverageOfColumn(single_40, 1) , getAverageOfColumn(multiple_40, 1)],
-            [48, getAverageOfColumn(single_48, 1) , getAverageOfColumn(multiple_48, 1)]
-        ]);
+        var network_size = 700;
+        var single = getDataTable("PlatformJustificationSingleHost" + network_size, metric);
 
         var title = replaceAll(metric, '_', ' ');
         title = replaceAll(title, '.json', '');
+        title = replaceAll(title, '.csv', '');
         title = toTitleCase(title);
 
 
-        wrapper = new google.visualization.ChartWrapper({
-            chartType: 'ScatterChart',
-            dataTable: summary,
+        var wrapper = new google.visualization.ChartWrapper({
+            chartType: 'LineChart',
+            lineWidth: 1,
+            dataTable: single,
             options: {
-                title: title,
-                width: 600,
-                height: 300,
-                legend: {position: "bottom"},
-                hAxis: {title: "Network Size"},
-                vAxis: {title: title, viewWindow: {min: 0}}
+                title: title, width: 600, height: 300, lineWidth: 1,
+                intervals: { 'style': 'area' }, legend: {position: "bottom"},
+                hAxis: {title: "Time Through Experiment (s)"}, vAxis: {title: title, viewWindow: {min: 0}}
             },
             containerId: containerId
         });
@@ -90,8 +75,10 @@
     google.setOnLoadCallback(drawChart("lookup_incorrectness_hop_count_sampler.json", "chart11"));
     google.setOnLoadCallback(drawChart("thread_cpu_usage_gauge.json", "chart12"));
     google.setOnLoadCallback(drawChart("thread_count_gauge.json", "chart13"));
-
+    google.setOnLoadCallback(drawChart("reachable_state_size_per_alive_peer_gauge.json", "chart14"));
+    google.setOnLoadCallback(drawChart("system_load_average_gauge.json", "chart15"));
 
 </script>
+
 </body>
 </html>

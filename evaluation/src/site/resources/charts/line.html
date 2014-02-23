@@ -26,6 +26,10 @@
 <div class="chart" id="chart9"></div>
 <div class="chart" id="chart10"></div>
 <div class="chart" id="chart11"></div>
+<div class="chart" id="chart12"></div>
+<div class="chart" id="chart13"></div>
+<div class="chart" id="chart14"></div>
+<div class="chart" id="chart15"></div>
 
 
 <script>
@@ -73,10 +77,6 @@
         wrapper.draw();
     }
 
-    function getOptions() {
-        var ss = JSON.stringify(wrapper.getOptions());
-        alert(ss);
-    }
     google.setOnLoadCallback(drawChart("available_peer_count.json", "chart0"));
     google.setOnLoadCallback(drawChart("lookup_incorrectness_delay_timer.json", "chart1"));
     google.setOnLoadCallback(drawChart("lookup_correctness_delay_timer.json", "chart2"));
@@ -89,6 +89,10 @@
     google.setOnLoadCallback(drawChart("sent_bytes_rate.json", "chart9"));
     google.setOnLoadCallback(drawChart("lookup_correctness_hop_count_sampler.json", "chart10"));
     google.setOnLoadCallback(drawChart("lookup_incorrectness_hop_count_sampler.json", "chart11"));
+    google.setOnLoadCallback(drawChart("thread_cpu_usage_gauge.json", "chart12"));
+    google.setOnLoadCallback(drawChart("thread_count_gauge.json", "chart13"));
+    google.setOnLoadCallback(drawChart("reachable_state_size_per_alive_peer_gauge.json", "chart14"));
+    google.setOnLoadCallback(drawChart("system_load_average_gauge.json", "chart15"));
 
 </script>
 

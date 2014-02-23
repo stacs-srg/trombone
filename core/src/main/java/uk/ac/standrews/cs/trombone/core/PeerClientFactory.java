@@ -5,6 +5,7 @@ import com.google.common.util.concurrent.Futures;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -15,7 +16,6 @@ import org.mashti.jetson.Client;
 import org.mashti.jetson.ClientFactory;
 import org.mashti.jetson.FutureResponse;
 import org.mashti.jetson.exception.RPCException;
-import org.mashti.jetson.exception.TransportException;
 import org.mashti.jetson.lean.LeanClientChannelInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,49 +29,56 @@ class PeerClientFactory extends ClientFactory<PeerRemote> {
     private static final ChannelPool CHANNEL_POOL = new ChannelPool(BOOTSTRAP);
 
     static {
-        //        BOOTSTRAP.group(new NioEventLoopGroup(100));
-        BOOTSTRAP.group(PeerServerFactory.child_event_loop);
+        BOOTSTRAP.group(new NioEventLoopGroup(100));
+        //        BOOTSTRAP.group(PeerServerFactory.child_event_loop);
         BOOTSTRAP.channel(NioSocketChannel.class);
         BOOTSTRAP.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5_000);
         BOOTSTRAP.option(ChannelOption.TCP_NODELAY, true);
         BOOTSTRAP.handler(new LeanClientChannelInitializer(PeerRemote.class, PeerCodecs.INSTANCE));
 
-        CHANNEL_POOL.setTestOnBorrow(true);
-        CHANNEL_POOL.setTestOnReturn(true);
-        CHANNEL_POOL.setMaxTotalPerKey(4);
-        CHANNEL_POOL.setBlockWhenExhausted(false);
+        CHANNEL_POOL.setBlockWhenExhausted(true);
+        CHANNEL_POOL.setMaxWaitMillis(1000);
+        CHANNEL_POOL.setMaxTotalPerKey(1);
+
+        CHANNEL_POOL.setTestOnReturn(false);
     }
 
     private final Peer peer;
     private final SyntheticDelay synthetic_delay;
     private final PeerState peer_state;
     private final PeerMetric peer_metric;
-    private final Maintenance peer_maintenance;
     private final InetAddress peer_address;
 
     PeerClientFactory(final Peer peer, final SyntheticDelay synthetic_delay) {
 
-        super(PeerRemote.class, BOOTSTRAP, CHANNEL_POOL);
+        super(PeerRemote.class, BOOTSTRAP);
         this.peer = peer;
         this.synthetic_delay = synthetic_delay;
         peer_state = peer.getPeerState();
         peer_metric = peer.getPeerMetric();
-        peer_maintenance = peer.getMaintenance();
         peer_address = peer.getAddress().getAddress();
+    }
+
+    @Override
+    protected ChannelPool constructChannelPool(final Bootstrap bootstrap) {
+
+        return CHANNEL_POOL;
     }
 
     PeerRemote get(final PeerReference reference) {
 
-        final PeerRemote remote = get(reference.getAddress());
+        final InetSocketAddress address = reference.getAddress();
+        final PeerRemote remote = get(address);
         final PeerClient handler = (PeerClient) Proxy.getInvocationHandler(remote);
         handler.reference = peer_state.getInternalReference(reference);
+
         return remote;
     }
 
     @Override
     protected Client createClient(final InetSocketAddress address) {
 
-        return new PeerClient(address, CHANNEL_POOL);
+        return new PeerClient(address);
     }
 
     public class PeerClient extends Client {
@@ -79,9 +86,9 @@ class PeerClientFactory extends ClientFactory<PeerRemote> {
         private final InetAddress client_address;
         volatile InternalPeerReference reference;
 
-        protected PeerClient(final InetSocketAddress address, final ChannelPool pool) {
+        protected PeerClient(final InetSocketAddress address) {
 
-            super(address, dispatch, pool);
+            super(address, dispatch, CHANNEL_POOL);
             setWrittenByteCountListener(peer_metric);
             client_address = address.getAddress();
         }
@@ -122,9 +129,7 @@ class PeerClientFactory extends ClientFactory<PeerRemote> {
                 public void onFailure(final Throwable t) {
 
                     LOGGER.debug("failure occurred on future", t);
-                    if (t instanceof TransportException) {
-                        reference.setReachable(false);
-                    }
+                    reference.setReachable(false);
                 }
             });
             return future_response;
@@ -133,7 +138,7 @@ class PeerClientFactory extends ClientFactory<PeerRemote> {
         @Override
         protected void beforeFlush(final Channel channel, final FutureResponse future_response) throws RPCException {
 
-            final DisseminationStrategy strategy = peer_maintenance.getDisseminationStrategy();
+            final DisseminationStrategy strategy = peer.getDisseminationStrategy();
             if (strategy != null) {
                 for (DisseminationStrategy.Action action : strategy) {
                     if (action.isOpportunistic() && action.recipientsContain(peer, reference)) {

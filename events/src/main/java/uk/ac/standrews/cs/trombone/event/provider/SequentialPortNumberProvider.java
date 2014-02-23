@@ -1,13 +1,14 @@
 package uk.ac.standrews.cs.trombone.event.provider;
 
-import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.inject.Provider;
+import uk.ac.standrews.cs.trombone.core.util.Copyable;
+import uk.ac.standrews.cs.trombone.core.util.Named;
+import uk.ac.standrews.cs.trombone.core.util.NamingUtils;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class SequentialPortNumberProvider implements Provider<Integer>, Serializable, Cloneable {
+public class SequentialPortNumberProvider implements Provider<Integer>, Copyable, Named {
 
-    private static final long serialVersionUID = -7586002873803828004L;
     private final int start;
     private final AtomicInteger next_port;
 
@@ -16,6 +17,11 @@ public class SequentialPortNumberProvider implements Provider<Integer>, Serializ
         if (start < 0 || start > 0xffff) { throw new IllegalArgumentException("invalid start port"); }
         this.start = start;
         next_port = new AtomicInteger(start);
+    }
+
+    public int getStart() {
+
+        return start;
     }
 
     @Override
@@ -34,8 +40,14 @@ public class SequentialPortNumberProvider implements Provider<Integer>, Serializ
     }
 
     @Override
-    public SequentialPortNumberProvider clone() {
+    public SequentialPortNumberProvider copy() {
 
         return new SequentialPortNumberProvider(start);
+    }
+
+    @Override
+    public String getName() {
+
+        return NamingUtils.name(this);
     }
 }

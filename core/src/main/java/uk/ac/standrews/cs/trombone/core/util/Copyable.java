@@ -3,9 +3,7 @@ package uk.ac.standrews.cs.trombone.core.util;
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface Repeatable {
+public interface Copyable {
 
-    void setSeed(long seed);
-
-    long getSeed();
+    Object copy();
 }

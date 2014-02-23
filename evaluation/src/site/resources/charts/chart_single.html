@@ -27,32 +27,34 @@
 <div class="chart" id="chart11"></div>
 <div class="chart" id="chart12"></div>
 <div class="chart" id="chart13"></div>
-  <input type="button" onclick="ff()">
+<input type="button" onclick="ff()">
 
 <script>
 
     var wrapper;
     function drawChart(metric, containerId) {
 
-        var single_48 = getDataTable("PlatformJustificationSingleHost48", metric);
-        var single_40 = getDataTable("PlatformJustificationSingleHost40", metric);
-        var single_30 = getDataTable("PlatformJustificationSingleHost30", metric);
-        var single_20 = getDataTable("PlatformJustificationSingleHost20", metric);
-        var single_10 = getDataTable("PlatformJustificationSingleHost10", metric);
-
-        var multiple_10 = getDataTable("PlatformJustificationMultipleHost10", metric);
-        var multiple_20 = getDataTable("PlatformJustificationMultipleHost20", metric);
-        var multiple_30 = getDataTable("PlatformJustificationMultipleHost30", metric);
-        var multiple_40 = getDataTable("PlatformJustificationMultipleHost40", metric);
-        var multiple_48 = getDataTable("PlatformJustificationMultipleHost48", metric);
+        var single_900 = getDataTable("PlatformJustificationSingleHost900", metric);
+        var single_800 = getDataTable("PlatformJustificationSingleHost800", metric);
+        var single_700 = getDataTable("PlatformJustificationSingleHost700", metric);
+        var single_600 = getDataTable("PlatformJustificationSingleHost600", metric);
+        var single_500 = getDataTable("PlatformJustificationSingleHost500", metric);
+        var single_400 = getDataTable("PlatformJustificationSingleHost400", metric);
+        var single_300 = getDataTable("PlatformJustificationSingleHost300", metric);
+        var single_200 = getDataTable("PlatformJustificationSingleHost200", metric);
+        var single_100 = getDataTable("PlatformJustificationSingleHost100", metric);
 
         var summary = google.visualization.arrayToDataTable([
-            ['Network Size', 'Single Machine', 'Multiple Machine'],
-            [10, getAverageOfColumn(single_10, 1) , getAverageOfColumn(multiple_10, 1)],
-            [20, getAverageOfColumn(single_20, 1) , getAverageOfColumn(multiple_20, 1)],
-            [30, getAverageOfColumn(single_30, 1) , getAverageOfColumn(multiple_30, 1)],
-            [40, getAverageOfColumn(single_40, 1) , getAverageOfColumn(multiple_40, 1)],
-            [48, getAverageOfColumn(single_48, 1) , getAverageOfColumn(multiple_48, 1)]
+            ['Network Size', 'Single Machine'],
+            [100, getAverageOfColumn(single_100, 1)],
+            [200, getAverageOfColumn(single_200, 1)],
+            [300, getAverageOfColumn(single_300, 1)],
+            [400, getAverageOfColumn(single_400, 1)],
+            [500, getAverageOfColumn(single_500, 1)],
+            [600, getAverageOfColumn(single_600, 1)],
+            [700, getAverageOfColumn(single_700, 1)],
+            [800, getAverageOfColumn(single_800, 1)],
+            [900, getAverageOfColumn(single_900, 1)]
         ]);
 
         var title = replaceAll(metric, '_', ' ');

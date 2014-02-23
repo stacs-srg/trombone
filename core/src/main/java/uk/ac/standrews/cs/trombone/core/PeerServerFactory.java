@@ -19,11 +19,12 @@ import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-class PeerServerFactory extends ServerFactory<PeerRemote> {
+public class PeerServerFactory extends ServerFactory<PeerRemote> {
 
-    static final NioEventLoopGroup child_event_loop = new NioEventLoopGroup(100, new NamedThreadFactory("server_child_event_loop_"));
+    public static final NioEventLoopGroup child_event_loop = new NioEventLoopGroup(100, new NamedThreadFactory("server_child_event_loop_"));
     private static final ServerBootstrap SERVER_BOOTSTRAP = new ServerBootstrap();
-    private static final ThreadPoolExecutor SERVER_REQUEST_EXECUTOR = new ThreadPoolExecutor(5, 300, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+    private static final ThreadPoolExecutor SERVER_REQUEST_EXECUTOR = new ThreadPoolExecutor(50, 1000, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+
     static {
 
         final NioEventLoopGroup parent_event_loop = new NioEventLoopGroup(100, new NamedThreadFactory("server_parent_event_loop_"));
@@ -45,9 +46,7 @@ class PeerServerFactory extends ServerFactory<PeerRemote> {
     @Override
     public Server createServer(final PeerRemote service) {
 
-        return new MyServer(server_bootstrap, service, SERVER_REQUEST_EXECUTOR) {
-
-        };
+        return new MyServer(server_bootstrap, service, SERVER_REQUEST_EXECUTOR);
     }
 
     static class MyServer extends Server {
