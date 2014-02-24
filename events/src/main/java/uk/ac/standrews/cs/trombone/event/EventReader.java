@@ -200,12 +200,12 @@ public class EventReader implements Closeable, Iterator<Event> {
         try (final CsvListReader reader = getReader(lookup_targets_csv)) {
             reader.getHeader(true); //skip header
             List<String> row = reader.read();
-            do {
+            while (row != null) {
                 final Integer index = Integer.valueOf(row.get(0));
                 final Key key = Key.valueOf(row.get(1));
                 lookup_targets.put(index, key);
                 row = reader.read();
-            } while (row != null);
+            }
             return lookup_targets;
         }
     }

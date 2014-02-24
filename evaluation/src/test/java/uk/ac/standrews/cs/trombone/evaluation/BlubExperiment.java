@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.ReentrantLock;
 import org.apache.commons.io.FilenameUtils;
 import org.junit.After;
@@ -53,6 +54,7 @@ public class BlubExperiment {
     private final Path events_zip;
     private final String scenario_name;
     private static final ReentrantLock lock = new ReentrantLock(true);
+    private static final Semaphore semaphore = new Semaphore(10);
 
     @Rule
     public ExperimentWatcher watcher = new ExperimentWatcher();
@@ -68,7 +70,6 @@ public class BlubExperiment {
                 return dir.isDirectory() && !name.startsWith(".") && !name.endsWith(".log");
             }
         });
-
         final List<String> scenarios_with_repetitions = new ArrayList<>();
 
         for (int i = 0; i < Constants.NUMBER_OF_REPETITIONS; i++) {
@@ -92,6 +93,8 @@ public class BlubExperiment {
 
     @Before
     public void setup() throws Exception {
+
+        semaphore.acquire();
 
         lock.lock();
         try {
@@ -199,6 +202,7 @@ public class BlubExperiment {
         LOGGER.info("shutting down worker network");
         worker_network.shutdown();
         LOGGER.info("Done");
+        semaphore.release();
     }
 
     private void killAllJavaProcessesOnHosts() {

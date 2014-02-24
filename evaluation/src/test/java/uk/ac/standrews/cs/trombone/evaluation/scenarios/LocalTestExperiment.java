@@ -27,10 +27,10 @@ public class LocalTestExperiment {
     @Test
     public void testAGeneration() throws Exception {
 
-        testGeneration(LOCAL_TEST_SCENARIO_100);
-        testGeneration(LOCAL_TEST_SCENARIO_20);
+//        testGeneration(LOCAL_TEST_SCENARIO_100);
+//        testGeneration(LOCAL_TEST_SCENARIO_20);
         testGeneration(LOCAL_TEST_SCENARIO_1000);
-        testGeneration(LOCAL_TEST_SCENARIO_500);
+//        testGeneration(LOCAL_TEST_SCENARIO_500);
     }
 
     private void testGeneration(final Scenario scenario) throws Exception {
