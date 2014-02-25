@@ -62,9 +62,9 @@ public class EvolutionaryMaintenance extends Maintenance {
         return elite_count;
     }
 
-    public Probability getMutationProbability() {
+    public double getMutationProbability() {
 
-        return mutation_probability;
+        return mutation_probability.doubleValue();
     }
 
     public long getEvolutionCycleLength() {

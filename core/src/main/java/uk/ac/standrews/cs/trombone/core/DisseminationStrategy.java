@@ -89,6 +89,7 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
 
     public static class Action implements Serializable {
 
+        private static final long serialVersionUID = -8157677096305292929L;
         private final boolean opportunistic;
         private final boolean push;
         private final Selector data_selector;
@@ -138,13 +139,7 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
         @Override
         public String toString() {
 
-            final StringBuilder sb = new StringBuilder("Action{");
-            sb.append("opportunistic=").append(opportunistic);
-            sb.append(", push=").append(push);
-            sb.append(", data_selector=").append(data_selector);
-            sb.append(", recipient_selector=").append(recipient_selector);
-            sb.append('}');
-            return sb.toString();
+            return "Action{" + "opportunistic=" + opportunistic + ", push=" + push + ", data_selector=" + data_selector + ", recipient_selector=" + recipient_selector + '}';
         }
 
         PeerReference[] getPushData(final Peer local) {

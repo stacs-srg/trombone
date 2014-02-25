@@ -105,7 +105,7 @@ public class BlubExperiment {
         network = new WorkerNetwork();
         final WorkerManager manager = network.getWorkerManager();
         manager.setWorkerJVMArguments("-Xmx2G");
-        manager.setWorkerDeploymentTimeout(new Duration(1, TimeUnit.MINUTES));
+        manager.setWorkerDeploymentTimeout(new Duration(5, TimeUnit.MINUTES));
 
 //        network.addMavenDependency("uk.ac.standrews.cs.t3", "evaluation", "1.0-SNAPSHOT", "tests");
 //        network.addMavenDependency("uk.ac.standrews.cs.t3", "evaluation", "1.0-SNAPSHOT", null);
@@ -166,7 +166,7 @@ public class BlubExperiment {
         final Path observations = BlubEventExecutionJob.newObservationsPath(repetitions);
         LOGGER.info("collected observations will be stored at {}", observations.toAbsolutePath());
 
-        boolean failed = false;
+        Exception error = null;
 
         try (FileSystem observations_fs = FileSystemUtils.newZipFileSystem(observations, true)) {
 
@@ -197,15 +197,17 @@ public class BlubExperiment {
                     }
                 }
                 catch (InterruptedException | ExecutionException e) {
-                    LOGGER.error("Event execution on host {} failed due to {}", host, e);
-                    LOGGER.error("Failure details", e);
-                    failed = true;
+                    final Throwable cause = e.getCause();
+                    LOGGER.error("Event execution on host {} failed due to {}", host, cause != null ? cause : e);
+                    LOGGER.error("Failure details", cause != null ? cause : e);
+                    error = e;
                     break;
                 }
             }
         }
-        if (failed) {
+        if (error != null) {
             Files.deleteIfExists(observations);
+            throw error;
         }
     }
 
@@ -237,7 +239,7 @@ public class BlubExperiment {
                 network.kill(worker);
             }
             catch (Exception e) {
-                LOGGER.warn("failed to kill worker on {} used in scenario {} due to ", worker.getHost().getName(), scenario_name, e);
+                LOGGER.trace("failed to kill worker on {} used in scenario {} due to ", worker.getHost().getName(), scenario_name, e);
             }
             finally {
                 network.remove(worker);
@@ -255,7 +257,7 @@ public class BlubExperiment {
                 killall_java.destroy();
             }
             catch (IOException | InterruptedException e) {
-                LOGGER.error("failed to kill all java processes on host" + host, e);
+                LOGGER.trace("failed to kill all java processes on host" + host, e);
             }
         }
     }
