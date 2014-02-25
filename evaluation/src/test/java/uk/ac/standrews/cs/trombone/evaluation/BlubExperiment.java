@@ -107,8 +107,10 @@ public class BlubExperiment {
         manager.setWorkerJVMArguments("-Xmx2G");
         manager.setWorkerDeploymentTimeout(new Duration(1, TimeUnit.MINUTES));
 
-        network.addMavenDependency("uk.ac.standrews.cs.t3", "evaluation", "1.0-SNAPSHOT", "tests");
-        network.addMavenDependency("uk.ac.standrews.cs.t3", "evaluation", "1.0-SNAPSHOT", null);
+//        network.addMavenDependency("uk.ac.standrews.cs.t3", "evaluation", "1.0-SNAPSHOT", "tests");
+//        network.addMavenDependency("uk.ac.standrews.cs.t3", "evaluation", "1.0-SNAPSHOT", null);
+//        network.addMavenDependency("ch.qos.logback", "logback-core", "1.1.1", null);
+        network.addCurrentJVMClasspath();
         network.setAutoDeployEnabled(false);
 
     }

@@ -27,6 +27,7 @@ public class EvolutionaryMaintenance extends Maintenance {
     private static final Logger LOGGER = LoggerFactory.getLogger(EvolutionaryMaintenance.class);
     private static final int DISSEMINATION_STRATEGY_LIST_SIZE = 5;
     private static final DisseminationStrategyGenerator STRATEGY_GENERATOR = new DisseminationStrategyGenerator(DISSEMINATION_STRATEGY_LIST_SIZE);
+    private static final long serialVersionUID = -3613808902480933796L;
 
     private final int population_size;
     private final int elite_count;
