@@ -14,7 +14,7 @@ public class LocalTestScenario extends PlatformJustification {
 
         super(LocalTestScenario.class.getSimpleName() + network_size);
         setExperimentDuration(new Duration(1, TimeUnit.HOURS));
-        addHost("localhost", network_size, new SequentialPortNumberProvider(45000), Constants.CHURN_4.copy(), Constants.NO_WORKLOAD.copy(), new PeerConfiguration(Constants.SUCCESSOR_MAINTENANCE, Constants.BLUB_UNIFORMLY_DISTRIBUTED_SYNTHETIC_DELAY));
+        addHost("localhost", network_size, new SequentialPortNumberProvider(45000), Constants.CHURN_4.copy(), Constants.WORKLOAD_1.copy(), new PeerConfiguration(Constants.SUCCESSOR_MAINTENANCE, Constants.BLUB_UNIFORMLY_DISTRIBUTED_SYNTHETIC_DELAY));
 //        addHost("localhost", network_size, new SequentialPortNumberProvider(45000), Constants.CHURN_1.copy(), Constants.WORKLOAD_1.copy(), new PeerConfiguration(new EvolutionaryMaintenance(5, 1, new Probability(0.1), 30, TimeUnit.SECONDS), Constants.BLUB_UNIFORMLY_DISTRIBUTED_SYNTHETIC_DELAY));
         //        addHost("localhost", network_size, new SequentialPortNumberProvider(45000), Constants.CHURN_1.copy(), Constants.WORKLOAD_1.copy(), Constants.NO_MAINTENANCE_CONFIGURATION);
         //        addHost("localhost", network_size, new SequentialPortNumberProvider(45000), Constants.CHURN_1.copy(), Constants.WORKLOAD_1.copy(), new PeerConfiguration(new Maintenance(new SuccessorListMaintenance(5)), Constants.BLUB_UNIFORMLY_DISTRIBUTED_SYNTHETIC_DELAY));

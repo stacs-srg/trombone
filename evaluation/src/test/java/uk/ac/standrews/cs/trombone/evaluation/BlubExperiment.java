@@ -19,22 +19,21 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.commons.io.FilenameUtils;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
-import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.SSHHost;
 import uk.ac.standrews.cs.shabdiz.job.Worker;
+import uk.ac.standrews.cs.shabdiz.job.WorkerManager;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
 import uk.ac.standrews.cs.trombone.evaluation.scenarios.Constants;
 import uk.ac.standrews.cs.trombone.evaluation.util.BlubCluster;
-import uk.ac.standrews.cs.trombone.evaluation.util.ExperimentWatcher;
 import uk.ac.standrews.cs.trombone.evaluation.util.FileSystemUtils;
 import uk.ac.standrews.cs.trombone.evaluation.util.ScenarioUtils;
 import uk.ac.standrews.cs.trombone.event.EventReader;
@@ -48,16 +47,19 @@ import static org.junit.Assume.assumeTrue;
 public class BlubExperiment {
 
     private static final LinkedBlockingQueue<String> AVAILABLE_HOSTS = new LinkedBlockingQueue<>(BlubCluster.getNodeNames());
-    private WorkerNetwork worker_network;
+    private static WorkerNetwork network;
     private HashMap<Integer, String> host_indices;
     private static final Logger LOGGER = LoggerFactory.getLogger(BlubExperiment.class);
     private final Path events_zip;
     private final String scenario_name;
     private static final ReentrantLock lock = new ReentrantLock(true);
-    private static final Semaphore semaphore = new Semaphore(10);
+    private static final Semaphore semaphore = new Semaphore(48);
 
-    @Rule
-    public ExperimentWatcher watcher = new ExperimentWatcher();
+    private final List<ApplicationDescriptor> workers = new ArrayList<>();
+    private final WorkerManager manager;
+
+    //    @Rule
+    //    public ExperimentWatcher watcher = new ExperimentWatcher();
 
     @Parameterized.Parameters(name = "{index} scenario: {0}")
     public static Collection<Object[]> data() {
@@ -88,7 +90,20 @@ public class BlubExperiment {
 
         this.scenario_name = scenario_name;
         events_zip = ScenarioUtils.getScenarioEventsPath(scenario_name);
+        manager = network.getWorkerManager();
         assumeTrue("events of scenario " + scenario_name + " do not exists at " + events_zip, Files.isRegularFile(events_zip));
+
+    }
+
+    @BeforeClass
+    public static void setUp() throws Exception {
+
+        network = new WorkerNetwork();
+        network.getWorkerManager().setWorkerJVMArguments("-Xmx2G");
+        network.addMavenDependency("uk.ac.standrews.cs.t3", "evaluation", "1.0-SNAPSHOT", "tests");
+        network.addMavenDependency("uk.ac.standrews.cs.t3", "evaluation", "1.0-SNAPSHOT", null);
+        network.setAutoDeployEnabled(false);
+
     }
 
     @Before
@@ -107,31 +122,26 @@ public class BlubExperiment {
         }
 
         LOGGER.info("preparing to execute scenario {}", scenario_name);
-        LOGGER.info("constructing worker network across {} hosts", host_indices.size());
+        LOGGER.info("constructing workers across {} hosts", host_indices.size());
 
-        worker_network = new WorkerNetwork();
         for (String host_name : host_indices.values()) {
-            worker_network.add(new SSHHost(host_name, BlubCluster.getAuthMethod()));
+            final SSHHost host = new SSHHost(host_name, BlubCluster.getAuthMethod());
+
+            final ApplicationDescriptor worker = new ApplicationDescriptor(host, manager);
+            LOGGER.info("deploying worker on host {}, scenario {}", host_name, scenario_name);
+            network.deploy(worker);
+            workers.add(worker);
         }
-        worker_network.getWorkerManager().setWorkerJVMArguments("-Xmx1G");
-        worker_network.addCurrentJVMClasspath();
-
-        LOGGER.info("deploying worker network...");
-        worker_network.deployAll();
-        worker_network.setAutoDeployEnabled(false);
-
-        LOGGER.info("awaiting RUNNING state...");
-        worker_network.awaitAnyOfStates(ApplicationState.RUNNING);
     }
 
     @Test
     public void experiment() throws Exception {
 
-        LOGGER.info("executing Experiment...");
+        LOGGER.info("executing Experiment {}...", scenario_name);
 
         final Map<Host, Future<String>> host_event_executions = new HashMap<>();
 
-        for (ApplicationDescriptor descriptor : worker_network) {
+        for (ApplicationDescriptor descriptor : workers) {
 
             final Worker worker = descriptor.getApplicationReference();
             final Host host = descriptor.getHost();
@@ -195,19 +205,40 @@ public class BlubExperiment {
 
         LOGGER.info("tearing down...");
         killAllJavaProcessesOnHosts();
+        killAndRemoveWorkers();
+        returnHosts();
 
-        for (String host_name : host_indices.values()) {
-            AVAILABLE_HOSTS.put(host_name);
-        }
         LOGGER.info("shutting down worker network");
-        worker_network.shutdown();
         LOGGER.info("Done");
         semaphore.release();
     }
 
+    private void returnHosts() throws InterruptedException {
+
+        for (String host_name : host_indices.values()) {
+            AVAILABLE_HOSTS.put(host_name);
+        }
+    }
+
+    private void killAndRemoveWorkers() {
+
+        for (ApplicationDescriptor worker : workers) {
+
+            try {
+                network.kill(worker);
+            }
+            catch (Exception e) {
+                LOGGER.warn("failed to kill worker on {} used in scenario {} due to ", worker.getHost().getName(), scenario_name, e);
+            }
+            finally {
+                network.remove(worker);
+            }
+        }
+    }
+
     private void killAllJavaProcessesOnHosts() {
 
-        for (ApplicationDescriptor descriptor : worker_network) {
+        for (ApplicationDescriptor descriptor : network) {
             final Host host = descriptor.getHost();
             try {
                 final Process killall_java = host.execute("killall java");

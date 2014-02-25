@@ -165,32 +165,6 @@ public abstract class XYCsvAnalyzer implements Analyzer {
         return this;
     }
 
-    public static DataTable mergeAsDataTable(XYCsvAnalyzer... analyzers) throws IOException, TypeMismatchException {
-
-        if (analyzers == null || analyzers.length == 0) { return null;}
-
-        final DataTable merged = new DataTable();
-        merged.addColumn(analyzers[0].getDataTable().getColumnDescription(0));
-
-        int i = 1;
-        for (XYCsvAnalyzer analyzer : analyzers) {
-            final DataTable data_table = analyzer.getDataTable();
-
-            final ColumnDescription y_col = data_table.getColumnDescription(1);
-            final ColumnDescription y_col_low = data_table.getColumnDescription(2);
-            final ColumnDescription y_col_high = data_table.getColumnDescription(3);
-            merged.addColumn(new ColumnDescription(y_col.getId() + "_" + i, y_col.getType(), y_col.getLabel()));
-            merged.addColumn(new ColumnDescription(y_col_low.getId() + "_" + i, y_col_low.getType(), y_col_low.getLabel()));
-            merged.addColumn(new ColumnDescription(y_col_high.getId() + "_" + i, y_col_high.getType(), y_col_high.getLabel()));
-            i++;
-        }
-
-        TableRow row = new TableRow();
-        
-
-        return merged;
-    }
-
     public synchronized DataTable getDataTable() throws IOException, TypeMismatchException {
 
         if (data_table == null) {

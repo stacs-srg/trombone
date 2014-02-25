@@ -22,5 +22,5 @@ public class ThreadCountAnalyzer extends XYCsvAnalyzer.Counter {
 
         this(scenario_analyzer.getCsvsByName(THREAD_COUNT_GAUGE_CSV));
     }
-
+    
 }

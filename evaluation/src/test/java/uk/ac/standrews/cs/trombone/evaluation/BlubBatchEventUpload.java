@@ -78,7 +78,7 @@ public class BlubBatchEventUpload {
 
         LOGGER.info("preparing to upload events to {}", host);
         LOGGER.info("destination on host is set to {}", destination);
-        host.upload(LOCAL_RESULTS_HOME.toFile(), destination.toString());
+        host.upload(LOCAL_RESULTS_HOME.toFile(), destination.resolve(LOCAL_RESULTS_HOME).toString());
         LOGGER.info("Done uploading to {}", host_name);
 
         //        for (Path events_zip : events_zips) {

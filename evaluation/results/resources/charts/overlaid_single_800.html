@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Chart Example</title>
+
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="../js/jquery.csv-0.71.min.js"></script>
+    <script src="../js/json2.js"></script>
+    <script src="../js/charts.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/default.css"/>
+
+</head>
+<body>
+
+
+<div class="chart" id="chart0"></div>
+<div class="chart" id="chart1"></div>
+<div class="chart" id="chart2"></div>
+<div class="chart" id="chart3"></div>
+<div class="chart" id="chart4"></div>
+<div class="chart" id="chart5"></div>
+<div class="chart" id="chart6"></div>
+<div class="chart" id="chart7"></div>
+<div class="chart" id="chart8"></div>
+<div class="chart" id="chart9"></div>
+<div class="chart" id="chart10"></div>
+<div class="chart" id="chart11"></div>
+<div class="chart" id="chart12"></div>
+<div class="chart" id="chart13"></div>
+<div class="chart" id="chart14"></div>
+<div class="chart" id="chart15"></div>
+
+
+<script>
+    var network_size = 800;
+
+    google.setOnLoadCallback(overlaidSingleMachine("available_peer_count.json", "chart0", network_size));
+    google.setOnLoadCallback(overlaidSingleMachine("lookup_incorrectness_delay_timer.json", "chart1", network_size));
+    google.setOnLoadCallback(overlaidSingleMachine("lookup_correctness_delay_timer.json", "chart2", network_size));
+    google.setOnLoadCallback(overlaidSingleMachine("lookup_correctness_rate.json", "chart3", network_size));
+    google.setOnLoadCallback(overlaidSingleMachine("lookup_incorrectness_rate.json", "chart4", network_size));
+    google.setOnLoadCallback(overlaidSingleMachine("lookup_execution_rate.json", "chart5", network_size));
+    google.setOnLoadCallback(overlaidSingleMachine("lookup_failure_rate.json", "chart6", network_size));
+    google.setOnLoadCallback(overlaidSingleMachine("event_execution_duration_timer.json", "chart7", network_size));
+    google.setOnLoadCallback(overlaidSingleMachine("event_execution_lag_sampler.json", "chart8", network_size));
+    google.setOnLoadCallback(overlaidSingleMachine("sent_bytes_rate.json", "chart9", network_size));
+    google.setOnLoadCallback(overlaidSingleMachine("lookup_correctness_hop_count_sampler.json", "chart10", network_size));
+    google.setOnLoadCallback(overlaidSingleMachine("lookup_incorrectness_hop_count_sampler.json", "chart11", network_size));
+    google.setOnLoadCallback(overlaidSingleMachine("thread_cpu_usage_gauge.json", "chart12", network_size));
+    google.setOnLoadCallback(overlaidSingleMachine("thread_count_gauge.json", "chart13", network_size));
+    google.setOnLoadCallback(overlaidSingleMachine("reachable_state_size_per_alive_peer_gauge.json", "chart14", network_size));
+    google.setOnLoadCallback(overlaidSingleMachine("system_load_average_gauge.json", "chart15", network_size));
+
+</script>
+
+</body>
+</html>

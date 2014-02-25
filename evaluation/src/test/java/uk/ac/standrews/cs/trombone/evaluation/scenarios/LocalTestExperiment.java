@@ -27,18 +27,19 @@ public class LocalTestExperiment {
     @Test
     public void testAGeneration() throws Exception {
 
-//        testGeneration(LOCAL_TEST_SCENARIO_100);
-//        testGeneration(LOCAL_TEST_SCENARIO_20);
+        //        testGeneration(LOCAL_TEST_SCENARIO_100);
+        //        testGeneration(LOCAL_TEST_SCENARIO_20);
         testGeneration(LOCAL_TEST_SCENARIO_1000);
-//        testGeneration(LOCAL_TEST_SCENARIO_500);
+        //        testGeneration(LOCAL_TEST_SCENARIO_500);
     }
 
     private void testGeneration(final Scenario scenario) throws Exception {
 
         final Path scenarioHome = ScenarioUtils.getScenarioHome(scenario);
         Files.createDirectories(scenarioHome);
+        final Path path_to_zip = Paths.get("/Users", "masih", "Desktop", scenario.getName() + ".zip");
 
-        try (FileSystem events_fs = FileSystemUtils.newZipFileSystem(Paths.get("/Users", "masih", "Desktop", scenario.getName() + ".zip"), true)) {
+        try (FileSystem events_fs = FileSystemUtils.newZipFileSystem(path_to_zip, true)) {
 
             LOGGER.info("generating events...");
             final EventGenerator generator = new EventGenerator(scenario, events_fs.getPath("/"));

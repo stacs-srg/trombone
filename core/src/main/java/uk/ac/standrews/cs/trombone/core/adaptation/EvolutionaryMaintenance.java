@@ -51,6 +51,31 @@ public class EvolutionaryMaintenance extends Maintenance {
         this.evolution_cycle_unit = evolution_cycle_unit;
     }
 
+    public int getPopulationSize() {
+
+        return population_size;
+    }
+
+    public int getEliteCount() {
+
+        return elite_count;
+    }
+
+    public Probability getMutationProbability() {
+
+        return mutation_probability;
+    }
+
+    public long getEvolutionCycleLength() {
+
+        return evolution_cycle_length;
+    }
+
+    public TimeUnit getEvolutionCycleLengthUnit() {
+
+        return evolution_cycle_unit;
+    }
+
     class EvolutionaryPeerMaintainer extends PeerMaintainer {
 
         private final MersenneTwisterRNG random;
