@@ -15,11 +15,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import org.apache.commons.io.FilenameUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -32,8 +34,10 @@ import uk.ac.standrews.cs.shabdiz.job.Worker;
 import uk.ac.standrews.cs.shabdiz.job.WorkerManager;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
+import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.evaluation.scenarios.Constants;
 import uk.ac.standrews.cs.trombone.evaluation.util.BlubCluster;
+import uk.ac.standrews.cs.trombone.evaluation.util.ExperimentWatcher;
 import uk.ac.standrews.cs.trombone.evaluation.util.FileSystemUtils;
 import uk.ac.standrews.cs.trombone.evaluation.util.ScenarioUtils;
 import uk.ac.standrews.cs.trombone.event.EventReader;
@@ -58,8 +62,8 @@ public class BlubExperiment {
     private final List<ApplicationDescriptor> workers = new ArrayList<>();
     private final WorkerManager manager;
 
-    //    @Rule
-    //    public ExperimentWatcher watcher = new ExperimentWatcher();
+    @Rule
+    public ExperimentWatcher watcher = new ExperimentWatcher();
 
     @Parameterized.Parameters(name = "{index} scenario: {0}")
     public static Collection<Object[]> data() {
@@ -99,7 +103,10 @@ public class BlubExperiment {
     public static void setUp() throws Exception {
 
         network = new WorkerNetwork();
-        network.getWorkerManager().setWorkerJVMArguments("-Xmx2G");
+        final WorkerManager manager = network.getWorkerManager();
+        manager.setWorkerJVMArguments("-Xmx2G");
+        manager.setWorkerDeploymentTimeout(new Duration(1, TimeUnit.MINUTES));
+
         network.addMavenDependency("uk.ac.standrews.cs.t3", "evaluation", "1.0-SNAPSHOT", "tests");
         network.addMavenDependency("uk.ac.standrews.cs.t3", "evaluation", "1.0-SNAPSHOT", null);
         network.setAutoDeployEnabled(false);
