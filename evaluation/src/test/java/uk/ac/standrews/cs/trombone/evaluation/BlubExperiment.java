@@ -48,8 +48,8 @@ import static org.junit.Assume.assumeTrue;
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-//@RunWith(Parallelized.class)
-@RunWith(ExperimentRunner.class)
+@RunWith(Parallelized.class)
+//@RunWith(ExperimentRunner.class)
 public class BlubExperiment {
 
     private static final LinkedBlockingQueue<String> AVAILABLE_HOSTS = new LinkedBlockingQueue<>(BlubCluster.getNodeNames());
