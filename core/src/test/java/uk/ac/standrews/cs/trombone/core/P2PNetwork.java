@@ -13,7 +13,7 @@ public abstract class P2PNetwork extends ApplicationNetwork {
         this.size = size;
     }
 
-    protected int getSize() {
+    public int getMaxSize() {
 
         return size;
     }

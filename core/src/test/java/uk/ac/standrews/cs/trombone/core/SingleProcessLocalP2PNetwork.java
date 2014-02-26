@@ -21,7 +21,7 @@ public class SingleProcessLocalP2PNetwork extends P2PNetwork {
     @Override
     protected void populate() {
 
-        for (int i = 0; i < getSize(); i++) {
+        for (int i = 0; i < getMaxSize(); i++) {
             add(new ApplicationDescriptor(local_host, manager));
         }
     }

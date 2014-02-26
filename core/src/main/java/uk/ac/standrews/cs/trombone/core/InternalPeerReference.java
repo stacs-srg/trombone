@@ -9,21 +9,39 @@ import uk.ac.standrews.cs.trombone.core.key.Key;
 public class InternalPeerReference extends PeerReference {
 
     private final AtomicLong first_seen = new AtomicLong();
-    private final AtomicLong last_seen = new AtomicLong();
+    private final AtomicLong last_seen_reachable = new AtomicLong();
+    private final int hashcode;
 
     InternalPeerReference(final Key key, final InetSocketAddress address) {
 
         super(key, address);
+        hashcode = calculateHashcode();
     }
 
     InternalPeerReference(final PeerReference reference) {
 
         super(reference.getKey(), reference.getAddress(), reference.isReachable());
+        hashcode = calculateHashcode();
     }
 
     public boolean isContactedBefore() {
 
-        return first_seen.get() != 0;
+        return getFirstSeen() != 0;
+    }
+
+    public long getAge() {
+
+        return getLastSeen() - getFirstSeen();
+    }
+
+    private long getFirstSeen() {
+
+        return first_seen.get();
+    }
+
+    private long getLastSeen() {
+
+        return last_seen_reachable.get();
     }
 
     @Override
@@ -36,15 +54,30 @@ public class InternalPeerReference extends PeerReference {
     @Override
     public int hashCode() {
 
-        return new HashCodeBuilder(19, 93).appendSuper(super.hashCode()).toHashCode();
+        return hashcode;
     }
 
-    void seen() {
+    void seen(boolean reachable) {
 
-        last_seen.set(System.currentTimeMillis());
+        last_seen_reachable.set(System.currentTimeMillis());
         if (!isContactedBefore()) {
-            first_seen.set(last_seen.get());
+            first_seen.set(getLastSeen());
         }
-        setReachable(true);
+        setReachable(reachable);
+    }
+
+    @Override
+    protected void setReachable(final boolean reachable) {
+
+        if(reachable){
+            
+        }
+        
+        super.setReachable(reachable);
+    }
+
+    private int calculateHashcode() {
+
+        return new HashCodeBuilder(19, 93).appendSuper(super.hashCode()).toHashCode();
     }
 }

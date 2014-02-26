@@ -2,45 +2,26 @@ package uk.ac.standrews.cs.trombone.core;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.IOException;
-import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
-import uk.ac.standrews.cs.shabdiz.util.Combinations;
-import uk.ac.standrews.cs.test.category.Ignore;
 
 import static org.junit.Assert.assertEquals;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-@RunWith(Parameterized.class)
-@Category(Ignore.class)
 public class RecoveryTest {
 
-    private final P2PNetwork network;
-
-    public RecoveryTest(P2PNetwork network) {
-
-        this.network = network;
-    }
-
-    @Parameterized.Parameters
-    public static Collection<Object[]> getParameters() throws IOException {
-
-        return Combinations.generateArgumentCombinations(new Object[][] {{new SingleProcessLocalP2PNetwork(10)}});
-    }
+    private P2PNetwork network;
 
     @Before
     public void setUp() throws Exception {
 
+        network = new SingleProcessLocalP2PNetwork(10);
         network.populate();
         network.deployAll();
         network.awaitAnyOfStates(ApplicationState.RUNNING);
@@ -59,7 +40,7 @@ public class RecoveryTest {
     @Test
     public void testStabilization() throws Exception {
 
-        awaitRingSize(network.getSize());
+        awaitRingSize(network.size());
 
         int i = 0;
         for (ApplicationDescriptor descriptor : network) {
@@ -78,14 +59,16 @@ public class RecoveryTest {
 
         System.out.println("awaiting stabilized ring of size " + network.size());
 
-        awaitRingSize(network.getSize());
+        awaitRingSize(network.size());
 
     }
 
     @After
     public void tearDown() throws Exception {
 
-        network.shutdown();
+        if (network != null) {
+            network.shutdown();
+        }
     }
 
     private void awaitRingSize(final int expected_ring_size) throws InterruptedException {

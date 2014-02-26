@@ -12,6 +12,9 @@ import uk.ac.standrews.cs.shabdiz.ApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
 import uk.ac.standrews.cs.trombone.core.key.KeyProvider;
+import uk.ac.standrews.cs.trombone.core.selector.First;
+import uk.ac.standrews.cs.trombone.core.selector.Last;
+import uk.ac.standrews.cs.trombone.core.selector.Self;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class SingleProcessPeerManager implements ApplicationManager {
@@ -19,7 +22,22 @@ public class SingleProcessPeerManager implements ApplicationManager {
     private static final KeyProvider KEY_PROVIDER = new KeyProvider(32, DigestUtils.md5("sss"));
     private static final AttributeKey<Peer> PEER_KEY = new AttributeKey<Peer>();
     private static final Random RANDOM = new Random(545454);
+    private static final Maintenance MAINTENANCE = new Maintenance();
     private final Set<PeerReference> joined_peers = new HashSet<PeerReference>();
+
+    static {
+        final DisseminationStrategy strategy = MAINTENANCE.getStrategy();
+        final First successor = new First(1, true);
+        final Last predecessor = new Last(1, true);
+        final Self self = Self.getInstance();
+
+        strategy.addAction(new DisseminationStrategy.Action(false, false, predecessor, successor));
+        strategy.addAction(new DisseminationStrategy.Action(false, false, successor, predecessor));
+        strategy.addAction(new DisseminationStrategy.Action(false, true, self, successor));
+        strategy.addAction(new DisseminationStrategy.Action(false, true, self, predecessor));
+    }
+
+    private static final PeerConfiguration CONFIGURATION = new PeerConfiguration(MAINTENANCE, PeerFactory.NO_SYNTHETIC_DELAY);
 
     @Override
     public ApplicationState probeState(final ApplicationDescriptor descriptor) {
@@ -33,7 +51,7 @@ public class SingleProcessPeerManager implements ApplicationManager {
 
         final InetAddress host_address = descriptor.getHost().getAddress();
         final InetSocketAddress peer_address = new InetSocketAddress(host_address, 0);
-        final Peer peer = PeerFactory.createPeer(peer_address, KEY_PROVIDER.get(), null);
+        final Peer peer = PeerFactory.createPeer(peer_address, KEY_PROVIDER.get(), CONFIGURATION);
 
         peer.expose();
         descriptor.setAttribute(PEER_KEY, peer);

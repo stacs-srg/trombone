@@ -115,7 +115,7 @@ class PeerClientFactory extends ClientFactory<PeerRemote> {
                 @Override
                 public void onSuccess(final Object result) {
 
-                    reference.seen();
+                    reference.seen(true);
 
                     if (result instanceof PeerReference) {
                         peer.push((PeerReference) result);
@@ -129,7 +129,7 @@ class PeerClientFactory extends ClientFactory<PeerRemote> {
                 public void onFailure(final Throwable t) {
 
                     LOGGER.debug("failure occurred on future", t);
-                    reference.setReachable(false);
+                    reference.seen(false);
                 }
             });
             return future_response;

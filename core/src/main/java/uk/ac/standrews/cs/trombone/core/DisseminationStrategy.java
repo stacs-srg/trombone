@@ -123,14 +123,18 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
                     final PeerReference[] data_to_push = getPushData(local);
                     if (data_to_push != null && data_to_push.length > 0) {
                         for (PeerReference recipient : recipients) {
-                            local.getRemote(recipient).push(data_to_push);
+                            if (recipient != null) {
+                                local.getRemote(recipient).push(data_to_push);
+                            }
                         }
                     }
                 }
                 else {
                     for (PeerReference recipient : recipients) {
-                        final PeerReference[] pulled_data = local.getRemote(recipient).pull(data_selector);
-                        local.push(pulled_data);
+                        if (recipient != null) {
+                            final PeerReference[] pulled_data = local.getRemote(recipient).pull(data_selector);
+                            local.push(pulled_data);
+                        }
                     }
                 }
             }

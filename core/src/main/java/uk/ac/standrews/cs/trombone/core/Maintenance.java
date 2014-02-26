@@ -26,7 +26,7 @@ public class Maintenance implements Serializable, Named {
 
     public Maintenance() {
 
-        this(null);
+        this(new DisseminationStrategy());
     }
 
     public Maintenance(DisseminationStrategy strategy) {
@@ -118,18 +118,23 @@ public class Maintenance implements Serializable, Named {
             @Override
             public void run() {
 
-                final DisseminationStrategy current_strategy = strategy.get();
-                if (current_strategy != null) {
-                    for (DisseminationStrategy.Action action : current_strategy) {
-                        if (!action.isOpportunistic()) {
-                            try {
-                                action.nonOpportunistically(peer);
-                            }
-                            catch (RPCException e) {
-                                LOGGER.debug("failed to execute non opportunistic dissemination strategy", e);
+                try {
+                    final DisseminationStrategy current_strategy = strategy.get();
+                    if (current_strategy != null) {
+                        for (DisseminationStrategy.Action action : current_strategy) {
+                            if (!action.isOpportunistic()) {
+                                try {
+                                    action.nonOpportunistically(peer);
+                                }
+                                catch (RPCException e) {
+                                    LOGGER.debug("failed to execute non opportunistic dissemination strategy", e);
+                                }
                             }
                         }
                     }
+                }
+                catch (Exception e) {
+                    LOGGER.error("failed to execute non-opportunistic maintenance", e);
                 }
             }
         }

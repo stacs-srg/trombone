@@ -17,6 +17,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -108,7 +109,7 @@ public class BlubExperiment {
 
         network = new WorkerNetwork();
         final WorkerManager manager = network.getWorkerManager();
-        manager.setWorkerJVMArguments("-Xmx2G");
+        manager.setWorkerJVMArguments("-Xmx6G");
         manager.setWorkerDeploymentTimeout(new Duration(5, TimeUnit.MINUTES));
 
         //        network.addMavenDependency("uk.ac.standrews.cs.t3", "evaluation", "1.0-SNAPSHOT", "tests");
@@ -199,6 +200,7 @@ public class BlubExperiment {
                     try (final FileSystem fileSystem = FileSystemUtils.newZipFileSystem(zip.getAbsolutePath(), false)) {
                         FileSystemUtils.copyRecursively(fileSystem.getPath("/"), local_observations);
                     }
+                    FileUtils.deleteQuietly(destination.toFile());
                 }
                 catch (InterruptedException | ExecutionException e) {
                     final Throwable cause = e.getCause();

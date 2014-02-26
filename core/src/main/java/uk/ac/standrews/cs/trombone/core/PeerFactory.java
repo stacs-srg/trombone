@@ -52,6 +52,11 @@ public final class PeerFactory {
         return new Peer(key);
     }
 
+    public static Peer createPeer(final InetSocketAddress address, final Key key) {
+
+        return new Peer(address, key);
+    }
+
     public static Peer createPeer(final InetSocketAddress address, final Key key, final PeerConfiguration configuration) {
 
         return new Peer(address, key, configuration);
