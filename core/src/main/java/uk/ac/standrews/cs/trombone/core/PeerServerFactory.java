@@ -21,13 +21,13 @@ import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
  */
 public class PeerServerFactory extends ServerFactory<PeerRemote> {
 
-    public static final NioEventLoopGroup child_event_loop = new NioEventLoopGroup(100, new NamedThreadFactory("server_child_event_loop_"));
     private static final ServerBootstrap SERVER_BOOTSTRAP = new ServerBootstrap();
-    private static final ThreadPoolExecutor SERVER_REQUEST_EXECUTOR = new ThreadPoolExecutor(50, 1000, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+    private static final ThreadPoolExecutor SERVER_REQUEST_EXECUTOR = new ThreadPoolExecutor(500, 500, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
     static {
 
-        final NioEventLoopGroup parent_event_loop = new NioEventLoopGroup(100, new NamedThreadFactory("server_parent_event_loop_"));
+        final NioEventLoopGroup parent_event_loop = new NioEventLoopGroup(0, new NamedThreadFactory("server_parent_event_loop_"));
+        final NioEventLoopGroup child_event_loop = new NioEventLoopGroup(0, new NamedThreadFactory("server_child_event_loop_"));
         SERVER_BOOTSTRAP.group(parent_event_loop, child_event_loop);
         SERVER_BOOTSTRAP.channel(NioServerSocketChannel.class);
         SERVER_BOOTSTRAP.option(ChannelOption.TCP_NODELAY, true);

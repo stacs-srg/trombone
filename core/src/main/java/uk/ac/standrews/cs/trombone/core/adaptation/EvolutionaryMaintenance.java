@@ -190,7 +190,6 @@ public class EvolutionaryMaintenance extends Maintenance {
         private TreeMap<Double, EvaluatedDisseminationStrategy> getCumulativeFitness() {
 
             final TreeMap<Double, EvaluatedDisseminationStrategy> cumulative_evaluated_strategies = new TreeMap<>();
-
             final double total_fitness = this.total_fitness.get();
             double cumulative_normalized_fitness = 0;
             for (final EvaluatedDisseminationStrategy evaluated_strategy : evaluated_strategies) {

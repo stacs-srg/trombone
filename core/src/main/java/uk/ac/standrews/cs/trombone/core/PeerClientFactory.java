@@ -17,6 +17,7 @@ import org.mashti.jetson.ClientFactory;
 import org.mashti.jetson.FutureResponse;
 import org.mashti.jetson.exception.RPCException;
 import org.mashti.jetson.lean.LeanClientChannelInitializer;
+import org.mashti.jetson.util.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
@@ -29,8 +30,8 @@ class PeerClientFactory extends ClientFactory<PeerRemote> {
     private static final ChannelPool CHANNEL_POOL = new ChannelPool(BOOTSTRAP);
 
     static {
-        BOOTSTRAP.group(new NioEventLoopGroup(100));
-        //        BOOTSTRAP.group(PeerServerFactory.child_event_loop);
+        final NioEventLoopGroup child_event_loop = new NioEventLoopGroup(0, new NamedThreadFactory("client_event_loop_"));
+        BOOTSTRAP.group(child_event_loop);
         BOOTSTRAP.channel(NioSocketChannel.class);
         BOOTSTRAP.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5_000);
         BOOTSTRAP.option(ChannelOption.TCP_NODELAY, true);
@@ -39,7 +40,6 @@ class PeerClientFactory extends ClientFactory<PeerRemote> {
         CHANNEL_POOL.setBlockWhenExhausted(true);
         CHANNEL_POOL.setMaxWaitMillis(1000);
         CHANNEL_POOL.setMaxTotalPerKey(1);
-
         CHANNEL_POOL.setTestOnReturn(false);
     }
 
