@@ -13,6 +13,7 @@ import java.nio.file.StandardOpenOption;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.job.Job;
@@ -104,7 +105,9 @@ public class BlubEventExecutionJob implements Job<String> {
 
     static OutputStreamAppender<ILoggingEvent> initAppender(final Path log_path) throws IOException {
 
-        final LoggerContext logger_context = (LoggerContext) LoggerFactory.getILoggerFactory();
+        final ILoggerFactory logger_factory = LoggerFactory.getILoggerFactory();
+        
+        final LoggerContext logger_context = (LoggerContext) logger_factory;
         final ch.qos.logback.classic.Logger root_logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
         final OutputStreamAppender<ILoggingEvent> stream_appender = new OutputStreamAppender<>();
 

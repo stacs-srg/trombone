@@ -33,6 +33,7 @@ import uk.ac.standrews.cs.shabdiz.host.SSHHost;
 import uk.ac.standrews.cs.shabdiz.job.Worker;
 import uk.ac.standrews.cs.shabdiz.job.WorkerManager;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
+import uk.ac.standrews.cs.shabdiz.testing.junit.Retry;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.evaluation.scenarios.Constants;
@@ -64,6 +65,8 @@ public class BlubExperiment {
 
     @Rule
     public ExperimentWatcher watcher = new ExperimentWatcher();
+    @Rule
+    public Retry retry = new Retry(3);
 
     @Parameterized.Parameters(name = "{index} scenario: {0}")
     public static Collection<Object[]> data() {
@@ -73,7 +76,7 @@ public class BlubExperiment {
             @Override
             public boolean accept(final File dir, final String name) {
 
-                return dir.isDirectory() && !name.startsWith(".") && !name.endsWith(".log");
+                return dir.isDirectory() && !name.startsWith(".");
             }
         });
         final List<String> scenarios_with_repetitions = new ArrayList<>();
@@ -107,10 +110,10 @@ public class BlubExperiment {
         manager.setWorkerJVMArguments("-Xmx2G");
         manager.setWorkerDeploymentTimeout(new Duration(5, TimeUnit.MINUTES));
 
-//        network.addMavenDependency("uk.ac.standrews.cs.t3", "evaluation", "1.0-SNAPSHOT", "tests");
-//        network.addMavenDependency("uk.ac.standrews.cs.t3", "evaluation", "1.0-SNAPSHOT", null);
-//        network.addMavenDependency("ch.qos.logback", "logback-core", "1.1.1", null);
-        network.addCurrentJVMClasspath();
+        network.addMavenDependency("uk.ac.standrews.cs.t3", "evaluation", "1.0-SNAPSHOT", "tests");
+        //        network.addMavenDependency("uk.ac.standrews.cs.t3", "evaluation", "1.0-SNAPSHOT", null);
+        //        network.addMavenDependency("ch.qos.logback", "logback-core", "1.1.1", null);
+        //        network.addCurrentJVMClasspath();
         network.setAutoDeployEnabled(false);
 
     }
