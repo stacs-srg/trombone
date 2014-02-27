@@ -25,7 +25,7 @@ public class RecoveryTest {
     @Before
     public void setUp() throws Exception {
 
-        network = new SingleProcessLocalP2PNetwork(50);
+        network = new SingleProcessLocalP2PNetwork(10);
         network.populate();
         network.deployAll();
         network.awaitAnyOfStates(ApplicationState.RUNNING);
