@@ -47,7 +47,7 @@ public class SingleProcessPeerManager implements ApplicationManager {
     }
 
     @Override
-    public Object deploy(final ApplicationDescriptor descriptor) throws Exception {
+    public synchronized Object deploy(final ApplicationDescriptor descriptor) throws Exception {
 
         final InetAddress host_address = descriptor.getHost().getAddress();
         final InetSocketAddress peer_address = new InetSocketAddress(host_address, 0);

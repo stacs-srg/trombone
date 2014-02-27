@@ -85,12 +85,10 @@ public class Peer implements PeerRemote {
     }
 
     @Override
-    public synchronized void join(final PeerReference member) throws RPCException {
+    public synchronized void join(final PeerReference member) {
 
-        if (isExposed() && member != null) {
-
+        if (isExposed() && member != null && !self.equals(member)) {
             push(member);
-            getRemote(member).push(self);
         }
     }
 

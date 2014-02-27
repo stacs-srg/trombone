@@ -172,7 +172,7 @@ public class EvolutionaryMaintenance extends Maintenance {
 
         private List<DisseminationStrategy> generateInitialPopulation() {
 
-            List<DisseminationStrategy> initial_population = new ArrayList<>();
+            final List<DisseminationStrategy> initial_population = new ArrayList<>();
             for (int i = 0; i < population_size; i++) {
                 initial_population.add(STRATEGY_GENERATOR.generate(random));
             }

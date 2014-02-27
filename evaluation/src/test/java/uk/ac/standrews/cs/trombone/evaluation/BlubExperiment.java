@@ -34,7 +34,6 @@ import uk.ac.standrews.cs.shabdiz.host.SSHHost;
 import uk.ac.standrews.cs.shabdiz.job.Worker;
 import uk.ac.standrews.cs.shabdiz.job.WorkerManager;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
-import uk.ac.standrews.cs.shabdiz.testing.junit.Retry;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.evaluation.scenarios.Constants;
@@ -60,15 +59,13 @@ public class BlubExperiment {
     private final Path events_zip;
     private final String scenario_name;
     private static final ReentrantLock lock = new ReentrantLock(true);
-    private static final Semaphore semaphore = new Semaphore(48);
+    private static final Semaphore semaphore = new Semaphore(1);
 
     private final List<ApplicationDescriptor> workers = new ArrayList<>();
     private final WorkerManager manager;
 
     @Rule
     public ExperimentWatcher watcher = new ExperimentWatcher();
-    @Rule
-    public Retry retry = new Retry(3);
 
     @Parameterized.Parameters(name = "{index} scenario: {0}")
     public static Collection<Object[]> data() {

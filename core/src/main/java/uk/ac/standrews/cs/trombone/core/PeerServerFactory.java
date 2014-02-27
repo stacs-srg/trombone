@@ -5,10 +5,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import org.mashti.jetson.FutureResponse;
 import org.mashti.jetson.Server;
 import org.mashti.jetson.ServerFactory;
@@ -22,40 +18,37 @@ import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
 public class PeerServerFactory extends ServerFactory<PeerRemote> {
 
     private static final ServerBootstrap SERVER_BOOTSTRAP = new ServerBootstrap();
-    private static final ThreadPoolExecutor SERVER_REQUEST_EXECUTOR = new ThreadPoolExecutor(500, 500, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
     static {
 
         final NioEventLoopGroup parent_event_loop = new NioEventLoopGroup(0, new NamedThreadFactory("server_parent_event_loop_"));
-        final NioEventLoopGroup child_event_loop = new NioEventLoopGroup(0, new NamedThreadFactory("server_child_event_loop_"));
+        final NioEventLoopGroup child_event_loop = new NioEventLoopGroup(500, new NamedThreadFactory("server_child_event_loop_"));
         SERVER_BOOTSTRAP.group(parent_event_loop, child_event_loop);
         SERVER_BOOTSTRAP.channel(NioServerSocketChannel.class);
         SERVER_BOOTSTRAP.option(ChannelOption.TCP_NODELAY, true);
         SERVER_BOOTSTRAP.childOption(ChannelOption.TCP_NODELAY, true);
         SERVER_BOOTSTRAP.childOption(ChannelOption.SO_KEEPALIVE, true);
         SERVER_BOOTSTRAP.childHandler(new LeanServerChannelInitializer<PeerRemote>(PeerRemote.class, PeerCodecs.INSTANCE));
-
-        SERVER_REQUEST_EXECUTOR.prestartAllCoreThreads();
     }
 
     public PeerServerFactory() {
 
-        super(SERVER_BOOTSTRAP, SERVER_REQUEST_EXECUTOR);
+        super(SERVER_BOOTSTRAP);
     }
 
     @Override
     public Server createServer(final PeerRemote service) {
 
-        return new MyServer(server_bootstrap, service, SERVER_REQUEST_EXECUTOR);
+        return new MyServer(server_bootstrap, service);
     }
 
     static class MyServer extends Server {
 
         private final Peer peer;
 
-        MyServer(final ServerBootstrap server_bootstrap, final Object service, final ExecutorService executor) {
+        MyServer(final ServerBootstrap server_bootstrap, final Object service) {
 
-            super(server_bootstrap, service, executor);
+            super(server_bootstrap, service);
 
             peer = (Peer) service;
         }

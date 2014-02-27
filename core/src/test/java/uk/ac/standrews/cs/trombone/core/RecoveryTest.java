@@ -2,6 +2,7 @@ package uk.ac.standrews.cs.trombone.core;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
 import org.junit.After;
 import org.junit.Before;
@@ -16,12 +17,15 @@ import static org.junit.Assert.assertEquals;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class RecoveryTest {
 
+    private static final double KILL_PORTION = 0.5;
+    private static final Logger LOGGER = LoggerFactory.getLogger(RecoveryTest.class);
     private P2PNetwork network;
+
 
     @Before
     public void setUp() throws Exception {
 
-        network = new SingleProcessLocalP2PNetwork(10);
+        network = new SingleProcessLocalP2PNetwork(50);
         network.populate();
         network.deployAll();
         network.awaitAnyOfStates(ApplicationState.RUNNING);
@@ -40,27 +44,30 @@ public class RecoveryTest {
     @Test
     public void testStabilization() throws Exception {
 
-        awaitRingSize(network.size());
+        final int network_size = network.size();
+        LOGGER.info("awaiting stabilized ring of size {}", network_size);
+        awaitRingSize(network_size);
 
-        int i = 0;
-        for (ApplicationDescriptor descriptor : network) {
+        killPortionOfNetwork();
 
-            if (i >= 3) {
-                break;
-            }
+        final int network_size_after_kill =  network.size();
+        LOGGER.info("awaiting stabilized ring of size {} after kill", network_size_after_kill);
+        awaitRingSize(network_size_after_kill);
+    }
 
-            network.kill(descriptor);
-            network.remove(descriptor);
+    private void killPortionOfNetwork() throws Exception {
 
-            System.out.println("killed " + descriptor);
+        int kill_count = (int) (network.getMaxSize() * KILL_PORTION);
+        LOGGER.info("killing {}% of the network", KILL_PORTION * 100);
+        final Iterator<ApplicationDescriptor> network_iterator = network.iterator();
+        while (network_iterator.hasNext() && kill_count != 0) {
+            final ApplicationDescriptor kill_candidate = network_iterator.next();
+            network.kill(kill_candidate);
+            network.remove(kill_candidate);
 
-            i++;
+            LOGGER.info("killed {}", kill_candidate);
+            kill_count--;
         }
-
-        System.out.println("awaiting stabilized ring of size " + network.size());
-
-        awaitRingSize(network.size());
-
     }
 
     @After

@@ -17,7 +17,7 @@ public class SuccessorMaintenance extends DisseminationStrategy implements Named
     static final boolean OPPORTUNISTIC = true;
     static final boolean NON_OPPORTUNISTIC = !OPPORTUNISTIC;
     static final First SUCCESSOR = new First(1, true);
-    static final Last PREDECESSOR = new Last(1, false);
+    static final Last PREDECESSOR = new Last(1, true);
     static final Last REACHABLE_PREDECESSOR = new Last(1, true);
     static final Self SELF = Self.getInstance();
     private static final long serialVersionUID = 3153617698283830110L;
@@ -25,8 +25,9 @@ public class SuccessorMaintenance extends DisseminationStrategy implements Named
     public SuccessorMaintenance() {
 
         addAction(new DisseminationStrategy.Action(NON_OPPORTUNISTIC, PULL, PREDECESSOR, SUCCESSOR));
-        addAction(new DisseminationStrategy.Action(NON_OPPORTUNISTIC, PULL, REACHABLE_PREDECESSOR, SUCCESSOR));
+        addAction(new DisseminationStrategy.Action(NON_OPPORTUNISTIC, PULL, SUCCESSOR, PREDECESSOR));
         addAction(new DisseminationStrategy.Action(NON_OPPORTUNISTIC, PUSH, SELF, SUCCESSOR));
+        addAction(new DisseminationStrategy.Action(NON_OPPORTUNISTIC, PUSH, SELF, PREDECESSOR));
     }
 
     @Override

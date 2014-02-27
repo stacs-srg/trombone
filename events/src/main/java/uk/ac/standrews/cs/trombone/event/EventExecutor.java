@@ -31,7 +31,6 @@ import org.mashti.gauge.jvm.SystemLoadAverageGauge;
 import org.mashti.gauge.jvm.ThreadCountGauge;
 import org.mashti.gauge.jvm.ThreadCpuUsageGauge;
 import org.mashti.gauge.reporter.CsvReporter;
-import org.mashti.jetson.exception.RPCException;
 import org.mashti.jetson.util.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -381,14 +380,8 @@ public class EventExecutor {
             boolean successful = false;
             while (!Thread.currentThread().isInterrupted() && !successful && iterator.hasNext()) {
                 final PeerReference reference = iterator.next();
-                try {
-                    peer.join(reference);
-                    successful = true;
-                }
-                catch (RPCException e) {
-                    LOGGER.debug("error while attempting to join ", e);
-                    successful = false;
-                }
+                peer.join(reference);
+                successful = true;
             }
             if (successful) {
                 join_success_rate.mark();
