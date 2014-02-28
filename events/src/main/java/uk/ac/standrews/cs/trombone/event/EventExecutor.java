@@ -18,6 +18,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.apache.commons.codec.DecoderException;
 import org.json.JSONObject;
 import org.mashti.gauge.Counter;
@@ -37,10 +38,12 @@ import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.core.InternalPeerReference;
 import uk.ac.standrews.cs.trombone.core.Peer;
+import uk.ac.standrews.cs.trombone.core.PeerClientFactory;
 import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
 import uk.ac.standrews.cs.trombone.core.PeerFactory;
 import uk.ac.standrews.cs.trombone.core.PeerMetric;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
+import uk.ac.standrews.cs.trombone.core.PeerServerFactory;
 import uk.ac.standrews.cs.trombone.core.PeerState;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
@@ -208,6 +211,13 @@ public class EventExecutor {
 
     }
 
+    public Duration getExperimentDuration() {
+
+        final JSONObject observation_interval_json = scenario_properties.getJSONObject("experimentDuration");
+        return new Duration(observation_interval_json.getLong("length"), TimeUnit.valueOf(observation_interval_json.getString("timeUnit")));
+
+    }
+
     private int getLookupRetryCount() {
 
         return scenario_properties.getInt("lookupRetryCount");
@@ -218,7 +228,7 @@ public class EventExecutor {
         return System.nanoTime() - start_time;
     }
 
-    public synchronized void start() throws InterruptedException {
+    public synchronized void start() {
 
         if (!isStarted()) {
 
@@ -266,6 +276,17 @@ public class EventExecutor {
         task_executor.shutdownNow();
         task_populator.shutdownNow();
         task_scheduler.shutdownNow();
+
+        for (Peer peer : peers_map.values()) {
+            try {
+                peer.unexpose();
+            }
+            catch (Exception e) {
+                LOGGER.warn("failed to unexpose peer {} due to {}", peer, e);
+            }
+        }
+        PeerClientFactory.shutdownPeerClientFactory();
+        PeerServerFactory.shutdownPeerServerFactory();
     }
 
     public synchronized void stop() {
@@ -275,14 +296,16 @@ public class EventExecutor {
         }
     }
 
-    public void awaitCompletion() throws InterruptedException, ExecutionException {
+    public void awaitCompletion(long timeout, TimeUnit timeout_unit) throws InterruptedException, TimeoutException {
 
         if (isStarted()) {
-            task_populator_future.get();
-            task_scheduler_future.get();
-            task_populator.shutdownNow();
-            task_scheduler.shutdownNow();
-            task_executor.shutdownNow();
+            try {
+                task_populator_future.get(timeout, timeout_unit);
+                task_scheduler_future.get(timeout, timeout_unit);
+            }
+            catch (ExecutionException e) {
+                LOGGER.warn("event executor encountered problems ", e);
+            }
         }
     }
 
@@ -378,16 +401,21 @@ public class EventExecutor {
 
             final Iterator<PeerReference> iterator = known_peers.iterator();
             boolean successful = false;
-            while (!Thread.currentThread().isInterrupted() && !successful && iterator.hasNext()) {
-                final PeerReference reference = iterator.next();
-                peer.join(reference);
-                successful = true;
+            try {
+                while (!Thread.currentThread().isInterrupted() && !successful && iterator.hasNext()) {
+                    final PeerReference reference = iterator.next();
+                    peer.join(reference);
+                    successful = true;
+                }
             }
-            if (successful) {
-                join_success_rate.mark();
-            }
-            else {
-                join_failure_rate.mark();
+            finally {
+
+                if (successful) {
+                    join_success_rate.mark();
+                }
+                else {
+                    join_failure_rate.mark();
+                }
             }
         }
     }
@@ -469,7 +497,8 @@ public class EventExecutor {
                 joinWithTimeout(peer, join_event.getDurationInNanos(), join_event.getKnownPeerReferences());
             }
             catch (final IOException e) {
-                LOGGER.error("failure occurred when executing churn event", e);
+                LOGGER.warn("failed to expose peer {} on address {}", peer, peer.getAddress());
+                LOGGER.error("failure occurred when executing join event", e);
             }
         }
     }
@@ -491,7 +520,7 @@ public class EventExecutor {
                     available_peer_counter.decrement();
                 }
                 else {
-                    LOGGER.debug("un-exposure of peer {} was unsuccessful typically because it was already unexposed", peer);
+                    LOGGER.warn("un-exposure of peer {} was unsuccessful typically because it was already unexposed", peer);
                 }
             }
             catch (final IOException e) {

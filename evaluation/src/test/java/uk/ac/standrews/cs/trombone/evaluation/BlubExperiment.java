@@ -220,11 +220,17 @@ public class BlubExperiment {
         LOGGER.info("tearing down...");
         killAllJavaProcessesOnHosts();
         killAndRemoveWorkers();
-        returnHosts();
 
         LOGGER.info("shutting down worker network");
         LOGGER.info("Done");
-        semaphore.release();
+        try {
+            Thread.sleep(30_000);
+        }
+        finally {
+
+            returnHosts();
+            semaphore.release();
+        }
     }
 
     private void returnHosts() throws InterruptedException {
@@ -238,14 +244,21 @@ public class BlubExperiment {
 
         for (ApplicationDescriptor worker : workers) {
 
+            final Host host = worker.getHost();
             try {
                 network.kill(worker);
             }
             catch (Exception e) {
-                LOGGER.trace("failed to kill worker on {} used in scenario {} due to ", worker.getHost().getName(), scenario_name, e);
+                LOGGER.trace("failed to kill worker on {} used in scenario {} due to ", host.getName(), scenario_name, e);
             }
             finally {
                 network.remove(worker);
+                try {
+                    host.close();
+                }
+                catch (IOException e) {
+                    LOGGER.warn("failed to close host {}", host);
+                }
             }
         }
     }
@@ -255,7 +268,7 @@ public class BlubExperiment {
         for (ApplicationDescriptor descriptor : network) {
             final Host host = descriptor.getHost();
             try {
-                final Process killall_java = host.execute("killall java");
+                final Process killall_java = host.execute("killall -s SIGKILL java");
                 killall_java.waitFor();
                 killall_java.destroy();
             }

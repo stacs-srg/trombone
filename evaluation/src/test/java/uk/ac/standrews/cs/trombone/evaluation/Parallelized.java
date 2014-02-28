@@ -15,15 +15,10 @@ public class Parallelized extends Parameterized {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Parallelized.class);
 
-    /**
-     * Only called reflectively. Do not use programmatically.
-     *
-     * @param test_class
-     */
     public Parallelized(final Class<?> test_class) throws Throwable {
 
         super(test_class);
-        final ExecutorService executor = Executors.newFixedThreadPool(100);
+        final ExecutorService executor = Executors.newFixedThreadPool(200);
         setScheduler(new RunnerScheduler() {
 
             @Override

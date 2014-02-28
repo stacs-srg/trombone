@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-class PeerClientFactory extends ClientFactory<PeerRemote> {
+public class PeerClientFactory extends ClientFactory<PeerRemote> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PeerClientFactory.class);
     private static final Bootstrap BOOTSTRAP = new Bootstrap();
@@ -48,6 +48,18 @@ class PeerClientFactory extends ClientFactory<PeerRemote> {
     private final PeerState peer_state;
     private final PeerMetric peer_metric;
     private final InetAddress peer_address;
+
+    public static void shutdownPeerClientFactory() {
+
+        try {
+            BOOTSTRAP.group().shutdownGracefully().sync();
+        }
+        catch (InterruptedException e) {
+            LOGGER.warn("interrupted while shutting down peer client factory", e);
+        }
+        
+        CHANNEL_POOL.clear();
+    }
 
     PeerClientFactory(final Peer peer, final SyntheticDelay synthetic_delay) {
 

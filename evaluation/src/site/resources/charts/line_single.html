@@ -13,6 +13,7 @@
 </head>
 <body>
 
+    
 
 <div class="chart" id="chart0"></div>
 <div class="chart" id="chart1"></div>
@@ -30,22 +31,18 @@
 <div class="chart" id="chart13"></div>
 <div class="chart" id="chart14"></div>
 <div class="chart" id="chart15"></div>
+<div class="chart" id="chart16"></div>
 
 
 <script>
 
 
     function drawChart(metric, containerId) {
-
-
-        var network_size = 700;
-        var single = getDataTable("PlatformJustificationSingleHost" + network_size, metric);
-
+        var single = getDataTable("scenario_55", metric);
         var title = replaceAll(metric, '_', ' ');
         title = replaceAll(title, '.json', '');
         title = replaceAll(title, '.csv', '');
         title = toTitleCase(title);
-
 
         var wrapper = new google.visualization.ChartWrapper({
             chartType: 'LineChart',
@@ -60,6 +57,11 @@
         });
         wrapper.draw();
     }
+
+
+    var workload = getScenario("scenario_55").hostScenarios[0].workload;
+    var workload2 = getScenario("scenario_55").hostScenarios[0].workload;
+    alert(workload.is(workload2))
 
     google.setOnLoadCallback(drawChart("available_peer_count.json", "chart0"));
     google.setOnLoadCallback(drawChart("lookup_incorrectness_delay_timer.json", "chart1"));
@@ -76,7 +78,7 @@
     google.setOnLoadCallback(drawChart("thread_cpu_usage_gauge.json", "chart12"));
     google.setOnLoadCallback(drawChart("thread_count_gauge.json", "chart13"));
     google.setOnLoadCallback(drawChart("reachable_state_size_per_alive_peer_gauge.json", "chart14"));
-    google.setOnLoadCallback(drawChart("system_load_average_gauge.json", "chart15"));
+    google.setOnLoadCallback(drawChart("system_load_average_gauge.json", "chart16"));
 
 </script>
 

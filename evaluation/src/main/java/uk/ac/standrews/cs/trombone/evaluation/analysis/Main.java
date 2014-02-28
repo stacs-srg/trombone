@@ -14,25 +14,11 @@ public class Main {
     public static void main(String[] args) throws IOException, TypeMismatchException {
 
         List<ScenarioAnalyzer> scenarioAnalyzers = new ArrayList<>();
-        scenarioAnalyzers.add(new ScenarioAnalyzer("PlatformJustificationSingleHost48"));
-        scenarioAnalyzers.add(new ScenarioAnalyzer("PlatformJustificationSingleHost40"));
-        scenarioAnalyzers.add(new ScenarioAnalyzer("PlatformJustificationSingleHost30"));
-        scenarioAnalyzers.add(new ScenarioAnalyzer("PlatformJustificationSingleHost20"));
-        scenarioAnalyzers.add(new ScenarioAnalyzer("PlatformJustificationSingleHost10"));
-        scenarioAnalyzers.add(new ScenarioAnalyzer("PlatformJustificationMultipleHost48"));
-        scenarioAnalyzers.add(new ScenarioAnalyzer("PlatformJustificationMultipleHost40"));
-        scenarioAnalyzers.add(new ScenarioAnalyzer("PlatformJustificationMultipleHost30"));
-        scenarioAnalyzers.add(new ScenarioAnalyzer("PlatformJustificationMultipleHost20"));
-        scenarioAnalyzers.add(new ScenarioAnalyzer("PlatformJustificationMultipleHost10"));
-        scenarioAnalyzers.add(new ScenarioAnalyzer("PlatformJustificationSingleHost100"));
-        scenarioAnalyzers.add(new ScenarioAnalyzer("PlatformJustificationSingleHost200"));
-        scenarioAnalyzers.add(new ScenarioAnalyzer("PlatformJustificationSingleHost300"));
-        scenarioAnalyzers.add(new ScenarioAnalyzer("PlatformJustificationSingleHost400"));
-        scenarioAnalyzers.add(new ScenarioAnalyzer("PlatformJustificationSingleHost500"));
-        scenarioAnalyzers.add(new ScenarioAnalyzer("PlatformJustificationSingleHost600"));
-        scenarioAnalyzers.add(new ScenarioAnalyzer("PlatformJustificationSingleHost700"));
-        scenarioAnalyzers.add(new ScenarioAnalyzer("PlatformJustificationSingleHost800"));
-        scenarioAnalyzers.add(new ScenarioAnalyzer("PlatformJustificationSingleHost900"));
+                                                           
+        for (int i = 1; i <= 140; i++) {
+            scenarioAnalyzers.add(new ScenarioAnalyzer("scenario_" + i));
+        }
+
         for (ScenarioAnalyzer scenarioAnalyzer : scenarioAnalyzers) {
             try (ScenarioAnalyzer scenario_analyzer = scenarioAnalyzer) {
 

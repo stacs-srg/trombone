@@ -10,6 +10,8 @@ import org.mashti.jetson.Server;
 import org.mashti.jetson.ServerFactory;
 import org.mashti.jetson.lean.LeanServerChannelInitializer;
 import org.mashti.jetson.util.NamedThreadFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
 
 /**
@@ -17,6 +19,7 @@ import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
  */
 public class PeerServerFactory extends ServerFactory<PeerRemote> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(PeerServerFactory.class);
     private static final ServerBootstrap SERVER_BOOTSTRAP = new ServerBootstrap();
 
     static {
@@ -29,6 +32,17 @@ public class PeerServerFactory extends ServerFactory<PeerRemote> {
         SERVER_BOOTSTRAP.childOption(ChannelOption.TCP_NODELAY, true);
         SERVER_BOOTSTRAP.childOption(ChannelOption.SO_KEEPALIVE, true);
         SERVER_BOOTSTRAP.childHandler(new LeanServerChannelInitializer<PeerRemote>(PeerRemote.class, PeerCodecs.INSTANCE));
+    }
+
+    public static void shutdownPeerServerFactory() {
+
+        try {
+            SERVER_BOOTSTRAP.childGroup().shutdownGracefully().sync();
+            SERVER_BOOTSTRAP.group().shutdownGracefully().sync();
+        }
+        catch (InterruptedException e) {
+            LOGGER.warn("interrupted while shutting down peer server factory", e);
+        }
     }
 
     public PeerServerFactory() {
@@ -49,7 +63,6 @@ public class PeerServerFactory extends ServerFactory<PeerRemote> {
         MyServer(final ServerBootstrap server_bootstrap, final Object service) {
 
             super(server_bootstrap, service);
-
             peer = (Peer) service;
         }
 

@@ -13,10 +13,12 @@ import java.nio.file.StandardOpenOption;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.job.Job;
+import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.evaluation.util.FileSystemUtils;
 import uk.ac.standrews.cs.trombone.evaluation.util.ScenarioUtils;
 import uk.ac.standrews.cs.trombone.event.EventExecutor;
@@ -84,14 +86,20 @@ public class BlubEventExecutionJob implements Job<String> {
                 final Path observations_root = observations_fs.getPath(observations_fs.getSeparator());
                 final EventExecutor event_executor = new EventExecutor(events_root, host_index, observations_root, host_indices);
 
-                LOGGER.info("starting event executor...");
-                event_executor.start();
+                try {
+                    LOGGER.info("starting event executor...");
+                    event_executor.start();
 
-                LOGGER.info("awaiting event execution completion...");
-                event_executor.awaitCompletion();
+                    final Duration experiment_duration = event_executor.getExperimentDuration();
+                    final Duration await_timeout = experiment_duration.add(new Duration(10, TimeUnit.MINUTES));
 
-                LOGGER.info("shutting down the event executor...");
-                event_executor.shutdown();
+                    LOGGER.info("awaiting event execution completion...");
+                    event_executor.awaitCompletion(await_timeout.getLength(), await_timeout.getTimeUnit());
+                }
+                finally {
+                    LOGGER.info("shutting down the event executor...");
+                    event_executor.shutdown();
+                }
             }
             finally {
                 log_appender.stop();
@@ -106,7 +114,7 @@ public class BlubEventExecutionJob implements Job<String> {
     static OutputStreamAppender<ILoggingEvent> initAppender(final Path log_path) throws IOException {
 
         final ILoggerFactory logger_factory = LoggerFactory.getILoggerFactory();
-        
+
         final LoggerContext logger_context = (LoggerContext) logger_factory;
         final ch.qos.logback.classic.Logger root_logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
         final OutputStreamAppender<ILoggingEvent> stream_appender = new OutputStreamAppender<>();
@@ -133,19 +141,5 @@ public class BlubEventExecutionJob implements Job<String> {
         if (!Files.isDirectory(repetitions)) {
             Files.createDirectories(repetitions);
         }
-    }
-
-    public static void main(String[] args) throws IOException {
-
-        try (FileSystem fileSystem = FileSystemUtils.newZipFileSystem("/Users/masih/Desktop/aa.zip", true)) {
-            LOGGER.info("test before init log");
-            final OutputStreamAppender<ILoggingEvent> log_appender = initAppender(fileSystem.getPath("/mylog.log"));
-            LOGGER.info("test after info");
-            LOGGER.warn("test after warn");
-            LOGGER.trace("test after trace");
-            log_appender.stop();
-
-        }
-
     }
 }

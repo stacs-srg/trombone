@@ -8,9 +8,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import uk.ac.standrews.cs.trombone.evaluation.util.FileSystemUtils;
+import uk.ac.standrews.cs.trombone.evaluation.util.ScenarioUtils;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
@@ -27,6 +29,13 @@ public class ScenarioAnalyzer implements Closeable {
         this.scenario_name = scenario_name;
         repetitions = getRepetitions();
         AnalyticsUtil.unshard(repetitions);
+
+        final Path events_path = ScenarioUtils.getScenarioEventsPath(scenario_name);
+        try (FileSystem events_fs = FileSystemUtils.newZipFileSystem(events_path, false)) {
+            final Path analyss_dir = getAnalysisDirectory();
+            final Path scenario_json = analyss_dir.resolve("scenario.json");
+            Files.copy(events_fs.getPath("scenario.json"), scenario_json, StandardCopyOption.REPLACE_EXISTING);
+        }
 
         file_systems = new ArrayList<>();
         for (Path repetition : repetitions) {
