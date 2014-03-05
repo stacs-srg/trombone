@@ -50,6 +50,10 @@ public class BlubUnzippedExperiment {
 
     private static final LinkedBlockingQueue<String> AVAILABLE_HOSTS = new LinkedBlockingQueue<>(BlubCluster.getNodeNames());
 
+    static {
+        AVAILABLE_HOSTS.remove("compute-0-46.local");
+    }
+
     private static WorkerNetwork network;
     private final Scenario scenario;
     private HashMap<Integer, String> host_indices;
