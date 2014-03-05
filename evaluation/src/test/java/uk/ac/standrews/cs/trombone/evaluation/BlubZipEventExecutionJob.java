@@ -28,27 +28,27 @@ import static uk.ac.standrews.cs.trombone.evaluation.BlubBatchEventUpload.BLUB_N
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class BlubEventExecutionJob implements Job<String> {
+public class BlubZipEventExecutionJob implements Job<String> {
 
     private static final long serialVersionUID = 2675891974884649473L;
-    private static final Logger LOGGER = LoggerFactory.getLogger(BlubEventExecutionJob.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BlubZipEventExecutionJob.class);
     static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss-SSS");
     private final String scenario_name;
     private final int host_index;
     private final HashMap<Integer, String> host_indices;
     private final String results_home_path;
 
-    public BlubEventExecutionJob(String scenario_name, int host_index) {
+    public BlubZipEventExecutionJob(String scenario_name, int host_index) {
 
         this(scenario_name, host_index, null);
     }
 
-    public BlubEventExecutionJob(String scenario_name, int host_index, HashMap<Integer, String> host_indices) {
+    public BlubZipEventExecutionJob(String scenario_name, int host_index, HashMap<Integer, String> host_indices) {
 
         this(scenario_name, host_index, host_indices, BLUB_NODE_RESULTS_HOME);
     }
 
-    public BlubEventExecutionJob(String scenario_name, int host_index, HashMap<Integer, String> host_indices, Path results_home) {
+    public BlubZipEventExecutionJob(String scenario_name, int host_index, HashMap<Integer, String> host_indices, Path results_home) {
 
         this.scenario_name = scenario_name;
         this.host_index = host_index;

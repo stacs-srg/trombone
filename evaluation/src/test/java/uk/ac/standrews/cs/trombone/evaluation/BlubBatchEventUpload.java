@@ -1,7 +1,9 @@
 package uk.ac.standrews.cs.trombone.evaluation;
 
 import java.net.InetAddress;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
@@ -17,8 +19,10 @@ import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.SSHHost;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
 import uk.ac.standrews.cs.trombone.evaluation.util.BlubCluster;
+import uk.ac.standrews.cs.trombone.evaluation.util.FileSystemUtils;
 import uk.ac.standrews.cs.trombone.evaluation.util.ScenarioUtils;
 
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 /**
@@ -56,13 +60,13 @@ public class BlubBatchEventUpload {
     public static void setUpClass() throws Exception {
 
         assumeTrue("This test is to be run on blub head node", InetAddress.getLocalHost().getHostName().equals(BLUB_HEAD_HOST_NAME));
-        //        final PathMatcher events_zip_path_matcher = LOCAL_RESULTS_HOME.getFileSystem().getPathMatcher("glob:*/*/events.zip");
-        //
-        //        LOGGER.info("searching local results folder for events.zip: {}", LOCAL_RESULTS_HOME);
-        //        events_zips = FileSystemUtils.getMatchingFiles(LOCAL_RESULTS_HOME, events_zip_path_matcher);
-        //
-        //        assumeTrue("No events.zip fount at " + LOCAL_RESULTS_HOME, !events_zips.isEmpty());
-        //        LOGGER.info("found {} events to be uploaded", events_zips.size());
+        final PathMatcher events_zip_path_matcher = LOCAL_RESULTS_HOME.getFileSystem().getPathMatcher("glob:*/*/events.zip");
+
+        LOGGER.info("searching local results folder for events.zip: {}", LOCAL_RESULTS_HOME);
+        events_zips = FileSystemUtils.getMatchingFiles(LOCAL_RESULTS_HOME, events_zip_path_matcher);
+
+        assumeTrue("No events.zip fount at " + LOCAL_RESULTS_HOME, !events_zips.isEmpty());
+        LOGGER.info("found {} events to be uploaded", events_zips.size());
     }
 
     @Before
@@ -78,18 +82,16 @@ public class BlubBatchEventUpload {
 
         LOGGER.info("preparing to upload events to {}", host);
         LOGGER.info("destination on host is set to {}", destination);
-        host.upload(LOCAL_RESULTS_HOME.toFile(), destination.resolve(LOCAL_RESULTS_HOME).toString());
-        LOGGER.info("Done uploading to {}", host_name);
 
-        //        for (Path events_zip : events_zips) {
-        //
-        //            assertTrue("events zip file does not exits: " + events_zip, Files.isRegularFile(events_zip));
-        //
-        //            final Path events_destination = destination.resolve(events_zip);
-        //            LOGGER.info("uploading {} to {}", events_zip, events_destination);
-        //            host.upload(events_zip.toFile(), events_destination.toString());
-        //            LOGGER.info("uploaded to {}", events_destination);
-        //        }
+        for (Path events_zip : events_zips) {
+
+            assertTrue("events zip file does not exits: " + events_zip, Files.isRegularFile(events_zip));
+
+            final Path events_destination = destination.resolve(events_zip);
+            LOGGER.info("uploading {} to {}", events_zip, events_destination);
+            host.upload(events_zip.toFile(), events_destination.toString());
+            LOGGER.info("uploaded to {}", events_destination);
+        }
 
     }
 

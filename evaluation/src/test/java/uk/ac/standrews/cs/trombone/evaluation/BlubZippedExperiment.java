@@ -1,7 +1,6 @@
 package uk.ac.standrews.cs.trombone.evaluation;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
@@ -41,7 +40,8 @@ import uk.ac.standrews.cs.trombone.evaluation.util.BlubCluster;
 import uk.ac.standrews.cs.trombone.evaluation.util.ExperimentWatcher;
 import uk.ac.standrews.cs.trombone.evaluation.util.FileSystemUtils;
 import uk.ac.standrews.cs.trombone.evaluation.util.ScenarioUtils;
-import uk.ac.standrews.cs.trombone.event.EventReader;
+import uk.ac.standrews.cs.trombone.event.CsvEventReader;
+import uk.ac.standrews.cs.trombone.event.Scenario;
 
 import static org.junit.Assume.assumeTrue;
 
@@ -50,12 +50,13 @@ import static org.junit.Assume.assumeTrue;
  */
 @RunWith(Parallelized.class)
 //@RunWith(ExperimentRunner.class)
-public class BlubExperiment {
+public class BlubZippedExperiment {
 
     private static final LinkedBlockingQueue<String> AVAILABLE_HOSTS = new LinkedBlockingQueue<>(BlubCluster.getNodeNames());
     private static WorkerNetwork network;
+    private final Scenario scenario;
     private HashMap<Integer, String> host_indices;
-    private static final Logger LOGGER = LoggerFactory.getLogger(BlubExperiment.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BlubZippedExperiment.class);
     private final Path events_zip;
     private final String scenario_name;
     private static final ReentrantLock lock = new ReentrantLock(true);
@@ -70,20 +71,11 @@ public class BlubExperiment {
     @Parameterized.Parameters(name = "{index} scenario: {0}")
     public static Collection<Object[]> data() {
 
-        final String[] scenarios = ScenarioUtils.getResultsHome().toFile().list(new FilenameFilter() {
-
-            @Override
-            public boolean accept(final File dir, final String name) {
-
-                return dir.isDirectory() && !name.startsWith(".");
-            }
-        });
-        final List<String> scenarios_with_repetitions = new ArrayList<>();
+        final List<Scenario> scenarios_with_repetitions = new ArrayList<>();
 
         for (int i = 0; i < Constants.NUMBER_OF_REPETITIONS; i++) {
-            for (int j = 0; j < scenarios.length; j++) {
-                String directory = scenarios[j];
-                scenarios_with_repetitions.add(directory);
+            for (Scenario scenario : BatchEventGenerator.SCENARIOS) {
+                scenarios_with_repetitions.add(scenario);
             }
         }
 
@@ -92,9 +84,10 @@ public class BlubExperiment {
         });
     }
 
-    public BlubExperiment(String scenario_name) {
+    public BlubZippedExperiment(Scenario scenario) {
 
-        this.scenario_name = scenario_name;
+        this.scenario = scenario;
+        scenario_name = scenario.getName();
         events_zip = ScenarioUtils.getScenarioEventsPath(scenario_name);
         manager = network.getWorkerManager();
         assumeTrue("events of scenario " + scenario_name + " do not exists at " + events_zip, Files.isRegularFile(events_zip));
@@ -159,13 +152,13 @@ public class BlubExperiment {
             final int host_index = getHostIndexByName(host.getName());
 
             LOGGER.info("submitting job to {} indexed as {}", host, host_index);
-            final Future<String> future_event_execution = worker.submit(new BlubEventExecutionJob(scenario_name, host_index, host_indices));
+            final Future<String> future_event_execution = worker.submit(new BlubZipEventExecutionJob(scenario_name, host_index, host_indices));
             host_event_executions.put(host, future_event_execution);
         }
 
         final Path repetitions = ScenarioUtils.getScenarioRepetitionsHome(scenario_name);
-        BlubEventExecutionJob.assureRepetitionsDirectoryExists(repetitions);
-        final Path observations = BlubEventExecutionJob.newObservationsPath(repetitions);
+        BlubZipEventExecutionJob.assureRepetitionsDirectoryExists(repetitions);
+        final Path observations = BlubZipEventExecutionJob.newObservationsPath(repetitions);
         LOGGER.info("collected observations will be stored at {}", observations.toAbsolutePath());
 
         Exception error = null;
@@ -293,7 +286,7 @@ public class BlubExperiment {
 
         LOGGER.info("retrieving host indices from {}", events_zip.toAbsolutePath());
         try (FileSystem events_file_system = FileSystemUtils.newZipFileSystem(events_zip, false)) {
-            host_indices = EventReader.readHostIndices(events_file_system.getPath("hosts.csv"));
+            host_indices = CsvEventReader.readHostIndices(events_file_system.getPath("hosts.csv"));
         }
     }
 

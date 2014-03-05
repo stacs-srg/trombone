@@ -5,6 +5,8 @@
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
+
+    <!--SSHJ error logs only-->
     <logger name="net.schmizz" level="ERROR"/>
     <logger name="io.netty" level="ERROR"/>
 

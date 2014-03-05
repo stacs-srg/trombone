@@ -148,8 +148,6 @@ public class EventExecutor {
     private Future<Void> task_scheduler_future;
     private long start_time;
 
-    //FIXME Add timeout for lookup execution or maybe any event execution
-
     public EventExecutor(final Path events_home, int host_index, Path observations_home) throws IOException, DecoderException, ClassNotFoundException {
 
         this(events_home, host_index, observations_home, null);
@@ -157,7 +155,12 @@ public class EventExecutor {
 
     public EventExecutor(final Path events_home, int host_index, Path observations_home, final HashMap<Integer, String> host_indices) throws IOException, DecoderException, ClassNotFoundException {
 
-        event_reader = new EventReader(events_home, host_index, host_indices);
+        this(new CsvEventReader(events_home, host_index, host_indices), observations_home);
+    }
+
+    public EventExecutor(final EventReader reader, Path observations_home) {
+
+        event_reader = reader;
         runnable_events = new DelayQueue<RunnableExperimentEvent>();
         task_populator = Executors.newSingleThreadExecutor(new NamedThreadFactory("task_populator_"));
         task_scheduler = Executors.newSingleThreadExecutor(new NamedThreadFactory("task_scheduler_"));
@@ -165,7 +168,7 @@ public class EventExecutor {
         task_executor.prestartAllCoreThreads();
 
         load_balancer = new Semaphore(MAX_BUFFERED_EVENTS, true);
-        scenario_properties = EventReader.readScenario(events_home);
+        scenario_properties = reader.getScenario();
         lookup_retry_count = getLookupRetryCount();
         metric_registry = new MetricRegistry("test");
         metric_registry.register("lookup_execution_rate", lookup_execution_rate);
@@ -389,8 +392,20 @@ public class EventExecutor {
     private void queueNextEvent() throws IOException {
 
         final Event event = event_reader.next();
-        final PeerReference event_source = event.getSource();
-        final PeerConfiguration configuration = event_reader.getConfiguration(event_source);
+        final PeerReference event_source;
+
+        final PeerConfiguration configuration;
+
+        final Participant participant = event.getParticipant();
+        if (participant != null) {
+            configuration = participant.getPeerConfiguration();
+            event_source = participant.getReference();
+        }
+        else {
+            event_source = event.getSource();
+            configuration = event_reader.getConfiguration(event_source);
+        }
+
         final Peer peer = getPeerByReference(event_source, configuration);
         queue(peer, event);
     }
@@ -451,6 +466,22 @@ public class EventExecutor {
         }
 
         @Override
+        public boolean equals(final Object other) {
+
+            if (this == other) { return true; }
+            if (!(other instanceof RunnableExperimentEvent)) { return false; }
+
+            final RunnableExperimentEvent that = (RunnableExperimentEvent) other;
+            return event.equals(that.event) && peer.equals(that.peer);
+        }
+
+        @Override
+        public int hashCode() {
+
+            return 31 * peer.hashCode() + event.hashCode();
+        }
+
+        @Override
         public final void run() {
 
             event_execution_lag_sampler.update(getCurrentTimeInNanos() - event.getTimeInNanos());
@@ -475,6 +506,8 @@ public class EventExecutor {
 
     private class RunnableJoinEvent extends RunnableExperimentEvent {
 
+        private final Logger logger = LoggerFactory.getLogger(RunnableJoinEvent.class);
+
         private RunnableJoinEvent(Peer peer, final JoinEvent event) {
 
             super(peer, event);
@@ -491,19 +524,21 @@ public class EventExecutor {
                     available_peer_counter.increment();
                 }
                 else {
-                    LOGGER.warn("exposure of peer {} was unsuccessful", peer);
+                    logger.warn("exposure of peer {} was unsuccessful", peer);
                 }
 
                 joinWithTimeout(peer, join_event.getDurationInNanos(), join_event.getKnownPeerReferences());
             }
             catch (final IOException e) {
-                LOGGER.warn("failed to expose peer {} on address {}", peer, peer.getAddress());
-                LOGGER.error("failure occurred when executing join event", e);
+                logger.warn("failed to expose peer {} on address {}", peer, peer.getAddress());
+                logger.error("failure occurred when executing join event", e);
             }
         }
     }
 
     private class RunnableLeaveEvent extends RunnableExperimentEvent {
+
+        private final Logger logger = LoggerFactory.getLogger(RunnableLeaveEvent.class);
 
         private RunnableLeaveEvent(Peer peer, final LeaveEvent event) {
 
@@ -520,16 +555,18 @@ public class EventExecutor {
                     available_peer_counter.decrement();
                 }
                 else {
-                    LOGGER.warn("un-exposure of peer {} was unsuccessful typically because it was already unexposed", peer);
+                    logger.trace("un-exposure of peer {} was unsuccessful typically because it was already unexposed", peer);
                 }
             }
             catch (final IOException e) {
-                LOGGER.error("failed to unexpose peer", e);
+                logger.error("failed to unexpose peer", e);
             }
         }
     }
 
     private class RunnableLookupEvent extends RunnableExperimentEvent {
+
+        private final Logger logger = LoggerFactory.getLogger(RunnableLookupEvent.class);
 
         private RunnableLookupEvent(Peer peer, final LookupEvent event) {
 
@@ -569,7 +606,7 @@ public class EventExecutor {
                 }
             }
             catch (final Throwable e) {
-                LOGGER.error("failure occurred when executing lookup", e);
+                logger.error("failure occurred when executing lookup", e);
             }
             finally {
                 lookup_execution_rate.mark();

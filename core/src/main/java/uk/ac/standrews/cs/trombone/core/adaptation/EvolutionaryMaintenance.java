@@ -24,11 +24,11 @@ import uk.ac.standrews.cs.trombone.core.PeerMetric;
  */
 public class EvolutionaryMaintenance extends Maintenance {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(EvolutionaryMaintenance.class);
     private static final int DISSEMINATION_STRATEGY_LIST_SIZE = 5;
     private static final DisseminationStrategyGenerator STRATEGY_GENERATOR = new DisseminationStrategyGenerator(DISSEMINATION_STRATEGY_LIST_SIZE);
     private static final long serialVersionUID = -3613808902480933796L;
 
+    private final Logger logger = LoggerFactory.getLogger(EvolutionaryMaintenance.class);
     private final int population_size;
     private final int elite_count;
     private final Probability mutation_probability;
@@ -116,7 +116,7 @@ public class EvolutionaryMaintenance extends Maintenance {
                         final EnvironmentSnapshot environment_snapshot = metric.getSnapshot();
                         final DisseminationStrategy old_candidate = strategy.getAndSet(new_candidate);
 
-                        LOGGER.debug("changed strategy to {}", new_candidate);
+                        logger.debug("changed strategy to {}", new_candidate);
                         if (index > 0 && old_candidate != null) {
                             final EvaluatedDisseminationStrategy evaluated_strategy = new EvaluatedDisseminationStrategy(old_candidate, environment_snapshot);
                             evaluated_strategies.add(evaluated_strategy);
@@ -125,8 +125,8 @@ public class EvolutionaryMaintenance extends Maintenance {
                     }
                     else {
                         final int generation_count = generation.incrementAndGet();
-                        LOGGER.debug("end of generation {}", generation_count);
-                        LOGGER.info("the fittest: {}, the least fit: {}", evaluated_strategies.first(), evaluated_strategies.last());
+                        logger.debug("end of generation {}", generation_count);
+                        logger.info("the fittest: {}, the least fit: {}", evaluated_strategies.first(), evaluated_strategies.last());
 
                         population.clear();
 

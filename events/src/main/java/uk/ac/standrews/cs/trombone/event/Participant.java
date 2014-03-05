@@ -18,6 +18,7 @@ public class Participant implements Comparable<Participant> {
     private final Workload workload;
     private final PeerConfiguration configuration;
     private final PeerReference reference;
+    private int host_index;
 
     public Participant(int id, final Key key, final InetSocketAddress address, final Churn churn, final Workload workload, final PeerConfiguration configuration) {
 
@@ -105,5 +106,15 @@ public class Participant implements Comparable<Participant> {
     public PeerConfiguration getPeerConfiguration() {
 
         return configuration;
+    }
+
+    public int getHostIndex() {
+
+        return host_index;
+    }
+
+    public void setHostIndex(final int host_index) {
+
+        this.host_index = host_index;
     }
 }

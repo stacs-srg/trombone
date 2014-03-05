@@ -13,6 +13,7 @@ import uk.ac.standrews.cs.trombone.evaluation.util.FileSystemUtils;
 import uk.ac.standrews.cs.trombone.evaluation.util.ScenarioUtils;
 import uk.ac.standrews.cs.trombone.event.EventExecutor;
 import uk.ac.standrews.cs.trombone.event.EventGenerator;
+import uk.ac.standrews.cs.trombone.event.EventQueue;
 import uk.ac.standrews.cs.trombone.event.Scenario;
 
 /**
@@ -61,17 +62,14 @@ public class LocalTestExperiment {
 
     private void testExecution(final Scenario scenario) throws Exception {
 
-        final Path events_path = Paths.get("/Users", "masih", "Desktop", scenario.getName() + ".zip");
         final Path observations_path = Paths.get("/Users", "masih", "Desktop", String.valueOf(System.currentTimeMillis()));
         Files.createDirectories(observations_path);
 
-        try (FileSystem fileSystem = FileSystemUtils.newZipFileSystem(events_path, false)) {
-            EventExecutor executor = new EventExecutor(fileSystem.getPath("/"), 1, observations_path);
-            executor.start();
-            final Duration timeout = executor.getExperimentDuration().add(new Duration(5, TimeUnit.MINUTES));
-            executor.awaitCompletion(timeout.getLength(), timeout.getTimeUnit());
-            executor.shutdown();
-        }
+        EventExecutor executor = new EventExecutor(new EventQueue(scenario, 1), observations_path);
+        executor.start();
+        final Duration timeout = executor.getExperimentDuration().add(new Duration(5, TimeUnit.MINUTES));
+        executor.awaitCompletion(timeout.getLength(), timeout.getTimeUnit());
+        executor.shutdown();
 
     }
 }

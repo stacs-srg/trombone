@@ -1,6 +1,7 @@
 package uk.ac.standrews.cs.trombone.event;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
@@ -76,6 +77,12 @@ public class JoinEvent extends Event {
     public void setKnownPeers(final Set<Participant> known_peers) {
 
         this.known_peers = known_peers;
+        Set<PeerReference> references = new HashSet<>();
+        for (Participant known_peer : known_peers) {
+
+            references.add(known_peer.getReference());
+        }
+        setKnownPeerReferences(references);
     }
 
     public void setKnownPeerReferences(final Set<PeerReference> known_peer_references) {

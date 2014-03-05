@@ -26,9 +26,9 @@ public class BaseScenario extends Scenario {
 
     }
 
-    public static List<BaseScenario> generateAll() {
+    public static List<Scenario> generateAll() {
 
-        final List<BaseScenario> scenarios = new ArrayList<>();
+        final List<Scenario> scenarios = new ArrayList<>();
 
         final List<Object[]> arguments = Combinations.generateArgumentCombinations(new Object[][] {
 
@@ -40,9 +40,7 @@ public class BaseScenario extends Scenario {
 
                         new Maintenance[] {
 
-                                Constants.NO_MAINTENANCE, 
-                                Constants.SUCCESSOR_LIST_MAINTENANCE_5, 
-                                Constants.SUCCESSOR_MAINTENANCE, Constants.RANDOM_MAINTENANCE_2,
+                                Constants.NO_MAINTENANCE, Constants.SUCCESSOR_LIST_MAINTENANCE_5, Constants.SUCCESSOR_MAINTENANCE, Constants.RANDOM_MAINTENANCE_2,
 
                                 Constants.EVOLUTIONARY_MAINTENANCE
 

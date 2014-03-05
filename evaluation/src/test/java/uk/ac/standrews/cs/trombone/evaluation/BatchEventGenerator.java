@@ -4,6 +4,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,7 +32,7 @@ public final class BatchEventGenerator {
     private Path scenario_home;
     private Path scenario_events;
 
-    private static final Object[] SCENARIOS = BaseScenario.generateAll().toArray();
+    static final List<Scenario> SCENARIOS = BaseScenario.generateAll();
     //    private static final Scenario[] SCENARIOS = {
     //            new PlatformJustificationSingleHost(100),
     //            new PlatformJustificationSingleHost(200),
@@ -62,7 +63,7 @@ public final class BatchEventGenerator {
     @Parameterized.Parameters(name = "{index} scenario: {0}")
     public static Collection<Object[]> parameters() {
 
-        return Combinations.generateArgumentCombinations(new Object[][] {SCENARIOS});
+        return Combinations.generateArgumentCombinations(new Object[][] {SCENARIOS.toArray()});
     }
 
     @Before

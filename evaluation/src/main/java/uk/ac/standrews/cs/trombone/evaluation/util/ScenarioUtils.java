@@ -1,14 +1,31 @@
 package uk.ac.standrews.cs.trombone.evaluation.util;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.event.Scenario;
+import uk.ac.standrews.cs.trombone.event.ScenarioJSON;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public final class ScenarioUtils {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ScenarioUtils.class);
     private static final Path RESULTS_HOME = Paths.get("results");
 
     private ScenarioUtils() {
@@ -43,5 +60,69 @@ public final class ScenarioUtils {
     public static Path getScenarioEventsPath(String scenario_name) {
 
         return getScenarioHome(scenario_name).resolve("events.zip");
+    }
+
+    public static void saveScenarioAsJson(Scenario scenario, Path directory) throws IOException {
+
+        final JSONObject scenario_json = ScenarioJSON.toJSON(scenario);
+        final Path json_path = directory.resolve("scenario.json");
+        Files.write(json_path, scenario_json.toString(4).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
+    }
+
+    public static JSONObject readScenarioAsJson(Path directory) throws IOException {
+
+        final Path json_path = directory.resolve("scenario.json");
+        final String scenario_json_string = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(json_path))).toString();
+        return new JSONObject(scenario_json_string);
+    }
+
+    public static void compressDirectoryRecursively(Path directory, Path destination) throws Exception {
+
+        try (final ZipOutputStream out = new ZipOutputStream(new FileOutputStream(destination.toFile()))) {
+            LOGGER.info("Compressing {}", directory);
+            compressPath(directory, out);
+        }
+    }
+
+    private static void compressPath(final Path path, final ZipOutputStream out) throws IOException {
+
+        final byte[] tmpBuf = new byte[0x2000];
+        Files.walkFileTree(path, new FileVisitor<Path>() {
+
+            @Override
+            public FileVisitResult preVisitDirectory(final Path directory, final BasicFileAttributes attrs) {
+
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+
+                LOGGER.debug(" compressing {}", file);
+                out.putNextEntry(new ZipEntry(path.relativize(file).toString()));
+
+                try (final InputStream in = Files.newInputStream(file, StandardOpenOption.READ)) {
+                    int read;
+                    while ((read = in.read(tmpBuf)) > 0) {
+                        out.write(tmpBuf, 0, read);
+                    }
+                    out.closeEntry();
+                }
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFileFailed(final Path file, final IOException exc) {
+
+                LOGGER.error("failed to compress {}, due to {}", file, exc);
+                return FileVisitResult.TERMINATE;
+            }
+
+            @Override
+            public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) {
+
+                return FileVisitResult.CONTINUE;
+            }
+        });
     }
 }

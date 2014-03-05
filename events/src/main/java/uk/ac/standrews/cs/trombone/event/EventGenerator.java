@@ -42,10 +42,15 @@ public class EventGenerator {
 
     public EventGenerator(final Scenario scenario, final Path event_home) throws IOException {
 
+        this(scenario, new CsvEventWriter(event_home));
+    }
+
+    public EventGenerator(final Scenario scenario, EventWriter writer) {
+
         this.scenario = scenario;
 
         event_iterators = new TreeSet<>();
-        event_writer = new EventWriter(event_home);
+        event_writer = writer;
         experiment_duration = scenario.getExperimentDurationInNanos();
         random = new MersenneTwisterRNG(scenario.getMasterSeed());
     }
@@ -54,9 +59,10 @@ public class EventGenerator {
 
         init(scenario);
 
-        final ExecutorService executor = Executors.newCachedThreadPool();
+        final ExecutorService executor = Executors.newFixedThreadPool(5);
 
         try {
+            event_writer.write(scenario);
             final Future<Void> event_populator = executor.submit(new EventPopulator());
             final Future<Void> progress_logger = executor.submit(new ProgressLogger());
             event_persistor_task = executor.submit(new EventPersistor(event_populator));
@@ -67,7 +73,6 @@ public class EventGenerator {
             event_persistor_task.get();
             LOGGER.info("finalising...");
             progress_logger.cancel(true);
-            event_writer.write(scenario);
         }
         finally {
             executor.shutdownNow();
