@@ -57,7 +57,7 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
         catch (InterruptedException e) {
             LOGGER.warn("interrupted while shutting down peer client factory", e);
         }
-        
+
         CHANNEL_POOL.clear();
     }
 
@@ -113,7 +113,12 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
                 throw new RPCException("peer is unexposed; cannot invoke remote procedure");
             }
 
-            synthetic_delay.apply(peer_address, client_address);
+            try {
+                synthetic_delay.apply(peer_address, client_address);
+            }
+            catch (InterruptedException e) {
+                throw new RPCException("interrupted while waiting for synthetic delay", e);
+            }
             return super.invoke(proxy, method, params);
         }
 

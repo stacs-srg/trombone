@@ -20,7 +20,7 @@ public class Maintenance implements Serializable, Named {
 
     //FIXME think of how not to use this fixed size pool; needs to be reconfigured based on the size of the network
     protected static final ScheduledExecutorService SCHEDULER = Executors.newScheduledThreadPool(500, new NamedThreadFactory("maintenance_", true));
-    private static final Logger LOGGER = LoggerFactory.getLogger(Maintenance.class);
+    private final Logger logger = LoggerFactory.getLogger(Maintenance.class);
     private static final long serialVersionUID = -15296211081078575L;
     private final DisseminationStrategy strategy;
 
@@ -85,7 +85,7 @@ public class Maintenance implements Serializable, Named {
                 }
             }
             else {
-                LOGGER.warn("bad code! same listener is registered to multiple peers");
+                logger.warn("bad code! same listener is registered to multiple peers");
             }
         }
 
@@ -127,14 +127,14 @@ public class Maintenance implements Serializable, Named {
                                     action.nonOpportunistically(peer);
                                 }
                                 catch (RPCException e) {
-                                    LOGGER.debug("failed to execute non opportunistic dissemination strategy", e);
+                                    logger.debug("failed to execute non opportunistic dissemination strategy", e);
                                 }
                             }
                         }
                     }
                 }
                 catch (Exception e) {
-                    LOGGER.error("failed to execute non-opportunistic maintenance", e);
+                    logger.error("failed to execute non-opportunistic maintenance", e);
                 }
             }
         }

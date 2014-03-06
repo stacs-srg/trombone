@@ -126,7 +126,7 @@ public class EvolutionaryMaintenance extends Maintenance {
                     else {
                         final int generation_count = generation.incrementAndGet();
                         logger.debug("end of generation {}", generation_count);
-                        logger.info("the fittest: {}, the least fit: {}", evaluated_strategies.first(), evaluated_strategies.last());
+                        logger.debug("the fittest: {}, the least fit: {}", evaluated_strategies.first(), evaluated_strategies.last());
 
                         population.clear();
 
