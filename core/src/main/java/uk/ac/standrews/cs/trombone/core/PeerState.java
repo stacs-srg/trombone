@@ -1,5 +1,6 @@
 package uk.ac.standrews.cs.trombone.core;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -66,31 +67,27 @@ public class PeerState implements Iterable<InternalPeerReference> {
         return getEntryValue(higher_entry);
     }
 
-    public PeerReference[] firstReachable(final int size) {
+    public List<PeerReference> firstReachable(final int size) {
 
-        final PeerReference[] references = new PeerReference[size];
+        final List<PeerReference> references = new ArrayList<>(size);
         final Iterator<InternalPeerReference> iterator = state.values().iterator();
-        int index = 0;
-        while (iterator.hasNext() && index < size) {
+        while (iterator.hasNext() && references.size() < size) {
             final InternalPeerReference next = iterator.next();
             if (next.isReachable()) {
-                references[index] = next;
-                index++;
+                references.add(next);
             }
         }
         return references;
     }
 
-    public PeerReference[] lastReachable(final int size) {
+    public List<PeerReference> lastReachable(final int size) {
 
-        final PeerReference[] references = new PeerReference[size];
+        final List<PeerReference> references = new ArrayList<>(size);
         final Iterator<Key> iterator = state.descendingKeySet().iterator();
-        int index = 0;
-        while (iterator.hasNext() && index < size) {
+        while (iterator.hasNext() && references.size() < size) {
             final InternalPeerReference next = state.get(iterator.next());
             if (next.isReachable()) {
-                references[index] = next;
-                index++;
+                references.add(next);
             }
         }
         return references;
@@ -116,26 +113,22 @@ public class PeerState implements Iterable<InternalPeerReference> {
         return getEntryValue(state.firstEntry());
     }
 
-    public PeerReference[] first(int count) {
+    public List<PeerReference> first(int count) {
 
-        final PeerReference[] references = new PeerReference[count];
+        final List<PeerReference> references = new ArrayList<>(count);
         final Iterator<InternalPeerReference> iterator = state.values().iterator();
-        int index = 0;
-        while (iterator.hasNext() && index < count) {
-            references[index] = iterator.next();
-            index++;
+        while (iterator.hasNext() && references.size() < count) {
+            references.add(iterator.next());
         }
         return references;
     }
 
-    public PeerReference[] last(int count) {
+    public List<PeerReference> last(int count) {
 
-        final PeerReference[] references = new PeerReference[count];
+        final List<PeerReference> references = new ArrayList<>(count);
         final Iterator<InternalPeerReference> iterator = state.descendingMap().values().iterator();
-        int index = 0;
-        while (iterator.hasNext() && index < count) {
-            references[index] = iterator.next();
-            index++;
+        while (iterator.hasNext() && references.size() < count) {
+            references.add(iterator.next());
         }
         return references;
     }

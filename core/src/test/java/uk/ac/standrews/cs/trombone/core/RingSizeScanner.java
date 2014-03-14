@@ -64,7 +64,7 @@ class RingSizeScanner extends Scanner {
             cycle_length++;
             final PeerRemote proxy = PeerFactory.bind(node);
             try {
-                node = forwards ? proxy.pull(FIRST_REACHABLE)[0] : proxy.pull(LAST_REACHABLE)[0];
+                node = forwards ? proxy.pull(FIRST_REACHABLE).get(0) : proxy.pull(LAST_REACHABLE).get(0);
             }
             catch (final RPCException e) {
 

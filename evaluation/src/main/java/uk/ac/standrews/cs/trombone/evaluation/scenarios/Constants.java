@@ -42,7 +42,7 @@ public final class Constants {
     public static final int LOOKUP_RETRY_COUNT = 5;
 
     // Master random seed provider
-    public static final SequentialPortNumberProvider PORT_NUMBER_PROVIDER = new SequentialPortNumberProvider(63000);
+    public static final SequentialPortNumberProvider PORT_NUMBER_PROVIDER = new SequentialPortNumberProvider(64000);
     public static final Duration EXPERIMENT_DURATION = new Duration(30, TimeUnit.MINUTES);
     public static final Duration OBSERVATION_INTERVAL = new Duration(10, TimeUnit.SECONDS);
     public static final int KEY_LENGTH_IN_BITS = Integer.SIZE;

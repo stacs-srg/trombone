@@ -51,7 +51,7 @@ public class BlubUnzippedExperiment {
     private static final LinkedBlockingQueue<String> AVAILABLE_HOSTS = new LinkedBlockingQueue<>(BlubCluster.getNodeNames());
 
     static {
-        AVAILABLE_HOSTS.remove("compute-0-46.local");
+//        AVAILABLE_HOSTS.remove("compute-0-46.local");
     }
 
     private static WorkerNetwork network;
@@ -74,14 +74,23 @@ public class BlubUnzippedExperiment {
         final List<Scenario> scenarios_with_repetitions = new ArrayList<>();
 
         for (int i = 0; i < Constants.NUMBER_OF_REPETITIONS; i++) {
+
             for (Scenario scenario : BatchEventGenerator.SCENARIOS) {
-                scenarios_with_repetitions.add(scenario);
+
+                if (scenario.getName().matches("scenario_(61|62|63|65|124)")) {
+                    scenarios_with_repetitions.add(scenario);
+                }
             }
         }
 
         return Combinations.generateArgumentCombinations(new Object[][] {
                 scenarios_with_repetitions.toArray()
         });
+    }
+
+    public static void main(String[] args) {
+
+        System.out.println(data().size());
     }
 
     public BlubUnzippedExperiment(Scenario scenario) {

@@ -1,5 +1,6 @@
 package uk.ac.standrews.cs.trombone.core.selector;
 
+import java.util.List;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.PeerState;
@@ -18,7 +19,7 @@ public class Last implements Selector {
     }
 
     @Override
-    public PeerReference[] select(final Peer peer) {
+    public List<PeerReference> select(final Peer peer) {
 
         final PeerState state = peer.getPeerState();
         return reachable ? state.lastReachable(size) : state.last(size);

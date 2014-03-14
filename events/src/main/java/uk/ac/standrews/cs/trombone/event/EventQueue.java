@@ -3,6 +3,7 @@ package uk.ac.standrews.cs.trombone.event;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -16,7 +17,7 @@ import uk.ac.standrews.cs.trombone.core.PeerReference;
  */
 public class EventQueue implements EventReader, EventWriter {
 
-    private final LinkedBlockingQueue<Event> events;
+    private final BlockingQueue<Event> events;
     private final Scenario scenario;
     private final int host_index;
     private EventGenerator event_generator;
@@ -33,7 +34,7 @@ public class EventQueue implements EventReader, EventWriter {
 
         this.scenario = scenario.copy();
         this.scenario.substituteHostNames(substitute_host_indices);
-        events = new LinkedBlockingQueue<>();
+        events = new LinkedBlockingQueue<>(1);
         event_generator = new EventGenerator(scenario, this);
         generator_task = Executors.newSingleThreadExecutor().submit(new Callable<Void>() {
 

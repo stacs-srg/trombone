@@ -83,7 +83,7 @@ public abstract class XYCsvAnalyzer implements Analyzer {
 
     public String getYAxisLabel() {
 
-        return y_axis_label;
+        return y_axis_label == null ? name : y_axis_label;
     }
 
     public void setYAxisLabel(final String y_axis_label) {

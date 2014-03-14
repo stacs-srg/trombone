@@ -8,17 +8,18 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.evaluation.util.FileSystemUtils;
-import uk.ac.standrews.cs.trombone.evaluation.util.ScenarioUtils;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class ScenarioAnalyzer implements Closeable {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ScenarioAnalyzer.class);
     private final String scenario_name;
     public static final PathMatcher ZIP_FILE_MATCHER = FileSystems.getDefault().getPathMatcher("glob:**/*.zip");
     private final List<Path> repetitions;
@@ -28,14 +29,8 @@ public class ScenarioAnalyzer implements Closeable {
 
         this.scenario_name = scenario_name;
         repetitions = getRepetitions();
-        AnalyticsUtil.unshard(repetitions);
-
-        final Path events_path = ScenarioUtils.getScenarioEventsPath(scenario_name);
-        try (FileSystem events_fs = FileSystemUtils.newZipFileSystem(events_path, false)) {
-            final Path analyss_dir = getAnalysisDirectory();
-            final Path scenario_json = analyss_dir.resolve("scenario.json");
-            Files.copy(events_fs.getPath("scenario.json"), scenario_json, StandardCopyOption.REPLACE_EXISTING);
-        }
+        //        LOGGER.info("unsharding {}", scenario_name);
+        //        AnalyticsUtil.unshard(repetitions);
 
         file_systems = new ArrayList<>();
         for (Path repetition : repetitions) {
@@ -71,6 +66,11 @@ public class ScenarioAnalyzer implements Closeable {
             Files.createDirectories(path);
         }
         return path;
+    }
+
+    public String getScenarioName() {
+
+        return scenario_name;
     }
 
     private List<Path> getRepetitions() throws IOException {

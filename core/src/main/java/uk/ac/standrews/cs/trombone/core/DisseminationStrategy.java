@@ -4,10 +4,10 @@ import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.reflect.MethodUtils;
 import org.mashti.jetson.exception.RPCException;
 import org.slf4j.Logger;
@@ -20,9 +20,9 @@ import uk.ac.standrews.cs.trombone.core.selector.Selector;
 public class DisseminationStrategy implements Iterable<DisseminationStrategy.Action>, Serializable {
 
     private static final long serialVersionUID = 7398182589384122556L;
-    private static final Method PUSH_METHOD = MethodUtils.getAccessibleMethod(PeerRemote.class, "push", PeerReference[].class);
-    private static final Method PULL_METHOD = MethodUtils.getAccessibleMethod(PeerRemote.class, "pull", Selector.class);
-    private static final PeerReference[] EMPTY_REFERENCES = new PeerReference[0];
+    static final Method PUSH_METHOD = MethodUtils.getAccessibleMethod(PeerRemote.class, "push", PeerReference[].class);
+    static final Method PULL_METHOD = MethodUtils.getAccessibleMethod(PeerRemote.class, "pull", Selector.class);
+    private static final List<PeerReference> EMPTY_REFERENCES = Collections.unmodifiableList(new ArrayList<PeerReference>());
     private static final Logger LOGGER = LoggerFactory.getLogger(DisseminationStrategy.class);
     private final ArrayList<Action> actions;
     private int non_opportunistic_interval_millis = 2_000;
@@ -110,33 +110,75 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
 
         public boolean recipientsContain(Peer local, final PeerReference recipient) {
 
-            final PeerReference[] recipients = pullQuietly(local, recipient_selector);
-            return ArrayUtils.contains(recipients, recipient);
+            final List<PeerReference> recipients = pullQuietly(local, recipient_selector);
+            return recipients.contains(recipient);
         }
 
         public void nonOpportunistically(final Peer local) throws RPCException {
 
             if (!opportunistic) {
 
-                final PeerReference[] recipients = getRecipients(local);
+                //                final List<PeerReference> recipients = getRecipients(local);
+                //                for (PeerReference recipient : recipients) {
+                //                    if (recipient != null) {
+                //
+                //                        final PeerRemote remote = local.getRemote(recipient);
+                //                        final PeerClientFactory.PeerClient peer_client = (PeerClientFactory.PeerClient) Proxy.getInvocationHandler(remote);
+                //                        peer_client.asynchronously(getMethod(), getArguments(local));
+                //                    }
+                //                }
+
+                final List<PeerReference> recipients = getRecipients(local);
                 if (push) {
-                    final PeerReference[] data_to_push = getPushData(local);
-                    if (data_to_push != null && data_to_push.length > 0) {
+                    final List<PeerReference> data_to_push = getPushData(local);
+                    if (data_to_push != null && !data_to_push.isEmpty()) {
                         for (PeerReference recipient : recipients) {
                             if (recipient != null) {
-                                local.getRemote(recipient).push(data_to_push);
+                                local.getAsynchronousRemote(recipient).push(data_to_push);
                             }
                         }
                     }
                 }
                 else {
-                    for (PeerReference recipient : recipients) {
+                    for (final PeerReference recipient : recipients) {
                         if (recipient != null) {
-                            final PeerReference[] pulled_data = local.getRemote(recipient).pull(data_selector);
-                            local.push(pulled_data);
+                            local.getAsynchronousRemote(recipient).pull(data_selector);
+                            //                            Futures.addCallback(local.getAsynchronousRemote(recipient).pull(data_selector), new FutureCallback<List<PeerReference>>() {
+                            //
+                            //                                @Override
+                            //                                public void onSuccess(final List<PeerReference> result) {
+                            //
+                            //                                    local.push(result);
+                            //                                }
+                            //
+                            //                                @Override
+                            //                                public void onFailure(final Throwable t) {
+                            //
+                            //                                }
+                            //                            });
                         }
                     }
                 }
+
+                //                final PeerReference[] recipients = getRecipients(local);
+                //                if (push) {
+                //                    final PeerReference[] data_to_push = getPushData(local);
+                //                    if (data_to_push != null && data_to_push.length > 0) {
+                //                        for (PeerReference recipient : recipients) {
+                //                            if (recipient != null) {
+                //                                local.getRemote(recipient).push(data_to_push);
+                //                            }
+                //                        }
+                //                    }
+                //                }
+                //                else {
+                //                    for (PeerReference recipient : recipients) {
+                //                        if (recipient != null) {
+                //                            final PeerReference[] pulled_data = local.getRemote(recipient).pull(data_selector);
+                //                            local.push(pulled_data);
+                //                        }
+                //                    }
+                //                }
             }
         }
 
@@ -146,7 +188,7 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
             return "Action{" + "opportunistic=" + opportunistic + ", push=" + push + ", data_selector=" + data_selector + ", recipient_selector=" + recipient_selector + '}';
         }
 
-        PeerReference[] getPushData(final Peer local) {
+        List<PeerReference> getPushData(final Peer local) {
 
             return pullQuietly(local, data_selector);
         }
@@ -161,12 +203,12 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
             return push ? new Object[] {getPushData(local)} : new Object[] {data_selector};
         }
 
-        PeerReference[] getRecipients(final Peer local) throws RPCException {
+        List<PeerReference> getRecipients(final Peer local) throws RPCException {
 
             return recipient_selector.select(local);
         }
 
-        private static PeerReference[] pullQuietly(final Peer local, Selector selector) {
+        private static List<PeerReference> pullQuietly(final Peer local, Selector selector) {
 
             try {
                 return local.pull(selector);

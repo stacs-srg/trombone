@@ -1,5 +1,7 @@
 package uk.ac.standrews.cs.trombone.event;
 
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -49,7 +51,7 @@ import uk.ac.standrews.cs.trombone.core.PeerState;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class EventExecutor {
 
-    private static final int MAX_BUFFERED_EVENTS = 20_000;
+    private static final int MAX_BUFFERED_EVENTS = 1_000;
     private static final Logger LOGGER = LoggerFactory.getLogger(EventExecutor.class);
 
     private final Rate lookup_execution_rate = new Rate();
@@ -340,7 +342,8 @@ public class EventExecutor {
 
     void queue(Peer peer, final LookupEvent event) {
 
-        runnable_events.add(new RunnableLookupEvent(peer, event));
+        //        runnable_events.add(new RunnableLookupEvent(peer, event));
+        runnable_events.add(new RunnableLookupAsynchEvent(peer, event));
     }
 
     synchronized Peer getPeerByReference(PeerReference reference, PeerConfiguration configurator) {
@@ -611,6 +614,61 @@ public class EventExecutor {
             finally {
                 lookup_execution_rate.mark();
             }
+        }
+    }
+
+    private class RunnableLookupAsynchEvent extends RunnableExperimentEvent {
+
+        private final Logger logger = LoggerFactory.getLogger(RunnableLookupEvent.class);
+
+        private RunnableLookupAsynchEvent(Peer peer, final LookupEvent event) {
+
+            super(peer, event);
+        }
+
+        @Override
+        public void handleEvent() {
+
+            final LookupEvent event = (LookupEvent) getEvent();
+
+            Futures.addCallback(peer.lookupAsynch(event.getTarget(), lookup_retry_count), new FutureCallback<PeerMetric.LookupMeasurement>() {
+
+                @Override
+                public void onSuccess(final PeerMetric.LookupMeasurement measurement) {
+
+                    lookup_execution_rate.mark();
+                    final PeerReference expected_result = event.getExpectedResult();
+                    final long hop_count = measurement.getHopCount();
+                    final long retry_count = measurement.getRetryCount();
+                    final long duration_in_nanos = measurement.getDurationInNanos();
+
+                    if (measurement.isDoneInError()) {
+                        lookup_failure_rate.mark();
+                        lookup_failure_hop_count_sampler.update(hop_count);
+                        lookup_failure_retry_count_sampler.update(retry_count);
+                        lookup_failure_delay_timer.update(duration_in_nanos, TimeUnit.NANOSECONDS);
+                    }
+                    else if (measurement.getResult().equals(expected_result)) {
+                        lookup_correctness_rate.mark();
+                        lookup_correctness_hop_count_sampler.update(hop_count);
+                        lookup_correctness_retry_count_sampler.update(retry_count);
+                        lookup_correctness_delay_timer.update(duration_in_nanos, TimeUnit.NANOSECONDS);
+                    }
+                    else {
+                        lookup_incorrectness_rate.mark();
+                        lookup_incorrectness_hop_count_sampler.update(hop_count);
+                        lookup_incorrectness_retry_count_sampler.update(retry_count);
+                        lookup_incorrectness_delay_timer.update(duration_in_nanos, TimeUnit.NANOSECONDS);
+                    }
+                }
+
+                @Override
+                public void onFailure(final Throwable t) {
+
+                    lookup_execution_rate.mark();
+                    logger.error("failure occurred when executing lookup", t);
+                }
+            });
         }
     }
 }

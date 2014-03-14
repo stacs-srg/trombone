@@ -11,6 +11,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import org.mashti.gauge.Rate;
 import org.mashti.jetson.ChannelPool;
 import org.mashti.jetson.Client;
 import org.mashti.jetson.ClientFactory;
@@ -26,21 +30,40 @@ import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
 public class PeerClientFactory extends ClientFactory<PeerRemote> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PeerClientFactory.class);
-    private static final Bootstrap BOOTSTRAP = new Bootstrap();
-    private static final ChannelPool CHANNEL_POOL = new ChannelPool(BOOTSTRAP);
+    static final Bootstrap BOOTSTRAP = new Bootstrap();
+    static final ChannelPool CHANNEL_POOL = new ChannelPool(BOOTSTRAP);
+
+    private static final Rate rate = new Rate();
+    private static final Rate error_rate = new Rate();
 
     static {
-        final NioEventLoopGroup child_event_loop = new NioEventLoopGroup(0, new NamedThreadFactory("client_event_loop_"));
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(new Runnable() {
+
+            @Override
+            public void run() {
+
+                System.out.println("PRE Asynch RATE: " + rate.getRateAndReset());
+                System.out.println("PRE ERR RATE: " + error_rate.getRateAndReset());
+            }
+        }, 0, 10, TimeUnit.SECONDS);
+        final NioEventLoopGroup child_event_loop = new NioEventLoopGroup(1, new NamedThreadFactory("client_event_loop_"));
         BOOTSTRAP.group(child_event_loop);
         BOOTSTRAP.channel(NioSocketChannel.class);
         BOOTSTRAP.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5_000);
         BOOTSTRAP.option(ChannelOption.TCP_NODELAY, true);
         BOOTSTRAP.handler(new LeanClientChannelInitializer(PeerRemote.class, PeerCodecs.INSTANCE));
 
-        CHANNEL_POOL.setBlockWhenExhausted(true);
-        CHANNEL_POOL.setMaxWaitMillis(1000);
-        CHANNEL_POOL.setMaxTotalPerKey(1);
-        CHANNEL_POOL.setTestOnReturn(false);
+        //        CHANNEL_POOL.setBlockWhenExhausted(true);
+        //                CHANNEL_POOL.setMaxWaitMillis(1000);
+        CHANNEL_POOL.setMaxTotalPerKey(8);
+        //        CHANNEL_POOL.setTestOnReturn(false);
+        CHANNEL_POOL.setTestOnBorrow(true);
+        //        CHANNEL_POOL.setTimeBetweenEvictionRunsMillis(2000);
+        //        CHANNEL_POOL.setTestWhileIdle(true);
+        //        CHANNEL_POOL.setMinEvictableIdleTimeMillis(2000);
+        //        CHANNEL_POOL.setNumTestsPerEvictionRun(1000);
+
+        CHANNEL_POOL.setMaxPooledObjectAgeInMillis(2_000);
     }
 
     private final Peer peer;
@@ -122,6 +145,12 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
             return super.invoke(proxy, method, params);
         }
 
+        public FutureResponse asynchronously(final Method method, final Object[] params) {
+
+            rate.mark();
+            return writeRequest(newFutureResponse(method, params));
+        }
+
         @Override
         public FutureResponse newFutureResponse(final Method method, final Object[] arguments) {
 
@@ -137,15 +166,25 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
                     if (result instanceof PeerReference) {
                         peer.push((PeerReference) result);
                     }
-                    if (result instanceof PeerReference[]) {
-                        peer.push((PeerReference[]) result);
+
+                    if (result instanceof List) {
+                        List list = (List) result;
+                        for (Object element : list) {
+                            if (element instanceof PeerReference) {
+                                PeerReference peerReference = (PeerReference) element;
+                                peer.push(peerReference);
+                            }
+                        }
                     }
                 }
 
                 @Override
                 public void onFailure(final Throwable t) {
 
-                    LOGGER.debug("failure occurred on future", t);
+                    if (Peer.EXPOSED_PORTS.contains(getAddress().getPort())) {
+                        error_rate.mark();
+                        LOGGER.debug("failure occurred on future", t);
+                    }
                     reference.seen(false);
                 }
             });

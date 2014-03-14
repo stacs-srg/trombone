@@ -1,0 +1,37 @@
+{
+    "chart_type": "LineChart",
+    "conversion": {
+        "column": {
+            "1": "secondToHour"
+        }
+    },
+    "options": {
+        "title": "",
+        "hAxis": {
+            "title": "Time Through Experiment (Hours)",
+            "gridlines": {
+                "count": 5
+            },
+            "minorGridlines": {
+                "count": 5
+            },
+            "viewWindow": {
+                "min": 0
+            }
+        },
+        "vAxis": {
+            "title": "",
+            "viewWindow": {
+                "min": 0
+            }
+        },
+        "intervals": {
+            "style": "area"
+        },
+        "legend": "bottom",
+        "useFirstColumnAsDomain": true,
+        "animation": {
+            "duration": 0
+        }
+    }
+}

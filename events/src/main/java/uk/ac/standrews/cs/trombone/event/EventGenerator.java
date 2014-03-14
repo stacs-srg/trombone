@@ -35,7 +35,7 @@ public class EventGenerator {
     private final long experiment_duration;
     private final MersenneTwisterRNG random;
     private final Scenario scenario;
-    private final Semaphore load_balancer = new Semaphore(15_000, true);
+    private final Semaphore load_balancer = new Semaphore(1_000, true);
     private Future<Void> event_persistor_task;
     private final Rate event_generation_rate = new Rate();
     private final Rate event_persistence_rate = new Rate();

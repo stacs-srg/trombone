@@ -1,5 +1,7 @@
 package uk.ac.standrews.cs.trombone.core.selector;
 
+import java.util.ArrayList;
+import java.util.List;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.key.Key;
@@ -16,13 +18,11 @@ public class NextHopSelector implements Selector {
     }
 
     @Override
-    public PeerReference[] select(final Peer peer) {
+    public List<PeerReference> select(final Peer peer) {
 
-        final PeerReference[] next_hops = new PeerReference[targets.length];
-        int index = 0;
+        final List<PeerReference> next_hops = new ArrayList<>(targets.length);
         for (Key target : targets) {
-            next_hops[index] = peer.nextHop(target);
-            index++;
+            next_hops.add(peer.nextHop(target));
         }
         return next_hops;
     }

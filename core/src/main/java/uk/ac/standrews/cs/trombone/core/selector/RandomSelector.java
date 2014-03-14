@@ -1,5 +1,6 @@
 package uk.ac.standrews.cs.trombone.core.selector;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import uk.ac.standrews.cs.trombone.core.Peer;
@@ -19,17 +20,17 @@ public class RandomSelector implements Selector {
     }
 
     @Override
-    public PeerReference[] select(final Peer peer) {
+    public List<PeerReference> select(final Peer peer) {
 
         final List<PeerReference> references = peer.getPeerState().getReferences();
         final int references_size = references.size();
 
         final int result_size = Math.min(size, references_size);
-        final PeerReference[] result = new PeerReference[result_size];
+        final List<PeerReference> result = new ArrayList<>(result_size);
 
         for (int i = 0; i < result_size; i++) {
-            result[i] = references.get(nextInt(references_size - i));
-            references.remove(result[i]);
+            result.set(i, references.get(nextInt(references_size - i)));
+            references.remove(result.get(i));
         }
 
         return result;

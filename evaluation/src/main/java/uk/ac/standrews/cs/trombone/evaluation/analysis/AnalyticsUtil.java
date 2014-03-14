@@ -1,5 +1,9 @@
 package uk.ac.standrews.cs.trombone.evaluation.analysis;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.AtomicDouble;
 import java.io.File;
 import java.io.FileFilter;
@@ -56,6 +60,8 @@ final class AnalyticsUtil {
     static final CellProcessor[] DEFAULT_GAUGE_CSV_PROCESSORS = new CellProcessor[] {RELATIVE_TIME_IN_SECONDS_PROCESSOR, DOUBLE_PROCESSOR};
     private static final NumberConverter AS_IS_CONVERTER = new AsIsConverter();
     private static final Logger LOGGER = LoggerFactory.getLogger(AnalyticsUtil.class);
+    public static final ObjectMapper MAPPER = new ObjectMapper();
+    public static final JsonFactory JSON_FACTORY = MAPPER.getFactory();
 
     private AnalyticsUtil() {
 
@@ -266,7 +272,7 @@ final class AnalyticsUtil {
                 if (row != null) {
                     time_sampler.addSample((Long) row.get(0));
                     final Double aDouble = (Double) row.get(1);
-                    counter += aDouble.isNaN()? 0 : aDouble;
+                    counter += aDouble.isNaN() ? 0 : aDouble;
                 }
                 else {
                     reader.close();
@@ -353,8 +359,9 @@ final class AnalyticsUtil {
         }
     }
 
-    public static void unshard(Collection<Path> raw_zip_files) throws IOException {
+    public static void unshard(List<Path> raw_zip_files) throws IOException {
 
+        JsonNode scenario_json = null;
         for (Path raw_zip_file : raw_zip_files) {
             try (FileSystem fileSystem = FileSystemUtils.newZipFileSystem(raw_zip_file, false)) {
 
@@ -387,8 +394,41 @@ final class AnalyticsUtil {
                     }
                 }
 
+                final List<Path> scenarios = FileSystemUtils.getMatchingFiles(host_1, fileSystem.getPathMatcher("glob:/[0-9]*/scenario.json"));
+
+                if (scenario_json == null) {
+                    scenario_json = getJsonObject(scenarios.get(0));
+                   
+                }
+                for (Path scenario : scenarios) {
+
+                    
+                    if (!scenario_json.equals(getJsonObject(scenario))) {
+                        throw new RuntimeException("mismatching scenario across hosts in " + raw_zip_file);
+                    }
+                }
             }
         }
+
+        assert scenario_json != null;
+
+        if (!raw_zip_files.isEmpty()) {
+           
+            Files.write(raw_zip_files.get(0).getParent().getParent().resolve("scenario.json"),  MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(scenario_json).getBytes(StandardCharsets.UTF_8));
+        }
+
+    }
+
+    private static JsonNode getJsonObject(final Path path) throws IOException {
+
+        StringBuilder builder = new StringBuilder();
+        for (String s : Files.readAllLines(path, StandardCharsets.UTF_8)) {
+            builder.append(s);
+        }
+
+        JsonParser jp = JSON_FACTORY.createParser(builder.toString());
+        return MAPPER.readTree(jp);
+        
     }
 
     private static String[] getHeader(final List<CsvListReader> readers) throws IOException {

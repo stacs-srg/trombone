@@ -22,5 +22,4 @@ public class ReachableStateSizePerPeerAnalyzer extends XYCsvAnalyzer.Counter {
 
         this(scenario_analyzer.getCsvsByName(REACHABLE_STATE_SIZE_PER_ALIVE_PEER_GAUGE_CSV));
     }
-
 }

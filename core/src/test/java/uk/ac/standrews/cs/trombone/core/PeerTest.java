@@ -3,6 +3,7 @@ package uk.ac.standrews.cs.trombone.core;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.net.InetSocketAddress;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.After;
@@ -78,8 +79,8 @@ public class PeerTest {
     @Test
     public void testPull() throws Exception {
 
-        final PeerReference[] reference = peer.pull(Self.getInstance());
-        assertEquals(peer_reference, reference[0]);
+        final List<PeerReference> reference = peer.pull(Self.getInstance());
+        assertEquals(peer_reference, reference.get(0));
     }
 
     @Test

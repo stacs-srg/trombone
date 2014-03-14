@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import org.mashti.jetson.exception.RPCException;
@@ -19,7 +20,7 @@ import uk.ac.standrews.cs.trombone.core.util.NamingUtils;
 public class Maintenance implements Serializable, Named {
 
     //FIXME think of how not to use this fixed size pool; needs to be reconfigured based on the size of the network
-    protected static final ScheduledExecutorService SCHEDULER = Executors.newScheduledThreadPool(500, new NamedThreadFactory("maintenance_", true));
+    protected static final ScheduledExecutorService SCHEDULER = Executors.newScheduledThreadPool(50, new NamedThreadFactory("maintenance_", true));
     private final Logger logger = LoggerFactory.getLogger(Maintenance.class);
     private static final long serialVersionUID = -15296211081078575L;
     private final DisseminationStrategy strategy;
@@ -94,7 +95,7 @@ public class Maintenance implements Serializable, Named {
             if (!isStarted()) {
                 final DisseminationStrategy current_strategy = strategy.get();
                 if (current_strategy != null) {
-                    non_opp_maintenance = SCHEDULER.scheduleWithFixedDelay(nonOpportunisticDisseminator, 0, current_strategy.getInterval(), TimeUnit.MILLISECONDS);
+                    non_opp_maintenance = SCHEDULER.scheduleWithFixedDelay(nonOpportunisticDisseminator, ThreadLocalRandom.current().nextInt(500, 5000), current_strategy.getInterval(), TimeUnit.MILLISECONDS);
                     started = true;
                 }
             }
@@ -133,7 +134,7 @@ public class Maintenance implements Serializable, Named {
                         }
                     }
                 }
-                catch (Exception e) {
+                catch (Throwable e) {
                     logger.error("failed to execute non-opportunistic maintenance", e);
                 }
             }

@@ -1,5 +1,7 @@
 package uk.ac.standrews.cs.trombone.core.selector;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.mashti.jetson.exception.RPCException;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
@@ -17,13 +19,11 @@ public class LookupSelector implements Selector {
     }
 
     @Override
-    public PeerReference[] select(final Peer peer) throws RPCException {
+    public List<PeerReference> select(final Peer peer) throws RPCException {
 
-        final PeerReference[] results = new PeerReference[targets.length];
-        int index = 0;
+        final List<PeerReference> results = new ArrayList<>(targets.length);
         for (Key target : targets) {
-            results[index] = peer.lookup(target);
-            index++;
+            results.add(peer.lookup(target));
         }
         return results;
     }

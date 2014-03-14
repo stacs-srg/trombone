@@ -32,7 +32,7 @@ public final class BatchEventGenerator {
     private Path scenario_home;
     private Path scenario_events;
 
-    static final List<Scenario> SCENARIOS = BaseScenario.generateAll();
+   public static final List<Scenario> SCENARIOS = BaseScenario.generateAll();
     //    private static final Scenario[] SCENARIOS = {
     //            new PlatformJustificationSingleHost(100),
     //            new PlatformJustificationSingleHost(200),
