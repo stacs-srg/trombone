@@ -60,7 +60,7 @@ public class BlubUnzippedExperiment {
     private static final Logger LOGGER = LoggerFactory.getLogger(BlubUnzippedExperiment.class);
     private final String scenario_name;
     private static final ReentrantLock lock = new ReentrantLock(true);
-    private static final Semaphore semaphore = new Semaphore(1);
+    private static final Semaphore semaphore = new Semaphore(48);
 
     private final List<ApplicationDescriptor> workers = new ArrayList<>();
     private final WorkerManager manager;
