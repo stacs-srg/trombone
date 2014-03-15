@@ -224,18 +224,20 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
                 @Override
                 public void onSuccess(final Object result) {
 
-                    succ_rate.mark();
-                    reference.seen(true);
+                    if (reference != null) {
+                        succ_rate.mark();
+                        reference.seen(true);
 
-                    if (result instanceof PeerReference) {
-                        peer.push((PeerReference) result);
-                    }
-                    if (result instanceof List) {
-                        List list = (List) result;
-                        for (Object element : list) {
-                            if (element instanceof PeerReference) {
-                                PeerReference peerReference = (PeerReference) element;
-                                peer.push(peerReference);
+                        if (result instanceof PeerReference) {
+                            peer.push((PeerReference) result);
+                        }
+                        if (result instanceof List) {
+                            List list = (List) result;
+                            for (Object element : list) {
+                                if (element instanceof PeerReference) {
+                                    PeerReference peerReference = (PeerReference) element;
+                                    peer.push(peerReference);
+                                }
                             }
                         }
                     }
@@ -244,11 +246,13 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
                 @Override
                 public void onFailure(final Throwable t) {
 
-                    if (Peer.EXPOSED_PORTS.contains(getAddress().getPort())) {
-                        error_rate.mark();
-                        LOGGER.error("failure occurred on future {}", t.getMessage());
+                    if (reference != null) {
+                        if (Peer.EXPOSED_PORTS.contains(getAddress().getPort())) {
+                            error_rate.mark();
+                            LOGGER.error("failure occurred on future {}", t.getMessage());
+                        }
+                        reference.seen(false);
                     }
-                    reference.seen(false);
                 }
             });
             return future_response;

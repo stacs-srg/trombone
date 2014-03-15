@@ -29,7 +29,7 @@ public class RandomSelector implements Selector {
         final List<PeerReference> result = new ArrayList<>(result_size);
 
         for (int i = 0; i < result_size; i++) {
-            result.set(i, references.get(nextInt(references_size - i)));
+            result.add(references.get(nextInt(references_size - i)));
             references.remove(result.get(i));
         }
 
