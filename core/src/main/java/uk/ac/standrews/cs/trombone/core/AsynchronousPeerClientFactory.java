@@ -249,7 +249,7 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
                     if (reference != null) {
                         if (Peer.EXPOSED_PORTS.contains(getAddress().getPort())) {
                             error_rate.mark();
-                            LOGGER.error("failure occurred on future {}", t.getMessage());
+                            LOGGER.debug("failure occurred on future {}", t.getMessage());
                         }
                         reference.seen(false);
                     }
