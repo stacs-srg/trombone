@@ -16,8 +16,9 @@ public final class PeerFactory {
         private static final long serialVersionUID = 8318814582661151942L;
 
         @Override
-        public void apply(final InetAddress from, final InetAddress to) {
-            // do nothing
+        public long get(final InetAddress from, final InetAddress to) {
+
+            return 0;
         }
 
         @Override

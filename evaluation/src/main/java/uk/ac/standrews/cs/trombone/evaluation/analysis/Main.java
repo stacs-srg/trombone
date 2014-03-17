@@ -25,8 +25,11 @@ public class Main {
 
         final List<ScenarioAnalyzer> scenarioAnalyzers = new ArrayList<>();
         for (int i = 1; i <= 140; i++) {
-            final String scenario_name = "scenario_" + i;
-            scenarioAnalyzers.add(new ScenarioAnalyzer(scenario_name));
+            if (i != 123) {
+                final String scenario_name = "scenario_" + i;
+                //            if (scenario_name.matches("scenario_(61|62|63|65|124)")) {
+                scenarioAnalyzers.add(new ScenarioAnalyzer(scenario_name));
+            }
         }
 
         Set<String> unique_file_names = null;
@@ -43,7 +46,7 @@ public class Main {
                     }
                 }
                 for (String file_name : unique_file_names) {
-                    
+
                     XYCsvAnalyzer analyser = null;
                     final String base_name = FilenameUtils.getBaseName(file_name);
                     final List<Path> files = scenario_analyzer.getCsvsByName("/" + file_name);

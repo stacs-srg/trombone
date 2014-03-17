@@ -373,21 +373,26 @@ function getAverageOfColumn(data_table, column) {
 function decodeQuery(encoded) {
 
     var decoded = {};
-    encoded.split("_").forEach(function (value, index) {
 
-        if (index == 0) {
-            decoded.metric = parseInt(value);
-        }
-        if (index == 1) {
-            decoded.churn = decodeArray(value);
-        }
-        if (index == 2) {
-            decoded.workload = decodeArray(value);
-        }
-        if (index == 3) {
-            decoded.maintenance = decodeArray(value);
-        }
-    });
+    if (encoded === undefined || encoded.trim() == '') {
+        decoded = {metric: 0, churn: [], workload: [], maintenance: []};
+    } else {
+        encoded.split("_").forEach(function (value, index) {
+
+            if (index == 0) {
+                decoded.metric = parseInt(value);
+            }
+            if (index == 1) {
+                decoded.churn = decodeArray(value);
+            }
+            if (index == 2) {
+                decoded.workload = decodeArray(value);
+            }
+            if (index == 3) {
+                decoded.maintenance = decodeArray(value);
+            }
+        });
+    }
 
     return decoded;
 }
@@ -411,7 +416,7 @@ function drawChart(wrapper, scenarios, interval_col_indices, observation) {
         scenarios.forEach(function (scenario, scenario_index) {
 
             rows[scenario_index] = new Array();
-            for (var index = 0; index < scenarios.length+1; index++) {
+            for (var index = 0; index < scenarios.length + 1; index++) {
                 rows[scenario_index][index] = null;
             }
 

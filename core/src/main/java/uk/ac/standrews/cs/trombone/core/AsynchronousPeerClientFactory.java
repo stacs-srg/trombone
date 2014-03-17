@@ -33,7 +33,7 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
     private static final Rate rate = new Rate();
     private static final Rate error_rate = new Rate();
     private static final Rate succ_rate = new Rate();
-    private final ConcurrentHashMap<InetSocketAddress, AsynchronousPeerRemote> cached_proxy_map = new ConcurrentHashMap<InetSocketAddress, AsynchronousPeerRemote>();
+    private final ConcurrentHashMap<InetSocketAddress, AsynchronousPeerRemote> asynchronous_cached_proxy_map = new ConcurrentHashMap<InetSocketAddress, AsynchronousPeerRemote>();
 
     static {
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(new Runnable() {
@@ -41,9 +41,9 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
             @Override
             public void run() {
 
-                System.out.println("Asynch requested rate: " + rate.getRateAndReset());
-                System.out.println("Asynch finished error  rate: " + error_rate.getRateAndReset());
-                System.out.println("Asynch finished success rate: " + succ_rate.getRateAndReset());
+                LOGGER.info("Asynchronous call rate: " + rate.getRateAndReset());
+                LOGGER.info("Asynchronous error rate: " + error_rate.getRateAndReset());
+                LOGGER.info("Asynchronous succ rate: " + succ_rate.getRateAndReset());
             }
         }, 0, 10, TimeUnit.SECONDS);
     }
@@ -100,10 +100,10 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
 
     AsynchronousPeerRemote getAsynchronous(InetSocketAddress address) {
 
-        if (cached_proxy_map.containsKey(address)) { return cached_proxy_map.get(address); }
+        if (asynchronous_cached_proxy_map.containsKey(address)) { return asynchronous_cached_proxy_map.get(address); }
         final Client handler = createClient(address);
         final AsynchronousPeerRemote new_proxy = createAsynchronousProxy(handler);
-        final AsynchronousPeerRemote existing_proxy = cached_proxy_map.putIfAbsent(address, new_proxy);
+        final AsynchronousPeerRemote existing_proxy = asynchronous_cached_proxy_map.putIfAbsent(address, new_proxy);
         return existing_proxy != null ? existing_proxy : new_proxy;
     }
 
@@ -144,10 +144,8 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
                 if (matching_Method == null) {
                     LOGGER.error("NO MATCHING METHOD");
                 }
-
                 rate.mark();
-                final FutureResponse future_response = writeRequest(newFutureResponse(matching_Method, params));
-                return future_response;
+                return writeRequest(newFutureResponse(matching_Method, params));
             }
             else {
                 LOGGER.error("method {} was not found in dispatch; executing method on proxy object", method);
@@ -173,43 +171,41 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
                 future_response.setException(e);
                 return future_response;
             }
-
-            final GenericFutureListener<ChannelFuture> listener = new GenericFutureListener<ChannelFuture>() {
+            PeerClientFactory.BOOTSTRAP.group().schedule(new Runnable() {
 
                 @Override
-                public void operationComplete(final ChannelFuture future) throws Exception {
+                public void run() {
 
-                    if (future.isSuccess()) {
+                    final GenericFutureListener<ChannelFuture> listener = new GenericFutureListener<ChannelFuture>() {
 
-                        //                        try {
-                        //                            synthetic_delay.apply(peer_address, client_address);
-                        //                        }
-                        //                        catch (InterruptedException e) {
-                        //                            setException(new RPCException("interrupted while waiting for synthetic delay", e), future_response);
-                        //                            return;
-                        //                        }
+                        @Override
+                        public void operationComplete(final ChannelFuture future) throws Exception {
 
-                        final Channel channel = channel_future.channel();
-                        final ChannelFuture write = channel.write(future_response);
-                        write.addListener(new GenericFutureListener<ChannelFuture>() {
+                            if (future.isSuccess()) {
 
-                            @Override
-                            public void operationComplete(final ChannelFuture future) throws Exception {
+                                final Channel channel = channel_future.channel();
+                                final ChannelFuture write = channel.write(future_response);
+                                write.addListener(new GenericFutureListener<ChannelFuture>() {
 
-                                if (!future.isSuccess()) {
-                                    setException(future.cause(), future_response);
-                                }
+                                    @Override
+                                    public void operationComplete(final ChannelFuture future) throws Exception {
+
+                                        if (!future.isSuccess()) {
+                                            setException(future.cause(), future_response);
+                                        }
+                                    }
+                                });
+                                beforeFlush(channel, future_response);
+                                channel.flush();
                             }
-                        });
-                        beforeFlush(channel, future_response);
-                        channel.flush();
-                    }
-                    else {
-                        setException(future.cause(), future_response);
-                    }
+                            else {
+                                setException(future.cause(), future_response);
+                            }
+                        }
+                    };
+                    channel_future.addListener(listener);
                 }
-            };
-            channel_future.addListener(listener);
+            }, synthetic_delay.get(peer_address, client_address), TimeUnit.NANOSECONDS);
 
             return future_response;
         }
@@ -249,7 +245,7 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
                     if (reference != null) {
                         if (Peer.EXPOSED_PORTS.contains(getAddress().getPort())) {
                             error_rate.mark();
-                            LOGGER.debug("failure occurred on future {}", t.getMessage());
+                            LOGGER.debug("failure occurred on future ", t);
                         }
                         reference.seen(false);
                     }

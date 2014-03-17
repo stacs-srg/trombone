@@ -1,7 +1,6 @@
 package uk.ac.standrews.cs.trombone.evaluation.scenarios;
 
 import java.net.InetAddress;
-import java.util.concurrent.TimeUnit;
 import org.mashti.sina.distribution.ProbabilityDistribution;
 import org.mashti.sina.util.RandomNumberGenerator;
 import org.uncommons.maths.random.MersenneTwisterRNG;
@@ -28,12 +27,12 @@ public class DistributedSyntheticDelay implements SyntheticDelay {
     }
 
     @Override
-    public void apply(final InetAddress from, final InetAddress to) throws InterruptedException {
+    public long get(final InetAddress from, final InetAddress to) {
 
         if (from.equals(to) || isLocalAddress(from) && isLocalAddress(to)) {
-            final Number delay = RandomNumberGenerator.generate(distribution, random);
-            TimeUnit.NANOSECONDS.sleep(delay.longValue());
+            return RandomNumberGenerator.generate(distribution, random).longValue();
         }
+        return 0;
     }
 
     public ProbabilityDistribution getDistribution() {
@@ -51,5 +50,4 @@ public class DistributedSyntheticDelay implements SyntheticDelay {
 
         return NamingUtils.name(this);
     }
-
 }

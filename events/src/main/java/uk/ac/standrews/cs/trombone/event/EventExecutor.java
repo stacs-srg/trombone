@@ -51,7 +51,7 @@ import uk.ac.standrews.cs.trombone.core.PeerState;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class EventExecutor {
 
-    private static final int MAX_BUFFERED_EVENTS = 1_000;
+    private static final int MAX_BUFFERED_EVENTS = 3_000;
     private static final Logger LOGGER = LoggerFactory.getLogger(EventExecutor.class);
 
     private final Rate lookup_execution_rate = new Rate();

@@ -22,7 +22,7 @@ import static org.junit.Assert.assertTrue;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class PeerTest {
 
-    private final InetSocketAddress initial_address = new InetSocketAddress(0);
+    private final InetSocketAddress initial_address = new InetSocketAddress("localhost", 0);
     private final Key peer_key = new KeyProvider(32, DigestUtils.md5("ddd")).get();
     private final Peer peer = new Peer(initial_address, peer_key);
     private final PeerState peer_state = peer.getPeerState();
@@ -60,6 +60,7 @@ public class PeerTest {
 
         assertEquals(peer_key, peer.getKey());
         assertEquals(peer_key, peer_reference.getKey());
+        assertEquals(peer_key, peer.getAsynchronousRemote(peer_reference).getKey().get());
     }
 
     @Test

@@ -2,6 +2,7 @@ package uk.ac.standrews.cs.trombone.core;
 
 import java.io.Serializable;
 import java.net.InetAddress;
+import java.util.concurrent.TimeUnit;
 import uk.ac.standrews.cs.trombone.core.util.Named;
 
 /**
@@ -9,5 +10,12 @@ import uk.ac.standrews.cs.trombone.core.util.Named;
  */
 public interface SyntheticDelay extends Serializable, Named {
 
-    void apply(InetAddress from, InetAddress to) throws InterruptedException;
+    /**
+     * Gets the synthetic delay in {@link TimeUnit#NANOSECONDS}.
+     *
+     * @param from the source address
+     * @param to the destination address
+     * @return the synthetic delay in {@link TimeUnit#NANOSECONDS}
+     */
+    long get(InetAddress from, InetAddress to);
 }

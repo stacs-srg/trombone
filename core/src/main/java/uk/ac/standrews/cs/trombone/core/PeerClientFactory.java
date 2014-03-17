@@ -35,6 +35,7 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
 
     private static final Rate rate = new Rate();
     private static final Rate error_rate = new Rate();
+    private static final Rate succ_rate = new Rate();
 
     static {
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(new Runnable() {
@@ -42,21 +43,22 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
             @Override
             public void run() {
 
-                System.out.println("PRE Asynch RATE: " + rate.getRateAndReset());
-                System.out.println("PRE ERR RATE: " + error_rate.getRateAndReset());
+                LOGGER.info("call rate: " + rate.getRateAndReset());
+                LOGGER.info("error rate: " + error_rate.getRateAndReset());
+                LOGGER.info("succ rate: " + succ_rate.getRateAndReset());
             }
         }, 0, 10, TimeUnit.SECONDS);
         final NioEventLoopGroup child_event_loop = new NioEventLoopGroup(1, new NamedThreadFactory("client_event_loop_"));
         BOOTSTRAP.group(child_event_loop);
         BOOTSTRAP.channel(NioSocketChannel.class);
-        BOOTSTRAP.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5_000);
+        BOOTSTRAP.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30_000);
         BOOTSTRAP.option(ChannelOption.TCP_NODELAY, true);
         BOOTSTRAP.handler(new LeanClientChannelInitializer(PeerRemote.class, PeerCodecs.INSTANCE));
 
         //        CHANNEL_POOL.setBlockWhenExhausted(true);
         //                CHANNEL_POOL.setMaxWaitMillis(1000);
-        CHANNEL_POOL.setMaxTotalPerKey(8);
-        //        CHANNEL_POOL.setTestOnReturn(false);
+        CHANNEL_POOL.setMaxTotalPerKey(1);
+        CHANNEL_POOL.setTestOnReturn(false);
         CHANNEL_POOL.setTestOnBorrow(true);
         //        CHANNEL_POOL.setTimeBetweenEvictionRunsMillis(2000);
         //        CHANNEL_POOL.setTestWhileIdle(true);
@@ -137,18 +139,13 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
             }
 
             try {
-                synthetic_delay.apply(peer_address, client_address);
+                TimeUnit.NANOSECONDS.sleep(synthetic_delay.get(peer_address, client_address));
             }
             catch (InterruptedException e) {
                 throw new RPCException("interrupted while waiting for synthetic delay", e);
             }
-            return super.invoke(proxy, method, params);
-        }
-
-        public FutureResponse asynchronously(final Method method, final Object[] params) {
-
             rate.mark();
-            return writeRequest(newFutureResponse(method, params));
+            return super.invoke(proxy, method, params);
         }
 
         @Override
@@ -161,6 +158,7 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
                 @Override
                 public void onSuccess(final Object result) {
 
+                    succ_rate.mark();
                     reference.seen(true);
 
                     if (result instanceof PeerReference) {
