@@ -22,12 +22,10 @@ public class PeerServerFactory extends ServerFactory<PeerRemote> {
     private static final Logger LOGGER = LoggerFactory.getLogger(PeerServerFactory.class);
     private static final ServerBootstrap SERVER_BOOTSTRAP = new ServerBootstrap();
 
-    static final int THREAD_COUNT = Runtime.getRuntime().availableProcessors() + 1;
-
     static {
 
-        final NioEventLoopGroup parent_event_loop = new NioEventLoopGroup(THREAD_COUNT, new NamedThreadFactory("server_parent_event_loop_"));
-        final NioEventLoopGroup child_event_loop = new NioEventLoopGroup(1, new NamedThreadFactory("server_child_event_loop_"));
+        final NioEventLoopGroup parent_event_loop = new NioEventLoopGroup(4, new NamedThreadFactory("server_parent_event_loop_"));
+        final NioEventLoopGroup child_event_loop = new NioEventLoopGroup(2, new NamedThreadFactory("server_child_event_loop_"));
         SERVER_BOOTSTRAP.group(parent_event_loop, child_event_loop);
         SERVER_BOOTSTRAP.channel(NioServerSocketChannel.class);
         SERVER_BOOTSTRAP.option(ChannelOption.TCP_NODELAY, true);

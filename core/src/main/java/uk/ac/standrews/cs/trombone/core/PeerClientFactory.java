@@ -32,7 +32,6 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
     private static final Logger LOGGER = LoggerFactory.getLogger(PeerClientFactory.class);
     static final Bootstrap BOOTSTRAP = new Bootstrap();
     static final ChannelPool CHANNEL_POOL = new ChannelPool(BOOTSTRAP);
-
     private static final Rate rate = new Rate();
     private static final Rate error_rate = new Rate();
     private static final Rate succ_rate = new Rate();
@@ -46,6 +45,7 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
                 LOGGER.info("call rate: " + rate.getRateAndReset());
                 LOGGER.info("error rate: " + error_rate.getRateAndReset());
                 LOGGER.info("succ rate: " + succ_rate.getRateAndReset());
+
             }
         }, 0, 10, TimeUnit.SECONDS);
         final NioEventLoopGroup child_event_loop = new NioEventLoopGroup(1, new NamedThreadFactory("client_event_loop_"));
@@ -55,15 +55,9 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
         BOOTSTRAP.option(ChannelOption.TCP_NODELAY, true);
         BOOTSTRAP.handler(new LeanClientChannelInitializer(PeerRemote.class, PeerCodecs.INSTANCE));
 
-        //        CHANNEL_POOL.setBlockWhenExhausted(true);
-        //                CHANNEL_POOL.setMaxWaitMillis(1000);
         CHANNEL_POOL.setMaxTotalPerKey(1);
         CHANNEL_POOL.setTestOnReturn(false);
         CHANNEL_POOL.setTestOnBorrow(true);
-        //        CHANNEL_POOL.setTimeBetweenEvictionRunsMillis(2000);
-        //        CHANNEL_POOL.setTestWhileIdle(true);
-        //        CHANNEL_POOL.setMinEvictableIdleTimeMillis(2000);
-        //        CHANNEL_POOL.setNumTestsPerEvictionRun(1000);
 
         CHANNEL_POOL.setMaxPooledObjectAgeInMillis(2_000);
     }

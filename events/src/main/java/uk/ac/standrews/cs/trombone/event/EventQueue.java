@@ -34,7 +34,7 @@ public class EventQueue implements EventReader, EventWriter {
 
         this.scenario = scenario.copy();
         this.scenario.substituteHostNames(substitute_host_indices);
-        events = new LinkedBlockingQueue<>(1);
+        events = new LinkedBlockingQueue<>(1000);
         event_generator = new EventGenerator(scenario, this);
         generator_task = Executors.newSingleThreadExecutor().submit(new Callable<Void>() {
 
