@@ -65,7 +65,7 @@ public class Key implements Comparable<Key>, Serializable {
 
     public byte[] getValue() {
 
-        return copy(value);
+        return value;
     }
 
     public int getLength() {
@@ -98,14 +98,14 @@ public class Key implements Comparable<Key>, Serializable {
         if (this == other) { return true; }
         if (!(other instanceof Key)) { return false; }
         final Key that = (Key) other;
-        return Arrays.equals(getValue(), that.getValue());
+        return Arrays.equals(value, that.value);
     }
 
     @Override
     public int hashCode() {
 
         if (hashcode == null) {
-            hashcode = Arrays.hashCode(getValue());
+            hashcode = Arrays.hashCode(value);
         }
         return hashcode;
     }
@@ -113,7 +113,7 @@ public class Key implements Comparable<Key>, Serializable {
     @Override
     public String toString() {
 
-        return Hex.encodeHexString(getValue());
+        return Hex.encodeHexString(value);
     }
 
     private static byte[] copy(final byte[] value) {
