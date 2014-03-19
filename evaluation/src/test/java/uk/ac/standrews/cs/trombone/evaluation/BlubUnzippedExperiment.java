@@ -173,7 +173,6 @@ public class BlubUnzippedExperiment {
                 final Future<String> future_event_execution = host_event_entry.getValue();
 
                 try {
-
                     final String results_path = future_event_execution.get();
                     LOGGER.info("successfully finished executing events on host {} - {}", host, results_path);
 

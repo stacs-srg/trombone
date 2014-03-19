@@ -7,11 +7,9 @@ import com.google.common.util.concurrent.SettableFuture;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.concurrent.ConcurrentSkipListSet;
-import org.apache.commons.lang.reflect.MethodUtils;
 import org.mashti.jetson.Server;
 import org.mashti.jetson.ServerFactory;
 import org.mashti.jetson.exception.RPCException;
@@ -292,8 +290,6 @@ public class Peer implements PeerRemote {
         return next_hop;
     }
 
-    private static final Method NEXT_HOP = MethodUtils.getAccessibleMethod(PeerRemote.class, "nextHop", Key.class);
-
     private ListenableFuture<PeerReference> lookupAsynchronous(final Key target, final PeerMetric.LookupMeasurement measurement) {
 
         SettableFuture<PeerReference> asynchLookup = SettableFuture.create();
@@ -310,12 +306,11 @@ public class Peer implements PeerRemote {
 
             if (!next_hop.equals(self)) {
 
-                //                PeerClientFactory.PeerClient client = (PeerClientFactory.PeerClient) Proxy.getInvocationHandler(getRemote(next_hop));
-                //                final FutureResponse future_next_hop = client.asynchronously(NEXT_HOP, new Object[] {target});
                 final ListenableFuture future_next_hop = asynchronous_remote_factory.get(next_hop).nextHop(target);
                 if (measurement != null) {
                     measurement.incrementHopCount();
                 }
+                
                 Futures.addCallback(future_next_hop, new FutureCallback<PeerReference>() {
 
                     @Override
@@ -332,16 +327,12 @@ public class Peer implements PeerRemote {
                         next_hop.setReachable(false);
                         push(next_hop);
                         if (!current_hop.equals(self)) {
-                            //                            final PeerRemote remote = getRemote(current_hop);
-                            //                            PeerClientFactory.PeerClient client = (PeerClientFactory.PeerClient) Proxy.getInvocationHandler(remote);
-                            //                            client.asynchronously(DisseminationStrategy.PUSH_METHOD, new Object[] {new PeerReference[] {next_hop}});
                             asynchronous_remote_factory.get(current_hop).push(next_hop);
                         }
                     }
                 });
             }
             else {
-                //                nextHopAsynch(asynch_lookup, target, nextHop(target), next_hop, measurement);
                 if (measurement != null) {
                     LOGGER.info("traversed to itself after {} hops", measurement.getHopCount());
                 }

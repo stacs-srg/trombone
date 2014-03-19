@@ -7,7 +7,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.mashti.gauge.Counter;
 import org.mashti.gauge.Metric;
 import org.mashti.gauge.Rate;
-import org.mashti.gauge.Sampler;
 import org.mashti.gauge.Timer;
 import org.mashti.jetson.WrittenByteCountListener;
 import org.mashti.jetson.exception.RPCException;
@@ -20,8 +19,8 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
     private static final Rate GLOBAL_SENT_BYTES_RATE = new Rate();
     private final Rate sent_bytes_rate;
     private final Timer lookup_success_delay_timer;
-    private final Sampler lookup_success_hop_count_sampler;
-    private final Sampler lookup_success_retry_count_sampler;
+    //    private final Sampler lookup_success_hop_count_sampler;
+    //    private final Sampler lookup_success_retry_count_sampler;
     private final Rate lookup_failure_rate;
     private final Counter lookup_counter;
     private final Counter served_next_hop_counter;
@@ -30,8 +29,8 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
 
         sent_bytes_rate = new Rate();
         lookup_success_delay_timer = new Timer();
-        lookup_success_hop_count_sampler = new Sampler();
-        lookup_success_retry_count_sampler = new Sampler();
+        //        lookup_success_hop_count_sampler = new Sampler();
+        //        lookup_success_retry_count_sampler = new Sampler();
         lookup_failure_rate = new Rate();
         lookup_counter = new Counter();
         served_next_hop_counter = new Counter();
@@ -147,8 +146,8 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
             if (doneIfUndone()) {
                 this.result = result;
                 duration_in_nanos = time.stop();
-                lookup_success_hop_count_sampler.update(hop_count.get());
-                lookup_success_retry_count_sampler.update(retry_count.get());
+                //                lookup_success_hop_count_sampler.update(hop_count.get());
+                //                lookup_success_retry_count_sampler.update(retry_count.get());
                 lookup_counter.increment();
             }
         }

@@ -155,7 +155,11 @@ function readScenarios() {
 
     scenario_names.scenarios.forEach(function (scenario_name) {
 
-        scenarios.push(readAsJSON('../../../../results/' + scenario_name + '/scenario.json'));
+        try {
+            scenarios.push(readAsJSON('../../../../results/' + scenario_name + '/scenario.json'));
+        } catch (e) {
+            console.log("failed to load " + scenario_name + " : " + e);
+        }
     });
     return scenarios;
 }

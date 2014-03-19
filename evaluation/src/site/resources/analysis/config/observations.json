@@ -258,6 +258,15 @@
             "file_name": "sent_bytes_rate.csv",
             "options": {
                 "vAxis": {
+                    "title": "Bytes Sent Per Second"
+                }
+            }
+        },
+        {
+            "title": "Sent Bytes Per Alive Peer Per Second",
+            "file_name": "sent_bytes_per_alive_peer_per_second_gauge.csv",
+            "options": {
+                "vAxis": {
                     "title": "Bytes Sent Per Alive node Per Second"
                 }
             }
@@ -323,7 +332,7 @@
         },
         {
             "title": "Performance Vs. Cost: Lookup Delay",
-            "file_name": [ "sent_bytes_rate.csv", "lookup_correctness_delay_timer.csv"],
+            "file_name": [ "sent_bytes_per_alive_peer_per_second_gauge.csv", "lookup_correctness_delay_timer.csv"],
             "chart_type": "ScatterChart",
             "options": {
                 "vAxis": {
@@ -336,7 +345,7 @@
         },
         {
             "title": "Performance Vs. Cost: Lookup Failure",
-            "file_name": [ "sent_bytes_rate.csv", "lookup_incorrectness_rate.csv"],
+            "file_name": [ "sent_bytes_per_alive_peer_per_second_gauge.csv", "lookup_incorrectness_rate.csv"],
             "chart_type": "ScatterChart",
             "options": {
                 "vAxis": {

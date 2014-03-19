@@ -9,15 +9,13 @@ import uk.ac.standrews.cs.trombone.core.PeerMetric;
 public class EnvironmentSnapshot {
 
     private static final long MAX_LOOKUP_DELAY_MILLIS = TimeUnit.MILLISECONDS.convert(1, TimeUnit.MINUTES);
-    private static final double MAX_SENT_BYTES_PER_SECOND = 1000 * 50;
-    private static final double MAX_LOOKUP_FAILURE_PER_SECOND = 10000;
+    private static final double MAX_SENT_BYTES_PER_SECOND = 1000 * 5;
+    private static final double MAX_LOOKUP_FAILURE_PER_SECOND = 2000;
     private final double lookup_failure_rate;
     private final long mean_lookup_success_delay_millis;
     private final double sent_bytes_per_second;
     private double number_of_lookups_executed;
     private double number_of_nexthop_answered;
-    private double number_of_added_reachable;
-    private double number_of_added_unreachable;
 
     public EnvironmentSnapshot(PeerMetric metric) {
 
