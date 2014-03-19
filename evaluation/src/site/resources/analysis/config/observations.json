@@ -346,19 +346,6 @@
                     "title": "Bytes Sent Per Node Per Second"
                 }
             }
-        },
-        {
-            "title": "Performance Vs. Cost: Lookup Failure",
-            "file_name": [ "sent_bytes_rate.csv", "lookup_incorrectness_rate.csv"],
-            "chart_type": "ScatterChart",
-            "options": {
-                "vAxis": {
-                    "title": "Mean Incorrect Lookup Rate per Second"
-                },
-                "hAxis": {
-                    "title": "Bytes Sent Per Node Per Second"
-                }
-            }
         }
     ]
 }

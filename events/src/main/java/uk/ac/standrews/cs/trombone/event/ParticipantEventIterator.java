@@ -3,9 +3,8 @@ package uk.ac.standrews.cs.trombone.event;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.ReentrantLock;
 import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.mashti.gauge.util.LongAdder;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.event.churn.Churn;
 import uk.ac.standrews.cs.trombone.event.churn.Workload;
@@ -15,7 +14,7 @@ import uk.ac.standrews.cs.trombone.event.churn.Workload;
  */
 public class ParticipantEventIterator implements Iterator<Event>, Comparable<ParticipantEventIterator> {
 
-    private final AtomicLong current_time_nanos = new AtomicLong(0);
+    private final LongAdder current_time_nanos = new LongAdder();
     private final Participant participant;
     private final long experiment_duration_nanos;
     private final Churn churn;
@@ -24,8 +23,6 @@ public class ParticipantEventIterator implements Iterator<Event>, Comparable<Par
     private final Random random;
     private boolean available;
     private long session_end_time;
-
-    private final ReentrantLock lock = new ReentrantLock(true);
 
     public ParticipantEventIterator(Participant participant, long experiment_duration_nanos, final Random random) {
 
@@ -62,7 +59,7 @@ public class ParticipantEventIterator implements Iterator<Event>, Comparable<Par
 
     public Long getCurrentTime() {
 
-        return current_time_nanos.get();
+        return current_time_nanos.longValue();
     }
 
     @Override
@@ -98,18 +95,18 @@ public class ParticipantEventIterator implements Iterator<Event>, Comparable<Par
     private synchronized Event nextLookupEvent() {
 
         assert available;
-        final long current_time = current_time_nanos.get();
+        final long current_time = current_time_nanos.longValue();
         final Key target = workload.getTargetKeyAt(current_time);
         final long interval = workload.getIntervalAt(current_time);
         final long occurrence_time = Math.abs(current_time + interval);
 
         final Event next_event;
         if (session_end_time > occurrence_time) {
-            current_time_nanos.addAndGet(interval);
+            current_time_nanos.add(interval);
             next_event = new LookupEvent(participant, occurrence_time, target);
         }
         else {
-            current_time_nanos.set(session_end_time);
+            current_time_nanos.add(Math.max(0, session_end_time - current_time));
             next_event = next();
         }
         return next_event;
@@ -141,7 +138,7 @@ public class ParticipantEventIterator implements Iterator<Event>, Comparable<Par
         }
         else {
             final long downtime = normalize(churn.getDowntimeAt(current_time));
-            current_time_nanos.addAndGet(downtime);
+            current_time_nanos.add(downtime);
             return new LeaveEvent(participant, current_time);
         }
     }

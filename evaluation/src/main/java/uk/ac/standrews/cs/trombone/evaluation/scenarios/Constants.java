@@ -2,7 +2,6 @@ package uk.ac.standrews.cs.trombone.evaluation.scenarios;
 
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.mashti.sina.distribution.UniformDistribution;
 import org.uncommons.maths.binary.BinaryUtils;
 import org.uncommons.maths.random.Probability;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
@@ -37,7 +36,7 @@ public final class Constants {
     }
 
     private static final byte[] SEED = BinaryUtils.convertHexStringToBytes("2ABFEAE2AB6A2C60109803310D9254DF");
-    public static final DistributedSyntheticDelay BLUB_UNIFORMLY_DISTRIBUTED_SYNTHETIC_DELAY = new DistributedSyntheticDelay(new UniformDistribution(233763, 866279), DigestUtils.md5("masih"));
+    public static final UniformSyntheticDelay BLUB_UNIFORMLY_DISTRIBUTED_SYNTHETIC_DELAY = new UniformSyntheticDelay(233763, 866279, DigestUtils.md5("masih"));
     public static final int ACTIVE_MAINTENANCE_INTERVAL_MILLIS = 1_500;
     public static final int LOOKUP_RETRY_COUNT = 5;
 

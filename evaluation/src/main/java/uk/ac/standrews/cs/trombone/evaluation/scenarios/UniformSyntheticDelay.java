@@ -1,8 +1,6 @@
 package uk.ac.standrews.cs.trombone.evaluation.scenarios;
 
 import java.net.InetAddress;
-import org.mashti.sina.distribution.ProbabilityDistribution;
-import org.mashti.sina.util.RandomNumberGenerator;
 import org.uncommons.maths.random.MersenneTwisterRNG;
 import uk.ac.standrews.cs.trombone.core.SyntheticDelay;
 import uk.ac.standrews.cs.trombone.core.util.NamingUtils;
@@ -12,16 +10,21 @@ import static uk.ac.standrews.cs.trombone.core.util.NetworkUtils.isLocalAddress;
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class DistributedSyntheticDelay implements SyntheticDelay {
+public class UniformSyntheticDelay implements SyntheticDelay {
 
     private static final long serialVersionUID = -6653326115826807344L;
-    private final ProbabilityDistribution distribution;
+    private final int min_delay_nanos;
+    private final int max_delay_nanos;
     private final byte[] seed;
     private final MersenneTwisterRNG random;
+    private final int range;
 
-    public DistributedSyntheticDelay(ProbabilityDistribution distribution, byte[] seed) {
+    public UniformSyntheticDelay(int min_delay_nanos, int max_delay_nanos, byte[] seed) {
 
-        this.distribution = distribution;
+        this.min_delay_nanos = min_delay_nanos;
+        this.max_delay_nanos = max_delay_nanos;
+        range = max_delay_nanos - min_delay_nanos + 1;
+
         this.seed = seed;
         random = new MersenneTwisterRNG(seed);
     }
@@ -30,14 +33,19 @@ public class DistributedSyntheticDelay implements SyntheticDelay {
     public long get(final InetAddress from, final InetAddress to) {
 
         if (from.equals(to) || isLocalAddress(from) && isLocalAddress(to)) {
-            return RandomNumberGenerator.generate(distribution, random).longValue();
+            return random.nextInt(range) + min_delay_nanos;
         }
         return 0;
     }
 
-    public ProbabilityDistribution getDistribution() {
+    public int getMinDelayInNanos() {
 
-        return distribution;
+        return min_delay_nanos;
+    }
+
+    public int getMaxDelayInNanos() {
+
+        return max_delay_nanos;
     }
 
     public byte[] getSeed() {

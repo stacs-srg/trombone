@@ -4,7 +4,6 @@
 
     <title>Masih's PhD</title>
 
-
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/bootstrap-theme.min.css">
     <link rel="stylesheet" href="http://rawgithub.com/jh3y/-cs-spinner/master/csspinner.css">
@@ -186,6 +185,7 @@
         google.visualization.events.addListener(chart, 'select', function () {
             var selection = chart.getSelection();
             if (selection.length > 0 && selection[0].row == null) {
+                //TODO hide series on click
                 var label = wrapper.getDataTable().getColumnLabel(selection[0].column);
                 $('#matches').collapse('show');
                 $('#match_link_' + label).tab('show');

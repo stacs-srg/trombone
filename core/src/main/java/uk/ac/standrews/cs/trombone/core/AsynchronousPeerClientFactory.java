@@ -16,7 +16,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang.reflect.MethodUtils;
 import org.mashti.gauge.Rate;
-import org.mashti.jetson.ChannelPool;
+import org.mashti.jetson.ChannelFuturePool;
 import org.mashti.jetson.Client;
 import org.mashti.jetson.ClientFactory;
 import org.mashti.jetson.FutureResponse;
@@ -33,6 +33,7 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
     private static final Rate rate = new Rate();
     private static final Rate error_rate = new Rate();
     private static final Rate succ_rate = new Rate();
+    public static final Method[] SORTED_ASYNC_METHODS = ReflectionUtil.sort(AsynchronousPeerRemote.class.getMethods());
     private final ConcurrentHashMap<InetSocketAddress, AsynchronousPeerRemote> asynchronous_cached_proxy_map = new ConcurrentHashMap<InetSocketAddress, AsynchronousPeerRemote>();
 
     static {
@@ -71,7 +72,7 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
 
     AsynchronousPeerClientFactory(final Peer peer, final SyntheticDelay synthetic_delay) {
 
-        super(PeerRemote.class, PeerClientFactory.BOOTSTRAP);
+        super(PeerRemote.class, PeerClientFactory.DISPATCH, PeerClientFactory.BOOTSTRAP);
         this.peer = peer;
         this.synthetic_delay = synthetic_delay;
         peer_state = peer.getPeerState();
@@ -79,11 +80,11 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
         peer_address = peer.getAddress().getAddress();
         class_loader = ClassLoader.getSystemClassLoader();
         interfaces = new Class<?>[] {AsynchronousPeerRemote.class};
-        asynch_dispatch = ReflectionUtil.sort(AsynchronousPeerRemote.class.getMethods());
+        asynch_dispatch = SORTED_ASYNC_METHODS;
     }
 
     @Override
-    protected ChannelPool constructChannelPool(final Bootstrap bootstrap) {
+    protected ChannelFuturePool constructChannelPool(final Bootstrap bootstrap) {
 
         return PeerClientFactory.CHANNEL_POOL;
     }
@@ -163,14 +164,8 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
 
         protected FutureResponse writeRequest(final FutureResponse future_response) {
 
-            final ChannelFuture channel_future;
-            try {
-                channel_future = borrowAndReturnChannelFuture();
-            }
-            catch (RPCException e) {
-                future_response.setException(e);
-                return future_response;
-            }
+            final ChannelFuture channel_future = channel_pool.get(address);
+
             PeerClientFactory.BOOTSTRAP.group().schedule(new Runnable() {
 
                 @Override
@@ -181,32 +176,34 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
                         @Override
                         public void operationComplete(final ChannelFuture future) throws Exception {
 
-                            if (future.isSuccess()) {
+                            if (!future_response.isDone()) {
 
-                                final Channel channel = channel_future.channel();
-                                final ChannelFuture write = channel.write(future_response);
-                                write.addListener(new GenericFutureListener<ChannelFuture>() {
+                                if (future.isSuccess()) {
 
-                                    @Override
-                                    public void operationComplete(final ChannelFuture future) throws Exception {
+                                    final Channel channel = channel_future.channel();
+                                    final ChannelFuture write = channel.write(future_response);
+                                    write.addListener(new GenericFutureListener<ChannelFuture>() {
 
-                                        if (!future.isSuccess()) {
-                                            setException(future.cause(), future_response);
+                                        @Override
+                                        public void operationComplete(final ChannelFuture future) throws Exception {
+
+                                            if (!future.isSuccess()) {
+                                                setException(future.cause(), future_response);
+                                            }
                                         }
-                                    }
-                                });
-                                beforeFlush(channel, future_response);
-                                channel.flush();
-                            }
-                            else {
-                                setException(future.cause(), future_response);
+                                    });
+                                    beforeFlush(channel, future_response);
+                                    channel.flush();
+                                }
+                                else {
+                                    setException(future.cause(), future_response);
+                                }
                             }
                         }
                     };
                     channel_future.addListener(listener);
                 }
             }, synthetic_delay.get(peer_address, client_address), TimeUnit.NANOSECONDS);
-
             return future_response;
         }
 

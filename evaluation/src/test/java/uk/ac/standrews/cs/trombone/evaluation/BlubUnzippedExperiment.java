@@ -77,20 +77,15 @@ public class BlubUnzippedExperiment {
 
             for (Scenario scenario : BatchEventGenerator.SCENARIOS) {
 
-                //                if (scenario.getName().matches("scenario_(61|62|63|65|124)")) {
-                scenarios_with_repetitions.add(scenario);
-                //                }
+                if (scenario.getName().matches("scenario_(8|68|70|128|61|62|63|65|124)")) {
+                    scenarios_with_repetitions.add(scenario);
+                }
             }
         }
 
         return Combinations.generateArgumentCombinations(new Object[][] {
                 scenarios_with_repetitions.toArray()
         });
-    }
-
-    public static void main(String[] args) {
-
-        System.out.println(data().size());
     }
 
     public BlubUnzippedExperiment(Scenario scenario) {
@@ -105,7 +100,7 @@ public class BlubUnzippedExperiment {
 
         network = new WorkerNetwork();
         final WorkerManager manager = network.getWorkerManager();
-        manager.setWorkerJVMArguments("-Xmx6G -Xms1G -XX:MaxPermSize=512m");
+        manager.setWorkerJVMArguments("-Xmx6G -Xms1G -XX:MaxPermSize=512m -XX:+HeapDumpOnOutOfMemoryError -XX:+UseG1GC");
         manager.setWorkerDeploymentTimeout(new Duration(5, TimeUnit.MINUTES));
 
         //        network.addMavenDependency("uk.ac.standrews.cs.t3", "evaluation", "1.0-SNAPSHOT", "tests");

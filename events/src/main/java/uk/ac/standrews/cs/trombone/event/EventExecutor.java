@@ -85,6 +85,14 @@ public class EventExecutor {
     private final CsvReporter csv_reporter;
     private final Rate join_failure_rate = new Rate();
     private final Rate join_success_rate = new Rate();
+    private final Gauge<Double> sent_bytes_per_alive_peer_per_second_gauge = new Gauge<Double>() {
+
+        @Override
+        public Double get() {
+
+            return PeerMetric.getGlobalSentBytesRate().getRate() / available_peer_counter.get();
+        }
+    };
     private final ThreadCountGauge thread_count_gauge = new ThreadCountGauge();
     private final SystemLoadAverageGauge system_load_average_gauge = new SystemLoadAverageGauge();
     private final ThreadCpuUsageGauge thread_cpu_usage_gauge = new ThreadCpuUsageGauge();
@@ -189,6 +197,7 @@ public class EventExecutor {
         metric_registry.register("available_peer_counter", available_peer_counter);
         metric_registry.register("peer_arrival_rate", peer_arrival_rate);
         metric_registry.register("peer_departure_rate", peer_departure_rate);
+        metric_registry.register("sent_bytes_per_alive_peer_per_second_gauge", sent_bytes_per_alive_peer_per_second_gauge);
         metric_registry.register("sent_bytes_rate", PeerMetric.getGlobalSentBytesRate());
         metric_registry.register("event_executor_queue_size", event_executor_queue_size);
         metric_registry.register("event_execution_lag_sampler", event_execution_lag_sampler);

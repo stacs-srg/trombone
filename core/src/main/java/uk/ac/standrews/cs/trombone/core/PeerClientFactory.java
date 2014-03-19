@@ -15,13 +15,14 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.mashti.gauge.Rate;
-import org.mashti.jetson.ChannelPool;
+import org.mashti.jetson.ChannelFuturePool;
 import org.mashti.jetson.Client;
 import org.mashti.jetson.ClientFactory;
 import org.mashti.jetson.FutureResponse;
 import org.mashti.jetson.exception.RPCException;
 import org.mashti.jetson.lean.LeanClientChannelInitializer;
 import org.mashti.jetson.util.NamedThreadFactory;
+import org.mashti.jetson.util.ReflectionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
@@ -31,7 +32,7 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PeerClientFactory.class);
     static final Bootstrap BOOTSTRAP = new Bootstrap();
-    static final ChannelPool CHANNEL_POOL = new ChannelPool(BOOTSTRAP);
+    static final ChannelFuturePool CHANNEL_POOL = new ChannelFuturePool(BOOTSTRAP);
     private static final Rate rate = new Rate();
     private static final Rate error_rate = new Rate();
     private static final Rate succ_rate = new Rate();
@@ -55,12 +56,10 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
         BOOTSTRAP.option(ChannelOption.TCP_NODELAY, true);
         BOOTSTRAP.handler(new LeanClientChannelInitializer(PeerRemote.class, PeerCodecs.INSTANCE));
 
-        CHANNEL_POOL.setMaxTotalPerKey(1);
-        CHANNEL_POOL.setTestOnReturn(false);
-        CHANNEL_POOL.setTestOnBorrow(true);
-
         CHANNEL_POOL.setMaxPooledObjectAgeInMillis(2_000);
     }
+
+    static final Method[] DISPATCH = ReflectionUtil.sort(PeerRemote.class.getMethods());
 
     private final Peer peer;
     private final SyntheticDelay synthetic_delay;
@@ -82,7 +81,7 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
 
     PeerClientFactory(final Peer peer, final SyntheticDelay synthetic_delay) {
 
-        super(PeerRemote.class, BOOTSTRAP);
+        super(PeerRemote.class,DISPATCH, BOOTSTRAP);
         this.peer = peer;
         this.synthetic_delay = synthetic_delay;
         peer_state = peer.getPeerState();
@@ -91,7 +90,7 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
     }
 
     @Override
-    protected ChannelPool constructChannelPool(final Bootstrap bootstrap) {
+    protected ChannelFuturePool constructChannelPool(final Bootstrap bootstrap) {
 
         return CHANNEL_POOL;
     }

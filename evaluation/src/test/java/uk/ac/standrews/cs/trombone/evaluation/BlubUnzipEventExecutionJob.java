@@ -78,7 +78,7 @@ public class BlubUnzipEventExecutionJob implements Job<String> {
             event_executor.start();
 
             final Duration experiment_duration = event_executor.getExperimentDuration();
-            final Duration await_timeout = experiment_duration.add(new Duration(10, TimeUnit.MINUTES));
+            final Duration await_timeout = experiment_duration.add(new Duration(20, TimeUnit.MINUTES));
 
             LOGGER.info("awaiting event execution completion...");
             event_executor.awaitCompletion(await_timeout.getLength(), await_timeout.getTimeUnit());
