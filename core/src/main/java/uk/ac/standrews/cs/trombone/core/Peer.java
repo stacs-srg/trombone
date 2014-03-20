@@ -304,9 +304,14 @@ public class Peer implements PeerRemote {
         }
         else {
 
-            if (!next_hop.equals(self) && key.compareRingDistance(current_hop.getKey(), next_hop.getKey()) <= 0) {
+            if (measurement != null && measurement.getHopCount() > 100) {
+                asynch_lookup.set(nextHop(target));
+            }
+            else if (!next_hop.equals(self)) {
+                final AsynchronousPeerRemote next_hop_asynch_remote = asynchronous_remote_factory.get(next_hop);
+                next_hop_asynch_remote.push(self);
 
-                final ListenableFuture future_next_hop = asynchronous_remote_factory.get(next_hop).nextHop(target);
+                final ListenableFuture future_next_hop = next_hop_asynch_remote.nextHop(target);
                 if (measurement != null) {
                     measurement.incrementHopCount();
                 }
@@ -334,7 +339,7 @@ public class Peer implements PeerRemote {
             }
             else {
                 if (measurement != null) {
-                    LOGGER.info("traversed to itself after {} hops", measurement.getHopCount());
+                    LOGGER.debug("traversed to itself after {} hops", measurement.getHopCount());
                 }
                 asynch_lookup.set(nextHop(target));
             }

@@ -28,7 +28,7 @@ public final class Constants {
     public static final Maintenance NO_MAINTENANCE = new Maintenance(null);
     public static final Maintenance SUCCESSOR_MAINTENANCE = new Maintenance(new SuccessorMaintenance());
     public static final Maintenance SUCCESSOR_LIST_MAINTENANCE_5 = new Maintenance(new SuccessorListMaintenance(5));
-    public static final Maintenance RANDOM_MAINTENANCE_2 = new Maintenance(new RandomMaintenance(2, 2));
+    public static final Maintenance RANDOM_MAINTENANCE_2 = new Maintenance(new RandomMaintenance(3, 3));
     public static final Maintenance EVOLUTIONARY_MAINTENANCE = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES);
 
     private Constants() {

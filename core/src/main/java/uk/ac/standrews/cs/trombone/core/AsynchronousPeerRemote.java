@@ -5,7 +5,11 @@ import java.util.List;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.core.selector.Selector;
 
-/** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
+/**
+ * The asynchronous remote operations.
+ *
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
 public interface AsynchronousPeerRemote {
 
     ListenableFuture<Key> getKey();

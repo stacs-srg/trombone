@@ -7,8 +7,8 @@ import java.util.Random;
 import java.util.Set;
 import uk.ac.standrews.cs.trombone.core.DisseminationStrategy;
 import uk.ac.standrews.cs.trombone.core.selector.First;
-import uk.ac.standrews.cs.trombone.core.selector.MostRecentlySeen;
 import uk.ac.standrews.cs.trombone.core.selector.Last;
+import uk.ac.standrews.cs.trombone.core.selector.MostRecentlySeen;
 import uk.ac.standrews.cs.trombone.core.selector.RandomSelector;
 import uk.ac.standrews.cs.trombone.core.selector.Selector;
 import uk.ac.standrews.cs.trombone.core.selector.Self;
@@ -27,7 +27,7 @@ public class DisseminationStrategyGenerator {
         SELECTORS.add(new Last(1, false));
         SELECTORS.add(new Last(1, true));
         SELECTORS.add(Self.getInstance());
-        SELECTORS.add(new RandomSelector(2));
+        SELECTORS.add(new RandomSelector(3));
         SELECTORS.add(new MostRecentlySeen(3));
     }
 

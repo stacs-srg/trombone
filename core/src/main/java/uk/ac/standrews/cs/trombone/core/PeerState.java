@@ -1,10 +1,10 @@
 package uk.ac.standrews.cs.trombone.core;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import uk.ac.standrews.cs.trombone.core.key.Key;
@@ -69,17 +69,17 @@ public class PeerState implements Iterable<InternalPeerReference> {
 
     public List<PeerReference> mostRecentlySeen(final int size) {
 
-        final List<PeerReference> freshest = new ArrayList<>(size);
-        final List<InternalPeerReference> references = new ArrayList<>(state.values());
-        Collections.sort(references, InternalReferenceLastSeenComparator.getInstance());
+        final List<PeerReference> recently_changed = new ArrayList<>(size);
+        final TreeSet<InternalPeerReference> references = new TreeSet<>(InternalReferenceLastSeenComparator.getInstance());
+        references.addAll(state.values());
 
-        final int max_size = Math.min(references.size(), size);
-        for (int i = 0; i < max_size; i++) {
-            final InternalPeerReference reference = references.get(i);
-            freshest.add(reference);
+        final Iterator<InternalPeerReference> references_iterator = references.iterator();
+        while (references_iterator.hasNext() && recently_changed.size() <= size) {
+            InternalPeerReference next = references_iterator.next();
+            recently_changed.add(next);
         }
 
-        return freshest;
+        return recently_changed;
     }
 
     public List<PeerReference> firstReachable(final int size) {
