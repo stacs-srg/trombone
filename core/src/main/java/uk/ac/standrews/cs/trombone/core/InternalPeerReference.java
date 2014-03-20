@@ -8,8 +8,9 @@ import uk.ac.standrews.cs.trombone.core.key.Key;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class InternalPeerReference extends PeerReference {
 
+    public static final long NEVER_SEEN = 0;
     private final AtomicLong first_seen = new AtomicLong();
-    private final AtomicLong last_seen_reachable = new AtomicLong();
+    private final AtomicLong last_seen = new AtomicLong();
     private final int hashcode;
 
     InternalPeerReference(final Key key, final InetSocketAddress address) {
@@ -26,22 +27,23 @@ public class InternalPeerReference extends PeerReference {
 
     public boolean isContactedBefore() {
 
-        return getFirstSeen() != 0;
+        return getFirstSeen() != NEVER_SEEN;
     }
 
-    public long getAge() {
 
-        return getLastSeen() - getFirstSeen();
+    public long getElapsedMillisSinceLastSeen() {
+
+        return System.currentTimeMillis() - getLastSeen();
     }
 
-    private long getFirstSeen() {
+    public long getFirstSeen() {
 
         return first_seen.get();
     }
 
-    private long getLastSeen() {
+    public long getLastSeen() {
 
-        return last_seen_reachable.get();
+        return last_seen.get();
     }
 
     @Override
@@ -59,21 +61,12 @@ public class InternalPeerReference extends PeerReference {
 
     void seen(boolean reachable) {
 
-        last_seen_reachable.set(System.currentTimeMillis());
+        final long now = System.currentTimeMillis();
+        last_seen.set(now);
         if (!isContactedBefore()) {
-            first_seen.set(getLastSeen());
+            first_seen.compareAndSet(NEVER_SEEN, now);
         }
         setReachable(reachable);
-    }
-
-    @Override
-    protected void setReachable(final boolean reachable) {
-
-        if(reachable){
-            
-        }
-        
-        super.setReachable(reachable);
     }
 
     private int calculateHashcode() {

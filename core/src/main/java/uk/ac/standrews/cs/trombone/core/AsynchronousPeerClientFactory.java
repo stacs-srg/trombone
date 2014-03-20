@@ -259,6 +259,7 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
                 for (DisseminationStrategy.Action action : strategy) {
                     if (action.isOpportunistic() && action.recipientsContain(peer, reference)) {
                         final FutureResponse future_dissemination = newFutureResponse(action.getMethod(), action.getArguments(peer));
+                        rate.mark();
                         channel.write(future_dissemination);
                     }
                 }

@@ -1,12 +1,14 @@
 package uk.ac.standrews.cs.trombone.core;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import uk.ac.standrews.cs.trombone.core.key.Key;
+import uk.ac.standrews.cs.trombone.core.util.InternalReferenceLastSeenComparator;
 import uk.ac.standrews.cs.trombone.core.util.RelativeRingDistanceComparator;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
@@ -43,10 +45,8 @@ public class PeerState implements Iterable<InternalPeerReference> {
         final InternalPeerReference existing_reference = state.putIfAbsent(key, internal_reference);
 
         if (existing_reference != null) {
-
             existing_reference.setReachable(reference.isReachable());
         }
-
         return existing_reference == null;
     }
 
@@ -65,6 +65,21 @@ public class PeerState implements Iterable<InternalPeerReference> {
 
         final Map.Entry<Key, InternalPeerReference> higher_entry = state.higherEntry(target);
         return getEntryValue(higher_entry);
+    }
+
+    public List<PeerReference> mostRecentlySeen(final int size) {
+
+        final List<PeerReference> freshest = new ArrayList<>(size);
+        final List<InternalPeerReference> references = new ArrayList<>(state.values());
+        Collections.sort(references, InternalReferenceLastSeenComparator.getInstance());
+
+        final int max_size = Math.min(references.size(), size);
+        for (int i = 0; i < max_size; i++) {
+            final InternalPeerReference reference = references.get(i);
+            freshest.add(reference);
+        }
+
+        return freshest;
     }
 
     public List<PeerReference> firstReachable(final int size) {

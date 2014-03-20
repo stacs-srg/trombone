@@ -304,20 +304,20 @@ public class Peer implements PeerRemote {
         }
         else {
 
-            if (!next_hop.equals(self)) {
+            if (!next_hop.equals(self) && key.compareRingDistance(current_hop.getKey(), next_hop.getKey()) <= 0) {
 
                 final ListenableFuture future_next_hop = asynchronous_remote_factory.get(next_hop).nextHop(target);
                 if (measurement != null) {
                     measurement.incrementHopCount();
                 }
-                
+
                 Futures.addCallback(future_next_hop, new FutureCallback<PeerReference>() {
 
                     @Override
                     public void onSuccess(final PeerReference result) {
 
-                        nextHopAsynch(asynch_lookup, target, result, next_hop, measurement);
                         push(next_hop);
+                        nextHopAsynch(asynch_lookup, target, result, next_hop, measurement);
                     }
 
                     @Override

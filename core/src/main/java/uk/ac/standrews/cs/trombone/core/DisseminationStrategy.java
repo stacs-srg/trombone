@@ -1,5 +1,7 @@
 package uk.ac.standrews.cs.trombone.core;
 
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -20,7 +22,7 @@ import uk.ac.standrews.cs.trombone.core.selector.Selector;
 public class DisseminationStrategy implements Iterable<DisseminationStrategy.Action>, Serializable {
 
     private static final long serialVersionUID = 7398182589384122556L;
-    static final Method PUSH_METHOD = MethodUtils.getAccessibleMethod(PeerRemote.class, "push", PeerReference[].class);
+    static final Method PUSH_METHOD = MethodUtils.getAccessibleMethod(PeerRemote.class, "push", List.class);
     static final Method PULL_METHOD = MethodUtils.getAccessibleMethod(PeerRemote.class, "pull", Selector.class);
     private static final List<PeerReference> EMPTY_REFERENCES = Collections.unmodifiableList(new ArrayList<PeerReference>());
     private static final Logger LOGGER = LoggerFactory.getLogger(DisseminationStrategy.class);
@@ -118,16 +120,6 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
 
             if (!opportunistic) {
 
-                //                final List<PeerReference> recipients = getRecipients(local);
-                //                for (PeerReference recipient : recipients) {
-                //                    if (recipient != null) {
-                //
-                //                        final PeerRemote remote = local.getRemote(recipient);
-                //                        final PeerClientFactory.PeerClient peer_client = (PeerClientFactory.PeerClient) Proxy.getInvocationHandler(remote);
-                //                        peer_client.asynchronously(getMethod(), getArguments(local));
-                //                    }
-                //                }
-
                 final List<PeerReference> recipients = getRecipients(local);
                 if (push) {
                     final List<PeerReference> data_to_push = getPushData(local);
@@ -143,42 +135,22 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
                     for (final PeerReference recipient : recipients) {
                         if (recipient != null) {
                             local.getAsynchronousRemote(recipient).pull(data_selector);
-                            //                            Futures.addCallback(local.getAsynchronousRemote(recipient).pull(data_selector), new FutureCallback<List<PeerReference>>() {
-                            //
-                            //                                @Override
-                            //                                public void onSuccess(final List<PeerReference> result) {
-                            //
-                            //                                    local.push(result);
-                            //                                }
-                            //
-                            //                                @Override
-                            //                                public void onFailure(final Throwable t) {
-                            //
-                            //                                }
-                            //                            });
+                            Futures.addCallback(local.getAsynchronousRemote(recipient).pull(data_selector), new FutureCallback<List<PeerReference>>() {
+
+                                @Override
+                                public void onSuccess(final List<PeerReference> result) {
+
+                                    local.push(result);
+                                }
+
+                                @Override
+                                public void onFailure(final Throwable t) {
+
+                                }
+                            });
                         }
                     }
                 }
-
-                //                final PeerReference[] recipients = getRecipients(local);
-                //                if (push) {
-                //                    final PeerReference[] data_to_push = getPushData(local);
-                //                    if (data_to_push != null && data_to_push.length > 0) {
-                //                        for (PeerReference recipient : recipients) {
-                //                            if (recipient != null) {
-                //                                local.getRemote(recipient).push(data_to_push);
-                //                            }
-                //                        }
-                //                    }
-                //                }
-                //                else {
-                //                    for (PeerReference recipient : recipients) {
-                //                        if (recipient != null) {
-                //                            final PeerReference[] pulled_data = local.getRemote(recipient).pull(data_selector);
-                //                            local.push(pulled_data);
-                //                        }
-                //                    }
-                //                }
             }
         }
 
@@ -200,7 +172,7 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
 
         Object[] getArguments(Peer local) {
 
-            return push ? new Object[] {getPushData(local)} : new Object[] {data_selector};
+            return new Object[] {push ? getPushData(local) : data_selector};
         }
 
         List<PeerReference> getRecipients(final Peer local) throws RPCException {

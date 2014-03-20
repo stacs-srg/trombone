@@ -339,7 +339,10 @@
                     "title": "Mean Correct Lookup Delay (ms)"
                 },
                 "hAxis": {
-                    "title": "Bytes Sent Per Node Per Second"
+                    "title": "Bytes Sent Per Node Per Second",
+                    "viewWindow": {
+                        "max": null
+                    }
                 }
             }
         },
@@ -352,7 +355,10 @@
                     "title": "Mean Incorrect Lookup Rate per Second"
                 },
                 "hAxis": {
-                    "title": "Bytes Sent Per Node Per Second"
+                    "title": "Bytes Sent Per Node Per Second",
+                    "viewWindow": {
+                        "max": null
+                    }
                 }
             }
         }
