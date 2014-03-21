@@ -247,7 +247,7 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
                         reference.seen(false);
                     }
                 }
-            });
+            }, Maintenance.SCHEDULER);
             return future_response;
         }
 

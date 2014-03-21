@@ -264,7 +264,6 @@ public class EventExecutor {
                             task_executor.execute(runnable);
                             event_scheduling_rate.mark();
                             load_balancer.release();
-
                         }
                     }
                     catch (Throwable e) {
@@ -677,7 +676,7 @@ public class EventExecutor {
                     lookup_execution_rate.mark();
                     logger.error("failure occurred when executing lookup", t);
                 }
-            });
+            }, task_executor);
         }
     }
 }

@@ -147,7 +147,7 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
                                 public void onFailure(final Throwable t) {
 
                                 }
-                            });
+                            }, Maintenance.SCHEDULER);
                         }
                     }
                 }

@@ -252,7 +252,7 @@ public class Peer implements PeerRemote {
                     measurement.incrementRetryCount();
                     lookupAsynch(future, measurement, target);
                 }
-            });
+            }, Maintenance.SCHEDULER);
         }
     }
 
@@ -335,7 +335,7 @@ public class Peer implements PeerRemote {
                             asynchronous_remote_factory.get(current_hop).push(next_hop);
                         }
                     }
-                });
+                }, Maintenance.SCHEDULER);
             }
             else {
                 if (measurement != null) {
