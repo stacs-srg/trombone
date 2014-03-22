@@ -38,7 +38,7 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
     private static final Rate succ_rate = new Rate();
 
     static {
-        final NioEventLoopGroup child_event_loop = new NioEventLoopGroup(0, new NamedThreadFactory("client_event_loop_"));
+        final NioEventLoopGroup child_event_loop = new NioEventLoopGroup(50, new NamedThreadFactory("client_event_loop_"));
         BOOTSTRAP.group(child_event_loop);
         BOOTSTRAP.channel(NioSocketChannel.class);
         BOOTSTRAP.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30_000);
@@ -205,6 +205,7 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
                     if (action.isOpportunistic() && action.recipientsContain(peer, reference)) {
                         final FutureResponse future_dissemination = newFutureResponse(action.getMethod(), action.getArguments(peer));
                         channel.write(future_dissemination);
+                        rate.mark();
                     }
                 }
             }

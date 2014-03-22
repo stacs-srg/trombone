@@ -145,7 +145,7 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
                 if (matching_Method == null) {
                     LOGGER.error("NO MATCHING METHOD");
                 }
-                rate.mark();
+                
                 return writeRequest(newFutureResponse(matching_Method, params));
             }
             else {
@@ -166,7 +166,7 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
 
             final ChannelFuture channel_future = channel_pool.get(address);
 
-            PeerClientFactory.BOOTSTRAP.group().schedule(new Runnable() {
+            Maintenance.SCHEDULER.schedule(new Runnable() {
 
                 @Override
                 public void run() {
@@ -182,6 +182,7 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
 
                                     final Channel channel = channel_future.channel();
                                     final ChannelFuture write = channel.write(future_response);
+                                    rate.mark();
                                     write.addListener(new GenericFutureListener<ChannelFuture>() {
 
                                         @Override
@@ -242,7 +243,7 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
                     if (reference != null) {
                         if (Peer.EXPOSED_PORTS.contains(getAddress().getPort())) {
                             error_rate.mark();
-                            LOGGER.error("failure occurred on future {} {}", t, t.getMessage());
+                            LOGGER.debug("failure occurred on future {} {}", t, t.getMessage());
                         }
                         reference.seen(false);
                     }
@@ -259,8 +260,8 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
                 for (DisseminationStrategy.Action action : strategy) {
                     if (action.isOpportunistic() && action.recipientsContain(peer, reference)) {
                         final FutureResponse future_dissemination = newFutureResponse(action.getMethod(), action.getArguments(peer));
-                        rate.mark();
                         channel.write(future_dissemination);
+                        rate.mark();
                     }
                 }
             }
