@@ -52,22 +52,22 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
             @Override
             public void run() {
 
-                LOGGER.info("call rate: {} ", rate.getRateAndReset());
-                LOGGER.info("error rate: {}", error_rate.getRateAndReset());
-                LOGGER.info("succ rate: {}", succ_rate.getRateAndReset());
+                LOGGER.info("call rate: {} ", rate.getRate());
+                LOGGER.info("error rate: {}", error_rate.getRate());
+                LOGGER.info("succ rate: {}", succ_rate.getRate());
                 LOGGER.info("rebuilding selectors... ");
-                long now;
-                now = System.currentTimeMillis();
-                child_event_loop.rebuildSelectors();
-                LOGGER.info("rebuilt CLIENT selector in {} ms", System.currentTimeMillis() - now);
-
-                now = System.currentTimeMillis();
-                PeerServerFactory.parent_event_loop.rebuildSelectors();
-                LOGGER.info("rebuilt SERVER PARENT selector in {} ms", System.currentTimeMillis() - now);
-
-                now = System.currentTimeMillis();
-                PeerServerFactory.child_event_loop.rebuildSelectors();
-                LOGGER.info("rebuilt SERVER CHILD selector in {} ms", System.currentTimeMillis() - now);
+//                long now;
+                //                now = System.currentTimeMillis();
+                //                child_event_loop.rebuildSelectors();
+                //                LOGGER.info("rebuilt CLIENT selector in {} ms", System.currentTimeMillis() - now);
+                //
+                //                now = System.currentTimeMillis();
+                //                PeerServerFactory.parent_event_loop.rebuildSelectors();
+                //                LOGGER.info("rebuilt SERVER PARENT selector in {} ms", System.currentTimeMillis() - now);
+                //
+                //                now = System.currentTimeMillis();
+                //                PeerServerFactory.child_event_loop.rebuildSelectors();
+                //                LOGGER.info("rebuilt SERVER CHILD selector in {} ms", System.currentTimeMillis() - now);
 
             }
         }, 20, 10, TimeUnit.SECONDS);

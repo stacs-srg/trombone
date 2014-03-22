@@ -42,9 +42,9 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
             @Override
             public void run() {
 
-                LOGGER.info("Asynchronous call rate: {}", rate.getRateAndReset());
-                LOGGER.info("Asynchronous error rate: {}", error_rate.getRateAndReset());
-                LOGGER.info("Asynchronous succ rate: {}", succ_rate.getRateAndReset());
+                LOGGER.info("Asynchronous call rate: {}", rate.getRate());
+                LOGGER.info("Asynchronous error rate: {}", error_rate.getRate());
+                LOGGER.info("Asynchronous succ rate: {}", succ_rate.getRate());
             }
         }, 0, 10, TimeUnit.SECONDS);
     }
