@@ -3,8 +3,8 @@ package uk.ac.standrews.cs.trombone.core;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollServerSocketChannel;
 import org.mashti.jetson.FutureResponse;
 import org.mashti.jetson.Server;
 import org.mashti.jetson.ServerFactory;
@@ -24,10 +24,13 @@ public class PeerServerFactory extends ServerFactory<PeerRemote> {
 
     static {
 
-        final NioEventLoopGroup parent_event_loop = new NioEventLoopGroup(0, new NamedThreadFactory("server_parent_event_loop_"));
-        final NioEventLoopGroup child_event_loop = new NioEventLoopGroup(0, new NamedThreadFactory("server_child_event_loop_"));
+        final EpollEventLoopGroup parent_event_loop = new EpollEventLoopGroup(0, new NamedThreadFactory("server_parent_event_loop_"));
+        final EpollEventLoopGroup child_event_loop = new EpollEventLoopGroup(0, new NamedThreadFactory("server_child_event_loop_"));
+        //        final NioEventLoopGroup parent_event_loop = new NioEventLoopGroup(0, new NamedThreadFactory("server_parent_event_loop_"));
+        //        final NioEventLoopGroup child_event_loop = new NioEventLoopGroup(0, new NamedThreadFactory("server_child_event_loop_"));
         SERVER_BOOTSTRAP.group(parent_event_loop, child_event_loop);
-        SERVER_BOOTSTRAP.channel(NioServerSocketChannel.class);
+        SERVER_BOOTSTRAP.channel(EpollServerSocketChannel.class);
+        //        SERVER_BOOTSTRAP.channel(NioServerSocketChannel.class);
         SERVER_BOOTSTRAP.option(ChannelOption.TCP_NODELAY, true);
         SERVER_BOOTSTRAP.childOption(ChannelOption.TCP_NODELAY, true);
         SERVER_BOOTSTRAP.childOption(ChannelOption.SO_KEEPALIVE, true);
