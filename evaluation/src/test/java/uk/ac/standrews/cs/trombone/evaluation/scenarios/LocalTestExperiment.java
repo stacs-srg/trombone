@@ -56,7 +56,7 @@ public class LocalTestExperiment {
     public void testExecution() throws Exception {
 
         //        testExecution(BatchEventGenerator.SCENARIOS.get(7));
-        testExecution(BatchEventGenerator.SCENARIOS.get(9));
+        testExecution(BatchEventGenerator.SCENARIOS.get(64));
         //        testExecution(LOCAL_TEST_SCENARIO_500);
         //        testExecution(LOCAL_TEST_SCENARIO_1000);
         //        testExecution(LOCAL_TEST_SCENARIO_20);

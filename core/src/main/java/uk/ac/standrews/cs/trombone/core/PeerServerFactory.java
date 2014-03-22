@@ -25,7 +25,7 @@ public class PeerServerFactory extends ServerFactory<PeerRemote> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PeerServerFactory.class);
     private static final ServerBootstrap SERVER_BOOTSTRAP = new ServerBootstrap();
-    private static ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(4);
+    private static ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
 
     static final NioEventLoopGroup parent_event_loop;
     static final NioEventLoopGroup child_event_loop;
@@ -43,7 +43,7 @@ public class PeerServerFactory extends ServerFactory<PeerRemote> {
             }
         }, 10, 10, TimeUnit.SECONDS);
         parent_event_loop = new NioEventLoopGroup(0, new NamedThreadFactory("server_parent_event_loop_"));
-        child_event_loop = new NioEventLoopGroup(1, new NamedThreadFactory("server_child_event_loop_"));
+        child_event_loop = new NioEventLoopGroup(0, new NamedThreadFactory("server_child_event_loop_"));
         SERVER_BOOTSTRAP.group(parent_event_loop, child_event_loop);
         SERVER_BOOTSTRAP.channel(NioServerSocketChannel.class);
         SERVER_BOOTSTRAP.option(ChannelOption.TCP_NODELAY, true);

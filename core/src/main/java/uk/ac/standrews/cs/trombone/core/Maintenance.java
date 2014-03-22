@@ -21,7 +21,7 @@ import uk.ac.standrews.cs.trombone.core.util.NamingUtils;
 public class Maintenance implements Serializable, Named {
 
     //FIXME think of how not to use this fixed size pool; needs to be reconfigured based on the size of the network
-    protected static final ListeningScheduledExecutorService SCHEDULER = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(100, new NamedThreadFactory("maintenance_", true)));
+    protected static final ListeningScheduledExecutorService SCHEDULER = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(200, new NamedThreadFactory("maintenance_", true)));
     private final Logger logger = LoggerFactory.getLogger(Maintenance.class);
     private static final long serialVersionUID = -15296211081078575L;
     private final DisseminationStrategy strategy;

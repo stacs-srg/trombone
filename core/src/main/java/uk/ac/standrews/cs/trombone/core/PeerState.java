@@ -29,7 +29,7 @@ public class PeerState implements Iterable<InternalPeerReference> {
         add(reference);
         return state.get(key);
     }
-
+    
     public boolean inLocalKeyRange(Key target) {
 
         final PeerReference last_reachable = lastReachable();
@@ -37,7 +37,7 @@ public class PeerState implements Iterable<InternalPeerReference> {
     }
 
     public boolean add(final PeerReference reference) {
-
+           
         if (reference == null) { return false; }
         final Key key = reference.getKey();
         if (key.equals(local_key)) { return false; }
@@ -50,8 +50,8 @@ public class PeerState implements Iterable<InternalPeerReference> {
         return existing_reference == null;
     }
 
+    
     public PeerReference remove(PeerReference reference) {
-
         return state.remove(reference.getKey());
     }
 
