@@ -9,6 +9,7 @@ import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListSet;
 import org.mashti.jetson.Server;
 import org.mashti.jetson.ServerFactory;
@@ -180,7 +181,107 @@ public class Peer implements PeerRemote {
 
     public AsynchronousPeerRemote getAsynchronousRemote(final PeerReference reference) {
 
-        return asynchronous_remote_factory.get(reference);
+        if (self.equals(reference)) {
+            return new AsynchronousPeerRemote() {
+
+                @Override
+                public ListenableFuture<Key> getKey() {
+
+                    return Maintenance.SCHEDULER.submit(new Callable<Key>() {
+
+                        @Override
+                        public Key call() throws Exception {
+
+                            return Peer.this.getKey();
+                        }
+                    });
+                }
+
+                @Override
+                public ListenableFuture<Void> join(final PeerReference member) {
+
+                    return Maintenance.SCHEDULER.submit(new Callable<Void>() {
+
+                        @Override
+                        public Void call() throws Exception {
+
+                            Peer.this.join(member);
+                            return null; //void
+                        }
+                    });
+                }
+
+                @Override
+                public ListenableFuture<Void> push(final List<PeerReference> references) {
+
+                    return Maintenance.SCHEDULER.submit(new Callable<Void>() {
+
+                        @Override
+                        public Void call() throws Exception {
+
+                            Peer.this.push(references);
+                            return null; //void
+                        }
+                    });
+                }
+
+                @Override
+                public ListenableFuture<Void> push(final PeerReference reference) {
+
+                    return Maintenance.SCHEDULER.submit(new Callable<Void>() {
+
+                        @Override
+                        public Void call() throws Exception {
+
+                            Peer.this.push(reference);
+                            return null; //void
+                        }
+                    });
+                }
+
+                @Override
+                public ListenableFuture<List<PeerReference>> pull(final Selector selector) {
+
+                    return Maintenance.SCHEDULER.submit(new Callable<List<PeerReference>>() {
+
+                        @Override
+                        public List<PeerReference> call() throws Exception {
+
+                            return Peer.this.pull(selector);
+                        }
+                    });
+                }
+
+                @Override
+                public ListenableFuture<PeerReference> lookup(final Key target) {
+
+                    return Maintenance.SCHEDULER.submit(new Callable<PeerReference>() {
+
+                        @Override
+                        public PeerReference call() throws Exception {
+
+                            return Peer.this.lookup(target);
+                        }
+                    });
+                }
+
+                @Override
+                public ListenableFuture<PeerReference> nextHop(final Key target) {
+
+                    return Maintenance.SCHEDULER.submit(new Callable<PeerReference>() {
+
+                        @Override
+                        public PeerReference call() throws Exception {
+
+                            return Peer.this.nextHop(target);
+                        }
+                    });
+                }
+            };
+        }
+        else {
+            return asynchronous_remote_factory.get(reference);
+        }
     }
 
     public PeerMetric getPeerMetric() {

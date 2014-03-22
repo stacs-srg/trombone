@@ -1,10 +1,11 @@
 package uk.ac.standrews.cs.trombone.core;
 
+import com.google.common.util.concurrent.ListeningScheduledExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.Serializable;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -20,7 +21,7 @@ import uk.ac.standrews.cs.trombone.core.util.NamingUtils;
 public class Maintenance implements Serializable, Named {
 
     //FIXME think of how not to use this fixed size pool; needs to be reconfigured based on the size of the network
-    protected static final ScheduledExecutorService SCHEDULER = Executors.newScheduledThreadPool(100, new NamedThreadFactory("maintenance_", true));
+    protected static final ListeningScheduledExecutorService SCHEDULER = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(100, new NamedThreadFactory("maintenance_", true)));
     private final Logger logger = LoggerFactory.getLogger(Maintenance.class);
     private static final long serialVersionUID = -15296211081078575L;
     private final DisseminationStrategy strategy;
@@ -28,6 +29,7 @@ public class Maintenance implements Serializable, Named {
     public Maintenance() {
 
         this(new DisseminationStrategy());
+        
     }
 
     public Maintenance(DisseminationStrategy strategy) {
