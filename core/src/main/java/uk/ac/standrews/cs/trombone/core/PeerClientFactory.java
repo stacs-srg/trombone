@@ -38,7 +38,7 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
     private static final Rate succ_rate = new Rate();
 
     static {
-        final NioEventLoopGroup child_event_loop = new NioEventLoopGroup(50, new NamedThreadFactory("client_event_loop_"));
+        final NioEventLoopGroup child_event_loop = new NioEventLoopGroup(1, new NamedThreadFactory("client_event_loop_"));
         BOOTSTRAP.group(child_event_loop);
         BOOTSTRAP.channel(NioSocketChannel.class);
         BOOTSTRAP.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30_000);
@@ -56,18 +56,18 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
                 LOGGER.info("error rate: {}", error_rate.getRate());
                 LOGGER.info("succ rate: {}", succ_rate.getRate());
                 LOGGER.info("rebuilding selectors... ");
-//                long now;
-                //                now = System.currentTimeMillis();
-                //                child_event_loop.rebuildSelectors();
-                //                LOGGER.info("rebuilt CLIENT selector in {} ms", System.currentTimeMillis() - now);
-                //
-                //                now = System.currentTimeMillis();
-                //                PeerServerFactory.parent_event_loop.rebuildSelectors();
-                //                LOGGER.info("rebuilt SERVER PARENT selector in {} ms", System.currentTimeMillis() - now);
-                //
-                //                now = System.currentTimeMillis();
-                //                PeerServerFactory.child_event_loop.rebuildSelectors();
-                //                LOGGER.info("rebuilt SERVER CHILD selector in {} ms", System.currentTimeMillis() - now);
+                long now;
+                //                                now = System.currentTimeMillis();
+                //                                child_event_loop.rebuildSelectors();
+                //                                LOGGER.info("rebuilt CLIENT selector in {} ms", System.currentTimeMillis() - now);
+                //                
+                //                                now = System.currentTimeMillis();
+                //                                PeerServerFactory.parent_event_loop.rebuildSelectors();
+                //                                LOGGER.info("rebuilt SERVER PARENT selector in {} ms", System.currentTimeMillis() - now);
+
+                now = System.currentTimeMillis();
+                PeerServerFactory.child_event_loop.rebuildSelectors();
+                LOGGER.info("rebuilt SERVER CHILD selector in {} ms", System.currentTimeMillis() - now);
 
             }
         }, 20, 10, TimeUnit.SECONDS);
