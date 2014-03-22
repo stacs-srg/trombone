@@ -5,8 +5,8 @@ import com.google.common.util.concurrent.Futures;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.netty.channel.epoll.EpollSocketChannel;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.InetAddress;
@@ -49,11 +49,9 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
 
             }
         }, 0, 10, TimeUnit.SECONDS);
-        final EpollEventLoopGroup child_event_loop = new EpollEventLoopGroup(0, new NamedThreadFactory("client_event_loop_"));
-//        final NioEventLoopGroup child_event_loop = new NioEventLoopGroup(0, new NamedThreadFactory("client_event_loop_"));
+        final NioEventLoopGroup child_event_loop = new NioEventLoopGroup(0, new NamedThreadFactory("client_event_loop_"));
         BOOTSTRAP.group(child_event_loop);
-        BOOTSTRAP.channel(EpollSocketChannel.class);
-//        BOOTSTRAP.channel(NioSocketChannel.class);
+        BOOTSTRAP.channel(NioSocketChannel.class);
         BOOTSTRAP.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30_000);
         BOOTSTRAP.option(ChannelOption.TCP_NODELAY, true);
         BOOTSTRAP.handler(new LeanClientChannelInitializer(PeerRemote.class, PeerCodecs.INSTANCE));
@@ -180,7 +178,7 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
                     }
                     reference.seen(false);
                 }
-            },Maintenance.SCHEDULER);
+            }, Maintenance.SCHEDULER);
             return future_response;
         }
 
