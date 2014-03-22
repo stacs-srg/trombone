@@ -38,17 +38,6 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
     private static final Rate succ_rate = new Rate();
 
     static {
-        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(new Runnable() {
-
-            @Override
-            public void run() {
-
-                LOGGER.info("call rate: " + rate.getRateAndReset());
-                LOGGER.info("error rate: " + error_rate.getRateAndReset());
-                LOGGER.info("succ rate: " + succ_rate.getRateAndReset());
-
-            }
-        }, 0, 10, TimeUnit.SECONDS);
         final NioEventLoopGroup child_event_loop = new NioEventLoopGroup(0, new NamedThreadFactory("client_event_loop_"));
         BOOTSTRAP.group(child_event_loop);
         BOOTSTRAP.channel(NioSocketChannel.class);
@@ -57,6 +46,31 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
         BOOTSTRAP.handler(new LeanClientChannelInitializer(PeerRemote.class, PeerCodecs.INSTANCE));
 
         CHANNEL_POOL.setMaxPooledObjectAgeInMillis(2_000);
+
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(new Runnable() {
+
+            @Override
+            public void run() {
+
+                LOGGER.info("call rate: {} ", rate.getRateAndReset());
+                LOGGER.info("error rate: {}", error_rate.getRateAndReset());
+                LOGGER.info("succ rate: {}", succ_rate.getRateAndReset());
+                LOGGER.info("rebuilding selectors... ");
+                long now;
+                now = System.currentTimeMillis();
+                child_event_loop.rebuildSelectors();
+                LOGGER.info("rebuilt CLIENT selector in {} ms", System.currentTimeMillis() - now);
+
+                now = System.currentTimeMillis();
+                PeerServerFactory.parent_event_loop.rebuildSelectors();
+                LOGGER.info("rebuilt SERVER PARENT selector in {} ms", System.currentTimeMillis() - now);
+
+                now = System.currentTimeMillis();
+                PeerServerFactory.child_event_loop.rebuildSelectors();
+                LOGGER.info("rebuilt SERVER CHILD selector in {} ms", System.currentTimeMillis() - now);
+
+            }
+        }, 20, 10, TimeUnit.SECONDS);
     }
 
     static final Method[] DISPATCH = ReflectionUtil.sort(PeerRemote.class.getMethods());

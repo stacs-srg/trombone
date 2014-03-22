@@ -42,9 +42,9 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
             @Override
             public void run() {
 
-                LOGGER.info("Asynchronous call rate: " + rate.getRateAndReset());
-                LOGGER.info("Asynchronous error rate: " + error_rate.getRateAndReset());
-                LOGGER.info("Asynchronous succ rate: " + succ_rate.getRateAndReset());
+                LOGGER.info("Asynchronous call rate: {}", rate.getRateAndReset());
+                LOGGER.info("Asynchronous error rate: {}", error_rate.getRateAndReset());
+                LOGGER.info("Asynchronous succ rate: {}", succ_rate.getRateAndReset());
             }
         }, 0, 10, TimeUnit.SECONDS);
     }
@@ -242,7 +242,7 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
                     if (reference != null) {
                         if (Peer.EXPOSED_PORTS.contains(getAddress().getPort())) {
                             error_rate.mark();
-                            LOGGER.debug("failure occurred on future ", t);
+                            LOGGER.error("failure occurred on future {} {}", t, t.getMessage());
                         }
                         reference.seen(false);
                     }
