@@ -134,7 +134,6 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
                 else {
                     for (final PeerReference recipient : recipients) {
                         if (recipient != null) {
-                            local.getAsynchronousRemote(recipient).pull(data_selector);
                             Futures.addCallback(local.getAsynchronousRemote(recipient).pull(data_selector), new FutureCallback<List<PeerReference>>() {
 
                                 @Override
