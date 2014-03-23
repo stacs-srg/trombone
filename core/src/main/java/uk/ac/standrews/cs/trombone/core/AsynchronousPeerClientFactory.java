@@ -1,6 +1,5 @@
 package uk.ac.standrews.cs.trombone.core;
 
-import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -10,7 +9,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -47,6 +48,24 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
                 LOGGER.info("Asynchronous succ rate: {}", succ_rate.getRate());
             }
         }, 0, 10, TimeUnit.SECONDS);
+
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(new Runnable() {
+
+            @Override
+            public void run() {
+
+                final Iterator<Map.Entry<InetSocketAddress, ChannelFuture>> iterator = PeerClientFactory.CHANNEL_POOL.getPooledEntries().iterator();
+                while (iterator.hasNext()) {
+                    Map.Entry<InetSocketAddress, ChannelFuture> next = iterator.next();
+                    try {
+                        next.getValue().channel().flush();
+                    }
+                    catch (Exception e) {
+                        LOGGER.error("FAILED TO FLUSH {} due to {}", next.getKey(), e);
+                    }
+                }
+            }
+        }, 0, 1, TimeUnit.SECONDS);
     }
 
     private final Peer peer;
@@ -145,7 +164,7 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
                 if (matching_Method == null) {
                     LOGGER.error("NO MATCHING METHOD");
                 }
-                
+
                 return writeRequest(newFutureResponse(matching_Method, params));
             }
             else {
@@ -165,46 +184,7 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
         protected FutureResponse writeRequest(final FutureResponse future_response) {
 
             final ChannelFuture channel_future = channel_pool.get(address);
-
-            Maintenance.SCHEDULER.schedule(new Runnable() {
-
-                @Override
-                public void run() {
-
-                    final GenericFutureListener<ChannelFuture> listener = new GenericFutureListener<ChannelFuture>() {
-
-                        @Override
-                        public void operationComplete(final ChannelFuture future) throws Exception {
-
-                            if (!future_response.isDone()) {
-
-                                if (future.isSuccess()) {
-
-                                    final Channel channel = channel_future.channel();
-                                    final ChannelFuture write = channel.write(future_response);
-                                    rate.mark();
-                                    write.addListener(new GenericFutureListener<ChannelFuture>() {
-
-                                        @Override
-                                        public void operationComplete(final ChannelFuture future) throws Exception {
-
-                                            if (!future.isSuccess()) {
-                                                setException(future.cause(), future_response);
-                                            }
-                                        }
-                                    });
-                                    beforeFlush(channel, future_response);
-                                    channel.flush();
-                                }
-                                else {
-                                    setException(future.cause(), future_response);
-                                }
-                            }
-                        }
-                    };
-                    channel_future.addListener(listener);
-                }
-            }, synthetic_delay.get(peer_address, client_address), TimeUnit.NANOSECONDS);
+            Maintenance.SCHEDULER.schedule(new RequestWriter(future_response, channel_future), synthetic_delay.get(peer_address, client_address), TimeUnit.NANOSECONDS);
             return future_response;
         }
 
@@ -213,42 +193,7 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
 
             final FutureResponse future_response = super.newFutureResponse(method, arguments);
 
-            Futures.addCallback(future_response, new FutureCallback<Object>() {
-
-                @Override
-                public void onSuccess(final Object result) {
-
-                    if (reference != null) {
-                        succ_rate.mark();
-                        reference.seen(true);
-
-                        if (result instanceof PeerReference) {
-                            peer.push((PeerReference) result);
-                        }
-                        if (result instanceof List) {
-                            List list = (List) result;
-                            for (Object element : list) {
-                                if (element instanceof PeerReference) {
-                                    PeerReference peerReference = (PeerReference) element;
-                                    peer.push(peerReference);
-                                }
-                            }
-                        }
-                    }
-                }
-
-                @Override
-                public void onFailure(final Throwable t) {
-
-                    if (reference != null) {
-                        if (Peer.EXPOSED_PORTS.contains(getAddress().getPort())) {
-                            error_rate.mark();
-                            LOGGER.debug("failure occurred on future {} {}", t, t.getMessage());
-                        }
-                        reference.seen(false);
-                    }
-                }
-            }, Maintenance.SCHEDULER);
+            Futures.addCallback(future_response, new FutureCallback(), Maintenance.SCHEDULER);
             return future_response;
         }
 
@@ -266,6 +211,85 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
                 }
             }
             super.beforeFlush(channel, future_response);
+        }
+
+        private class FutureCallback implements com.google.common.util.concurrent.FutureCallback<Object> {
+
+            @Override
+            public void onSuccess(final Object result) {
+
+                if (reference != null) {
+                    succ_rate.mark();
+                    reference.seen(true);
+
+                    if (result instanceof PeerReference) {
+                        peer.push((PeerReference) result);
+                    }
+                    if (result instanceof List) {
+                        List list = (List) result;
+                        for (Object element : list) {
+                            if (element instanceof PeerReference) {
+                                PeerReference peerReference = (PeerReference) element;
+                                peer.push(peerReference);
+                            }
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(final Throwable t) {
+
+                if (reference != null) {
+                    if (Peer.EXPOSED_PORTS.contains(getAddress().getPort())) {
+                        error_rate.mark();
+                        LOGGER.debug("failure occurred on future {} {}", t, t.getMessage());
+                    }
+                    reference.seen(false);
+                }
+            }
+        }
+
+        private class RequestWriter implements Runnable {
+
+            private final FutureResponse future_response;
+            private final ChannelFuture channel_future;
+
+            public RequestWriter(final FutureResponse future_response, final ChannelFuture channel_future) {
+
+                this.future_response = future_response;
+                this.channel_future = channel_future;
+            }
+
+            @Override
+            public void run() {
+
+                final GenericFutureListener<ChannelFuture> listener = new AsynchWriteRequestListener();
+                channel_future.addListener(listener);
+            }
+
+            private class AsynchWriteRequestListener implements GenericFutureListener<ChannelFuture> {
+
+                @Override
+                public void operationComplete(final ChannelFuture future) throws Exception {
+
+                    if (!future_response.isDone()) {
+
+                        if (future.isSuccess()) {
+
+                            final Channel channel = channel_future.channel();
+                            final ChannelFuture write = channel.write(future_response);
+                            rate.mark();
+                            write.addListener(new ExceptionListener(future_response));
+                            beforeFlush(channel, future_response);
+                            //                            channel.flush();
+                        }
+                        else {
+                            setException(future.cause(), future_response);
+                        }
+                    }
+                }
+            }
         }
     }
 }

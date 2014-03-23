@@ -1,6 +1,7 @@
 package uk.ac.standrews.cs.trombone.core;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -25,7 +26,7 @@ public class PeerServerFactory extends ServerFactory<PeerRemote> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PeerServerFactory.class);
     private static final ServerBootstrap SERVER_BOOTSTRAP = new ServerBootstrap();
-    private static ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+    private static ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(300);
 
     static final NioEventLoopGroup parent_event_loop;
     static final NioEventLoopGroup child_event_loop;
@@ -42,14 +43,18 @@ public class PeerServerFactory extends ServerFactory<PeerRemote> {
                 LOGGER.info("server handled rate: {}", handled_rate.getRate());
             }
         }, 10, 10, TimeUnit.SECONDS);
-        parent_event_loop = new NioEventLoopGroup(300, new NamedThreadFactory("server_parent_event_loop_"));
-        child_event_loop = new NioEventLoopGroup(300, new NamedThreadFactory("server_child_event_loop_"));
+        parent_event_loop = new NioEventLoopGroup(0, new NamedThreadFactory("server_parent_event_loop_"));
+        child_event_loop = new NioEventLoopGroup(0, new NamedThreadFactory("server_child_event_loop_"));
         SERVER_BOOTSTRAP.group(parent_event_loop, child_event_loop);
         SERVER_BOOTSTRAP.channel(NioServerSocketChannel.class);
         SERVER_BOOTSTRAP.option(ChannelOption.TCP_NODELAY, true);
         SERVER_BOOTSTRAP.childOption(ChannelOption.TCP_NODELAY, true);
         SERVER_BOOTSTRAP.childOption(ChannelOption.SO_KEEPALIVE, true);
+        SERVER_BOOTSTRAP.childOption(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK, 32 * 1024);
+        SERVER_BOOTSTRAP.childOption(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK, 8 * 1024);
         SERVER_BOOTSTRAP.childHandler(new LeanServerChannelInitializer<PeerRemote>(PeerRemote.class, PeerCodecs.INSTANCE));
+        SERVER_BOOTSTRAP.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+        
         executor.prestartAllCoreThreads();
     }
 

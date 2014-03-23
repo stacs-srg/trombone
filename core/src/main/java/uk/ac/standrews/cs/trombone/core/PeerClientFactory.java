@@ -3,6 +3,7 @@ package uk.ac.standrews.cs.trombone.core;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -44,6 +45,9 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
         BOOTSTRAP.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30_000);
         BOOTSTRAP.option(ChannelOption.TCP_NODELAY, true);
         BOOTSTRAP.handler(new LeanClientChannelInitializer(PeerRemote.class, PeerCodecs.INSTANCE));
+        BOOTSTRAP.option(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK, 32 * 1024);
+        BOOTSTRAP.option(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK, 8 * 1024);
+        BOOTSTRAP.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
 
         CHANNEL_POOL.setMaxPooledObjectAgeInMillis(2_000);
 
@@ -61,9 +65,9 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
                 //                                child_event_loop.rebuildSelectors();
                 //                                LOGGER.info("rebuilt CLIENT selector in {} ms", System.currentTimeMillis() - now);
                 //                
-                //                                now = System.currentTimeMillis();
-                //                                PeerServerFactory.parent_event_loop.rebuildSelectors();
-                //                                LOGGER.info("rebuilt SERVER PARENT selector in {} ms", System.currentTimeMillis() - now);
+                now = System.currentTimeMillis();
+                PeerServerFactory.parent_event_loop.rebuildSelectors();
+                LOGGER.info("rebuilt SERVER PARENT selector in {} ms", System.currentTimeMillis() - now);
 
                 now = System.currentTimeMillis();
                 PeerServerFactory.child_event_loop.rebuildSelectors();
@@ -159,40 +163,7 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
         public FutureResponse newFutureResponse(final Method method, final Object[] arguments) {
 
             final FutureResponse future_response = super.newFutureResponse(method, arguments);
-
-            Futures.addCallback(future_response, new FutureCallback<Object>() {
-
-                @Override
-                public void onSuccess(final Object result) {
-
-                    succ_rate.mark();
-                    reference.seen(true);
-
-                    if (result instanceof PeerReference) {
-                        peer.push((PeerReference) result);
-                    }
-
-                    if (result instanceof List) {
-                        List list = (List) result;
-                        for (Object element : list) {
-                            if (element instanceof PeerReference) {
-                                PeerReference peerReference = (PeerReference) element;
-                                peer.push(peerReference);
-                            }
-                        }
-                    }
-                }
-
-                @Override
-                public void onFailure(final Throwable t) {
-
-                    if (Peer.EXPOSED_PORTS.contains(getAddress().getPort())) {
-                        error_rate.mark();
-                        LOGGER.debug("failure occurred on future", t);
-                    }
-                    reference.seen(false);
-                }
-            }, Maintenance.SCHEDULER);
+            Futures.addCallback(future_response, new DefaultCallback(), Maintenance.SCHEDULER);
             return future_response;
         }
 
@@ -210,6 +181,40 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
                 }
             }
             super.beforeFlush(channel, future_response);
+        }
+
+        private class DefaultCallback implements FutureCallback<Object> {
+
+            @Override
+            public void onSuccess(final Object result) {
+
+                succ_rate.mark();
+                reference.seen(true);
+
+                if (result instanceof PeerReference) {
+                    peer.push((PeerReference) result);
+                }
+
+                if (result instanceof List) {
+                    List list = (List) result;
+                    for (Object element : list) {
+                        if (element instanceof PeerReference) {
+                            PeerReference peerReference = (PeerReference) element;
+                            peer.push(peerReference);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(final Throwable t) {
+
+                if (Peer.EXPOSED_PORTS.contains(getAddress().getPort())) {
+                    error_rate.mark();
+                    LOGGER.debug("failure occurred on future", t);
+                }
+                reference.seen(false);
+            }
         }
     }
 }

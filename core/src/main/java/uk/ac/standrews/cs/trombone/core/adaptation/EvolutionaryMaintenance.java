@@ -103,8 +103,7 @@ public class EvolutionaryMaintenance extends Maintenance {
 
             if (isStarted()) {
                 return;
-            }
-            evolution = SCHEDULER.scheduleWithFixedDelay(new Runnable() {
+            }            evolution = SCHEDULER.scheduleWithFixedDelay(new Runnable() {
 
                 @Override
                 public void run() {
