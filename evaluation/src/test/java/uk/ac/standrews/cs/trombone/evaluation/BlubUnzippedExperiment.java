@@ -10,11 +10,13 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantLock;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -54,13 +56,15 @@ public class BlubUnzippedExperiment {
         //        AVAILABLE_HOSTS.remove("compute-0-46.local");
     }
 
+    private static final Duration ADDITIONAL_WAIT = new Duration(30, TimeUnit.MINUTES);
+
     private static WorkerNetwork network;
     private final Scenario scenario;
     private HashMap<Integer, String> host_indices;
     private static final Logger LOGGER = LoggerFactory.getLogger(BlubUnzippedExperiment.class);
     private final String scenario_name;
     private static final ReentrantLock lock = new ReentrantLock(true);
-    private static final Semaphore semaphore = new Semaphore(48);
+    private static final Semaphore semaphore = new Semaphore(48, true);
 
     private final List<ApplicationDescriptor> workers = new ArrayList<>();
     private final WorkerManager manager;
@@ -173,7 +177,8 @@ public class BlubUnzippedExperiment {
                 final Future<String> future_event_execution = host_event_entry.getValue();
 
                 try {
-                    final String results_path = future_event_execution.get();
+                    final Duration timeout = ADDITIONAL_WAIT.add(scenario.getExperimentDuration());
+                    final String results_path = future_event_execution.get(timeout.getLength(), timeout.getTimeUnit());
                     LOGGER.info("successfully finished executing events on host {} - {}", host, results_path);
 
                     final Path destination = Files.createTempDirectory(host.getName());
@@ -192,7 +197,7 @@ public class BlubUnzippedExperiment {
                     }
                     FileUtils.deleteQuietly(destination.toFile());
                 }
-                catch (InterruptedException | ExecutionException e) {
+                catch (InterruptedException | ExecutionException | TimeoutException | CancellationException e) {
                     final Throwable cause = e.getCause();
                     LOGGER.error("Event execution on host {} failed due to {}", host, cause != null ? cause : e);
                     LOGGER.error("Failure details", cause != null ? cause : e);

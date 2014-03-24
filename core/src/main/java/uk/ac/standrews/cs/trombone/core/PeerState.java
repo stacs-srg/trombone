@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import uk.ac.standrews.cs.trombone.core.key.Key;
@@ -29,7 +28,7 @@ public class PeerState implements Iterable<InternalPeerReference> {
         add(reference);
         return state.get(key);
     }
-    
+
     public boolean inLocalKeyRange(Key target) {
 
         final PeerReference last_reachable = lastReachable();
@@ -37,7 +36,7 @@ public class PeerState implements Iterable<InternalPeerReference> {
     }
 
     public boolean add(final PeerReference reference) {
-           
+
         if (reference == null) { return false; }
         final Key key = reference.getKey();
         if (key.equals(local_key)) { return false; }
@@ -50,8 +49,8 @@ public class PeerState implements Iterable<InternalPeerReference> {
         return existing_reference == null;
     }
 
-    
     public PeerReference remove(PeerReference reference) {
+
         return state.remove(reference.getKey());
     }
 
@@ -69,17 +68,8 @@ public class PeerState implements Iterable<InternalPeerReference> {
 
     public List<PeerReference> mostRecentlySeen(final int size) {
 
-        final List<PeerReference> recently_changed = new ArrayList<>(size);
-        final TreeSet<InternalPeerReference> references = new TreeSet<>(InternalReferenceLastSeenComparator.getInstance());
-        references.addAll(state.values());
+        return (List<PeerReference>) (List) InternalReferenceLastSeenComparator.getInstance().leastOf(state.values(), size);
 
-        final Iterator<InternalPeerReference> references_iterator = references.iterator();
-        while (references_iterator.hasNext() && recently_changed.size() <= size) {
-            InternalPeerReference next = references_iterator.next();
-            recently_changed.add(next);
-        }
-
-        return recently_changed;
     }
 
     public List<PeerReference> firstReachable(final int size) {

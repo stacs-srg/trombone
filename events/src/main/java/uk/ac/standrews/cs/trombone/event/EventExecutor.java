@@ -174,8 +174,7 @@ public class EventExecutor {
         runnable_events = new DelayQueue<RunnableExperimentEvent>();
         task_populator = Executors.newSingleThreadExecutor(new NamedThreadFactory("task_populator_"));
         task_scheduler = Executors.newSingleThreadExecutor(new NamedThreadFactory("task_scheduler_"));
-        task_executor = new ThreadPoolExecutor(500, 500, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("task_executor_"));
-        task_executor.prestartAllCoreThreads();
+        task_executor = new ThreadPoolExecutor(10, 10, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("task_executor_"));
 
         load_balancer = new Semaphore(MAX_BUFFERED_EVENTS, true);
         scenario_properties = reader.getScenario();
