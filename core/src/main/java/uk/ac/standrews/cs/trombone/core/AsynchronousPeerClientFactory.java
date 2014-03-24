@@ -34,6 +34,7 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
     private static final Rate rate = new Rate();
     private static final Rate error_rate = new Rate();
     private static final Rate succ_rate = new Rate();
+    private static final Rate flush_rate = new Rate();
     public static final Method[] SORTED_ASYNC_METHODS = ReflectionUtil.sort(AsynchronousPeerRemote.class.getMethods());
     private final ConcurrentHashMap<InetSocketAddress, AsynchronousPeerRemote> asynchronous_cached_proxy_map = new ConcurrentHashMap<InetSocketAddress, AsynchronousPeerRemote>();
 
@@ -46,6 +47,7 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
                 LOGGER.info("Asynchronous call rate: {}", rate.getRate());
                 LOGGER.info("Asynchronous error rate: {}", error_rate.getRate());
                 LOGGER.info("Asynchronous succ rate: {}", succ_rate.getRate());
+                LOGGER.info("Flush rate: {}", flush_rate.getRate());
             }
         }, 0, 10, TimeUnit.SECONDS);
 
@@ -59,13 +61,14 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
                     Map.Entry<InetSocketAddress, ChannelFuture> next = iterator.next();
                     try {
                         next.getValue().channel().flush();
+                        flush_rate.mark();
                     }
                     catch (Exception e) {
                         LOGGER.error("FAILED TO FLUSH {} due to {}", next.getKey(), e);
                     }
                 }
             }
-        }, 0, 1, TimeUnit.SECONDS);
+        }, 0, 10, TimeUnit.SECONDS);
     }
 
     private final Peer peer;

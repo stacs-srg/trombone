@@ -29,7 +29,7 @@ public class Maintenance implements Serializable, Named {
     public Maintenance() {
 
         this(new DisseminationStrategy());
-        
+
     }
 
     public Maintenance(DisseminationStrategy strategy) {
@@ -100,11 +100,8 @@ public class Maintenance implements Serializable, Named {
         protected synchronized void start() {
 
             if (!isStarted()) {
-                final DisseminationStrategy current_strategy = strategy.get();
-                if (current_strategy != null) {
-                    non_opp_maintenance = SCHEDULER.scheduleWithFixedDelay(nonOpportunisticDisseminator, ThreadLocalRandom.current().nextInt(500, 5000), current_strategy.getInterval(), TimeUnit.MILLISECONDS);
-                    started = true;
-                }
+                non_opp_maintenance = SCHEDULER.scheduleWithFixedDelay(nonOpportunisticDisseminator, ThreadLocalRandom.current().nextInt(500, 5000), 2000, TimeUnit.MILLISECONDS);
+                started = true;
             }
         }
 

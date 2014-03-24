@@ -43,8 +43,8 @@ public class PeerServerFactory extends ServerFactory<PeerRemote> {
                 LOGGER.info("server handled rate: {}", handled_rate.getRate());
             }
         }, 10, 10, TimeUnit.SECONDS);
-        parent_event_loop = new NioEventLoopGroup(100, new NamedThreadFactory("server_parent_event_loop_"));
-        child_event_loop = new NioEventLoopGroup(100, new NamedThreadFactory("server_child_event_loop_"));
+        parent_event_loop = new NioEventLoopGroup(0, new NamedThreadFactory("server_parent_event_loop_"));
+        child_event_loop = new NioEventLoopGroup(0, new NamedThreadFactory("server_child_event_loop_"));
         SERVER_BOOTSTRAP.group(parent_event_loop, child_event_loop);
         SERVER_BOOTSTRAP.channel(NioServerSocketChannel.class);
         SERVER_BOOTSTRAP.option(ChannelOption.TCP_NODELAY, true);

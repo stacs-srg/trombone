@@ -123,6 +123,10 @@ public class EvolutionaryMaintenance extends Maintenance {
                             }
                         }
                         else {
+                            final EvaluatedDisseminationStrategy evaluated_strategy = new EvaluatedDisseminationStrategy(strategy.get(), metric.getSnapshot());
+                            evaluated_strategies.add(evaluated_strategy);
+                            total_fitness.addAndGet(evaluated_strategy.getFitness());
+                            
                             final int generation_count = generation.incrementAndGet();
                             logger.debug("end of generation {}", generation_count);
                             logger.debug("the fittest: {}, the least fit: {}", evaluated_strategies.first(), evaluated_strategies.last());
@@ -184,6 +188,7 @@ public class EvolutionaryMaintenance extends Maintenance {
 
             final double dice = random.nextDouble();
             final EvaluatedDisseminationStrategy selected = normalized_evaluated_strategies.ceilingEntry(dice).getValue();
+            assert selected != null;
             return selected.getStrategy();
         }
 
