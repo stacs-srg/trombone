@@ -101,63 +101,64 @@ public class EvolutionaryMaintenance extends Maintenance {
         @Override
         protected synchronized void start() {
 
-            if (isStarted()) {
-                return;
-            }            evolution = SCHEDULER.scheduleWithFixedDelay(new Runnable() {
+            if (!isStarted()) {
 
-                @Override
-                public void run() {
+                evolution = SCHEDULER.scheduleWithFixedDelay(new Runnable() {
 
-                    int index = current_candidate_index.getAndIncrement();
-                    if (index < population_size) {
+                    @Override
+                    public void run() {
 
-                        final DisseminationStrategy new_candidate = population.get(index);
-                        final EnvironmentSnapshot environment_snapshot = metric.getSnapshot();
-                        final DisseminationStrategy old_candidate = strategy.getAndSet(new_candidate);
+                        int index = current_candidate_index.getAndIncrement();
+                        if (index < population_size) {
 
-                        logger.debug("changed strategy to {}", new_candidate);
-                        if (index > 0 && old_candidate != null) {
-                            final EvaluatedDisseminationStrategy evaluated_strategy = new EvaluatedDisseminationStrategy(old_candidate, environment_snapshot);
-                            evaluated_strategies.add(evaluated_strategy);
-                            total_fitness.addAndGet(evaluated_strategy.getFitness());
-                        }
-                    }
-                    else {
-                        final int generation_count = generation.incrementAndGet();
-                        logger.debug("end of generation {}", generation_count);
-                        logger.debug("the fittest: {}, the least fit: {}", evaluated_strategies.first(), evaluated_strategies.last());
+                            final DisseminationStrategy new_candidate = population.get(index);
+                            final EnvironmentSnapshot environment_snapshot = metric.getSnapshot();
+                            final DisseminationStrategy old_candidate = strategy.getAndSet(new_candidate);
 
-                        population.clear();
-
-                        final Iterator<EvaluatedDisseminationStrategy> iterator = evaluated_strategies.iterator();
-                        while (iterator.hasNext() && population.size() < elite_count) {
-                            final EvaluatedDisseminationStrategy next_fittest = iterator.next();
-                            population.add(next_fittest.getStrategy());
-                        }
-
-                        final TreeMap<Double, EvaluatedDisseminationStrategy> cumulative_evaluated_strategies = getCumulativeFitness();
-
-                        for (int i = 0; i < population_size - elite_count; i++) {
-
-                            final DisseminationStrategy one = select(cumulative_evaluated_strategies);
-                            final DisseminationStrategy other = select(cumulative_evaluated_strategies);
-                            final DisseminationStrategy offspring = STRATEGY_GENERATOR.mate(one, other, random);
-
-                            if (mutation_probability.nextEvent(random)) {
-                                STRATEGY_GENERATOR.mutate(offspring, random);
+                            logger.debug("changed strategy to {}", new_candidate);
+                            if (index > 0 && old_candidate != null) {
+                                final EvaluatedDisseminationStrategy evaluated_strategy = new EvaluatedDisseminationStrategy(old_candidate, environment_snapshot);
+                                evaluated_strategies.add(evaluated_strategy);
+                                total_fitness.addAndGet(evaluated_strategy.getFitness());
                             }
-                            population.add(offspring);
                         }
-                        current_candidate_index.set(0);
-                        total_fitness.set(0);
+                        else {
+                            final int generation_count = generation.incrementAndGet();
+                            logger.debug("end of generation {}", generation_count);
+                            logger.debug("the fittest: {}, the least fit: {}", evaluated_strategies.first(), evaluated_strategies.last());
 
-                        //TODO clustering should happen here
-                        evaluated_strategies.clear();
+                            population.clear();
+
+                            final Iterator<EvaluatedDisseminationStrategy> iterator = evaluated_strategies.iterator();
+                            while (iterator.hasNext() && population.size() < elite_count) {
+                                final EvaluatedDisseminationStrategy next_fittest = iterator.next();
+                                population.add(next_fittest.getStrategy());
+                            }
+
+                            final TreeMap<Double, EvaluatedDisseminationStrategy> cumulative_evaluated_strategies = getCumulativeFitness();
+
+                            for (int i = 0; i < population_size - elite_count; i++) {
+
+                                final DisseminationStrategy one = select(cumulative_evaluated_strategies);
+                                final DisseminationStrategy other = select(cumulative_evaluated_strategies);
+                                final DisseminationStrategy offspring = STRATEGY_GENERATOR.mate(one, other, random);
+
+                                if (mutation_probability.nextEvent(random)) {
+                                    STRATEGY_GENERATOR.mutate(offspring, random);
+                                }
+                                population.add(offspring);
+                            }
+                            current_candidate_index.set(0);
+                            total_fitness.set(0);
+
+                            //TODO clustering should happen here
+                            evaluated_strategies.clear();
+                        }
                     }
-                }
-            }, 0, evolution_cycle_length, evolution_cycle_unit);
+                }, 0, evolution_cycle_length, evolution_cycle_unit);
 
-            super.start();
+                super.start();
+            }
         }
 
         @Override
@@ -165,8 +166,8 @@ public class EvolutionaryMaintenance extends Maintenance {
 
             if (isStarted()) {
                 evolution.cancel(true);
+                super.stop();
             }
-            super.stop();
         }
 
         private List<DisseminationStrategy> generateInitialPopulation() {

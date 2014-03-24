@@ -77,7 +77,7 @@ public class BlubUnzippedExperiment {
 
             for (Scenario scenario : BatchEventGenerator.SCENARIOS) {
 
-                if (scenario.getName().matches("scenario_(8|68|70|128|61|62|63|65|124)")) {
+                if (scenario.getName().matches("scenario_(10|8|68|70|128|61|62|63|65|124)")) {
                     scenarios_with_repetitions.add(scenario);
                 }
             }

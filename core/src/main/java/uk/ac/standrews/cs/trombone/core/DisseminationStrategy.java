@@ -144,7 +144,6 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
 
                                 @Override
                                 public void onFailure(final Throwable t) {
-
                                 }
                             }, Maintenance.SCHEDULER);
                         }

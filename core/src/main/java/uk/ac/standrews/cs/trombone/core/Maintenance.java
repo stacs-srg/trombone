@@ -78,17 +78,22 @@ public class Maintenance implements Serializable, Named {
         @Override
         public void propertyChange(final PropertyChangeEvent event) {
 
-            if (peer.equals(event.getSource())) {
-                final boolean exposed = (boolean) event.getNewValue();
-                if (exposed) {
-                    start();
+            try {
+                if (peer.equals(event.getSource())) {
+                    final boolean exposed = (boolean) event.getNewValue();
+                    if (exposed) {
+                        start();
+                    }
+                    else {
+                        stop();
+                    }
                 }
                 else {
-                    stop();
+                    logger.warn("bad code! same listener is registered to multiple peers");
                 }
             }
-            else {
-                logger.warn("bad code! same listener is registered to multiple peers");
+            catch (Exception e) {
+                e.printStackTrace();
             }
         }
 
