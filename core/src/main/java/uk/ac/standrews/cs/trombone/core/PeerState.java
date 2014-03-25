@@ -68,7 +68,7 @@ public class PeerState implements Iterable<InternalPeerReference> {
 
     public List<PeerReference> mostRecentlySeen(final int size) {
 
-        return (List<PeerReference>) (List) InternalReferenceLastSeenComparator.getInstance().leastOf(state.values(), size);
+        return (List<PeerReference>) (List) InternalReferenceLastSeenComparator.getInstance().greatestOf(state.values(), size);
 
     }
 

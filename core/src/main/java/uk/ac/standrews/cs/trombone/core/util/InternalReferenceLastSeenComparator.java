@@ -22,6 +22,6 @@ public class InternalReferenceLastSeenComparator extends Ordering<InternalPeerRe
     @Override
     public int compare(final InternalPeerReference one, final InternalPeerReference other) {
 
-        return Long.compare(one.getElapsedMillisSinceLastSeen(), other.getElapsedMillisSinceLastSeen());
+        return Long.compare(one.getLastSeen(), other.getLastSeen());
     }
 }
