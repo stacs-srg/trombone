@@ -9,7 +9,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.trombone.evaluation.BatchEventGenerator;
+import uk.ac.standrews.cs.trombone.evaluation.ScenarioBatches;
 import uk.ac.standrews.cs.trombone.evaluation.util.FileSystemUtils;
 import uk.ac.standrews.cs.trombone.evaluation.util.ScenarioUtils;
 import uk.ac.standrews.cs.trombone.event.EventExecutor;
@@ -56,7 +56,7 @@ public class LocalTestExperiment {
     public void testExecution() throws Exception {
 
         //        testExecution(BatchEventGenerator.SCENARIOS.get(7));
-        testExecution(BatchEventGenerator.SCENARIOS.get(69));
+        testExecution(ScenarioBatches.BATCH_1_SCENARIOS.get(69));
         //        testExecution(LOCAL_TEST_SCENARIO_500);
         //        testExecution(LOCAL_TEST_SCENARIO_1000);
         //        testExecution(LOCAL_TEST_SCENARIO_20);

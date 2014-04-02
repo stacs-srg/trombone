@@ -14,11 +14,13 @@ import uk.ac.standrews.cs.trombone.core.util.RelativeRingDistanceComparator;
 public class PeerState implements Iterable<InternalPeerReference> {
 
     private final Key local_key;
+    private final PeerMetric metric;
     private final ConcurrentSkipListMap<Key, InternalPeerReference> state;
 
-    public PeerState(final Key local_key) {
+    public PeerState(final Key local_key, final PeerMetric metric) {
 
         this.local_key = local_key;
+        this.metric = metric;
         state = new ConcurrentSkipListMap<Key, InternalPeerReference>(new RelativeRingDistanceComparator(local_key));
     }
 

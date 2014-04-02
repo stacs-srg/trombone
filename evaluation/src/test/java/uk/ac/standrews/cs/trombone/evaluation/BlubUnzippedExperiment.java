@@ -51,11 +51,6 @@ import uk.ac.standrews.cs.trombone.event.Scenario;
 public class BlubUnzippedExperiment {
 
     private static final LinkedBlockingQueue<String> AVAILABLE_HOSTS = new LinkedBlockingQueue<>(BlubCluster.getNodeNames());
-
-    static {
-        //        AVAILABLE_HOSTS.remove("compute-0-46.local");
-    }
-
     private static final Duration ADDITIONAL_WAIT = new Duration(30, TimeUnit.MINUTES);
 
     private static WorkerNetwork network;
@@ -79,7 +74,7 @@ public class BlubUnzippedExperiment {
 
         for (int i = 0; i < Constants.NUMBER_OF_REPETITIONS; i++) {
 
-            for (Scenario scenario : BatchEventGenerator.SCENARIOS) {
+            for (Scenario scenario : ScenarioBatches.BATCH_1_SCENARIOS) {
 
                 if (scenario.getName().matches("scenario_(10|8|68|70|128|61|62|63|65|124)")) {
                     scenarios_with_repetitions.add(scenario);

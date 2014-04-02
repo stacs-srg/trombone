@@ -4,7 +4,6 @@ import java.lang.reflect.Method;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.mashti.gauge.Counter;
 import org.mashti.gauge.Metric;
 import org.mashti.gauge.Rate;
 import org.mashti.gauge.Timer;
@@ -17,23 +16,22 @@ import uk.ac.standrews.cs.trombone.core.adaptation.EnvironmentSnapshot;
 public class PeerMetric implements Metric, WrittenByteCountListener {
 
     private static final Rate GLOBAL_SENT_BYTES_RATE = new Rate();
+    private static final Rate GLOBAL_RPC_ERROR_RATE = new Rate();
     private final Rate sent_bytes_rate;
     private final Timer lookup_success_delay_timer;
-    //    private final Sampler lookup_success_hop_count_sampler;
-    //    private final Sampler lookup_success_retry_count_sampler;
     private final Rate lookup_failure_rate;
-    private final Counter lookup_counter;
-    private final Counter served_next_hop_counter;
+    private final Rate lookup_counter;
+    private final Rate served_next_hop_counter;
+    private final Rate rpc_error_rate;
 
-    public PeerMetric(final Peer peer) {
+    public PeerMetric() {
 
         sent_bytes_rate = new Rate();
         lookup_success_delay_timer = new Timer();
-        //        lookup_success_hop_count_sampler = new Sampler();
-        //        lookup_success_retry_count_sampler = new Sampler();
         lookup_failure_rate = new Rate();
-        lookup_counter = new Counter();
-        served_next_hop_counter = new Counter();
+        lookup_counter = new Rate();
+        served_next_hop_counter = new Rate();
+        rpc_error_rate = new Rate();
     }
 
     public static Rate getGlobalSentBytesRate() {
@@ -41,14 +39,19 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
         return GLOBAL_SENT_BYTES_RATE;
     }
 
-    public long getNumberOfExecutedLookups() {
+    public static Rate getGlobalRPCErrorRate() {
 
-        return lookup_counter.getAndReset();
+        return GLOBAL_RPC_ERROR_RATE;
     }
 
-    public long getNumberOfServedNextHops() {
+    public double getLookupExecutionRatePerSecond() {
 
-        return served_next_hop_counter.getAndReset();
+        return lookup_counter.getRate();
+    }
+
+    public double getServedNextHopRatePerSecond() {
+
+        return served_next_hop_counter.getRate();
     }
 
     public LookupMeasurement newLookupMeasurement(final int retry_count) {
@@ -65,7 +68,7 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
 
     public double getSentBytesRatePerSecond() {
 
-        return sent_bytes_rate.getRateAndReset();
+        return sent_bytes_rate.getRate();
     }
 
     public double getLookupFailureRate() {
@@ -85,12 +88,23 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
         return new EnvironmentSnapshot(this);
     }
 
+    public double getRPCErrorRatePerSecond() {
+
+        return rpc_error_rate.getRate();
+    }
+
+    void notifyRPCError(final Throwable error) {
+
+        rpc_error_rate.mark();
+        GLOBAL_RPC_ERROR_RATE.mark();
+    }
+
     void notifyServe(final Method method) {
 
         final String method_name = method.getName();
         switch (method_name) {
             case "nextHop":
-                served_next_hop_counter.increment();
+                served_next_hop_counter.mark();
                 break;
             default:
                 break;
@@ -146,9 +160,7 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
             if (doneIfUndone()) {
                 this.result = result;
                 duration_in_nanos = time.stop();
-                //                lookup_success_hop_count_sampler.update(hop_count.get());
-                //                lookup_success_retry_count_sampler.update(retry_count.get());
-                lookup_counter.increment();
+                lookup_counter.mark();
             }
         }
 
@@ -158,7 +170,7 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
                 this.error = error;
                 duration_in_nanos = time.stop();
                 lookup_failure_rate.mark();
-                lookup_counter.increment();
+                lookup_counter.mark();
             }
         }
 

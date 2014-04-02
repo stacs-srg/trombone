@@ -30,7 +30,6 @@ public class InternalPeerReference extends PeerReference {
         return getFirstSeen() != NEVER_SEEN;
     }
 
-
     public long getElapsedMillisSinceLastSeen() {
 
         return System.currentTimeMillis() - getLastSeen();
@@ -59,14 +58,14 @@ public class InternalPeerReference extends PeerReference {
         return hashcode;
     }
 
-    void seen(boolean reachable) {
+    boolean seen(boolean reachable) {
 
         final long now = System.currentTimeMillis();
         last_seen.set(now);
         if (!isContactedBefore()) {
             first_seen.compareAndSet(NEVER_SEEN, now);
         }
-        setReachable(reachable);
+        return setReachable(reachable);
     }
 
     private int calculateHashcode() {

@@ -74,7 +74,7 @@ public class BlubZippedExperiment {
         final List<Scenario> scenarios_with_repetitions = new ArrayList<>();
 
         for (int i = 0; i < Constants.NUMBER_OF_REPETITIONS; i++) {
-            for (Scenario scenario : BatchEventGenerator.SCENARIOS) {
+            for (Scenario scenario : ScenarioBatches.BATCH_1_SCENARIOS) {
                 scenarios_with_repetitions.add(scenario);
             }
         }

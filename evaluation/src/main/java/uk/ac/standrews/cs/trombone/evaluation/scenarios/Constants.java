@@ -2,12 +2,16 @@ package uk.ac.standrews.cs.trombone.evaluation.scenarios;
 
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.math3.ml.clustering.KMeansPlusPlusClusterer;
 import org.uncommons.maths.binary.BinaryUtils;
 import org.uncommons.maths.random.Probability;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.core.Maintenance;
 import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
+import uk.ac.standrews.cs.trombone.core.adaptation.EvaluatedDisseminationStrategy;
 import uk.ac.standrews.cs.trombone.core.adaptation.EvolutionaryMaintenance;
+import uk.ac.standrews.cs.trombone.core.adaptation.clustering.PerPointClusterer;
+import uk.ac.standrews.cs.trombone.core.adaptation.clustering.pfclust.PFClustClusterer;
 import uk.ac.standrews.cs.trombone.core.key.KeyProvider;
 import uk.ac.standrews.cs.trombone.core.key.ZipfKeyProvider;
 import uk.ac.standrews.cs.trombone.event.churn.Churn;
@@ -28,8 +32,11 @@ public final class Constants {
     public static final Maintenance NO_MAINTENANCE = new Maintenance(null);
     public static final Maintenance SUCCESSOR_MAINTENANCE = new Maintenance(new SuccessorMaintenance());
     public static final Maintenance SUCCESSOR_LIST_MAINTENANCE_5 = new Maintenance(new SuccessorListMaintenance(5));
-    public static final Maintenance RANDOM_MAINTENANCE_2 = new Maintenance(new RandomMaintenance(3, 3));
-    public static final Maintenance EVOLUTIONARY_MAINTENANCE = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES);
+    public static final Maintenance RANDOM_MAINTENANCE_3 = new Maintenance(new RandomMaintenance(3, 3));
+    public static final Maintenance MOST_RECENTLY_SEEN_3 = new Maintenance(new MostRecentlySeenMaintenance(3, 3));
+    public static final Maintenance EVOLUTIONARY_MAINTENANCE = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, new PerPointClusterer<EvaluatedDisseminationStrategy>());
+    public static final Maintenance EVOLUTIONARY_MAINTENANCE_PFCLUST = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, new PFClustClusterer<EvaluatedDisseminationStrategy>());
+    public static final Maintenance EVOLUTIONARY_MAINTENANCE_KMEAN_PLUS_PLUS = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, new KMeansPlusPlusClusterer<EvaluatedDisseminationStrategy>(5));
 
     private Constants() {
 

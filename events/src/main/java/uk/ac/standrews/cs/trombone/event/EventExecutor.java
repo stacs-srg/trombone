@@ -47,6 +47,7 @@ import uk.ac.standrews.cs.trombone.core.PeerMetric;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.PeerServerFactory;
 import uk.ac.standrews.cs.trombone.core.PeerState;
+import uk.ac.standrews.cs.trombone.core.adaptation.EvolutionaryMaintenance;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class EventExecutor {
@@ -174,8 +175,8 @@ public class EventExecutor {
         runnable_events = new DelayQueue<RunnableExperimentEvent>();
         task_populator = Executors.newSingleThreadExecutor(new NamedThreadFactory("task_populator_"));
         task_scheduler = Executors.newSingleThreadExecutor(new NamedThreadFactory("task_scheduler_"));
-        task_executor = new ThreadPoolExecutor(10, 10, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("task_executor_"));
-
+        task_executor = new ThreadPoolExecutor(100, 100, 10, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("task_executor_"));
+        task_executor.prestartAllCoreThreads();
         load_balancer = new Semaphore(MAX_BUFFERED_EVENTS, true);
         scenario_properties = reader.getScenario();
         lookup_retry_count = getLookupRetryCount();
@@ -212,6 +213,12 @@ public class EventExecutor {
         metric_registry.register("system_load_average_gauge", system_load_average_gauge);
         metric_registry.register("thread_cpu_usage_gauge", thread_cpu_usage_gauge);
         metric_registry.register("memory_usage_gauge", memory_usage_gauge);
+        metric_registry.register("evolutionary_maintenance_cluster_count_sampler", EvolutionaryMaintenance.CLUSTER_COUNT_SAMPLER);
+        metric_registry.register("evolutionary_maintenance_cluster_size_sampler", EvolutionaryMaintenance.CLUSTER_SIZE_SAMPLER);
+        metric_registry.register("evolutionary_maintenance_fitness_sampler", EvolutionaryMaintenance.FITNESS_SAMPLER);
+        metric_registry.register("evolutionary_maintenance_normalized_fitness_sampler", EvolutionaryMaintenance.NORMALIZED_FITNESS_SAMPLER);
+        metric_registry.register("evolutionary_maintenance_weighted_fitness_sampler", EvolutionaryMaintenance.WEIGHTED_FITNESS_SAMPLER);
+        metric_registry.register("rpc_error_rate", PeerMetric.getGlobalRPCErrorRate());
 
         csv_reporter = new CsvReporter(metric_registry, observations_home);
         task_populator_future = startTaskQueuePopulator();

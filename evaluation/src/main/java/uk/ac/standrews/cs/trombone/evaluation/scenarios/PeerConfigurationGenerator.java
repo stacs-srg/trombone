@@ -10,7 +10,11 @@ import uk.ac.standrews.cs.trombone.core.SyntheticDelay;
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class PeerConfigurationGenerator {
+public final class PeerConfigurationGenerator {
+
+    private PeerConfigurationGenerator() {
+
+    }
 
     public static List<PeerConfiguration> generate(Maintenance[] maintenance_factories, SyntheticDelay[] delays) {
 

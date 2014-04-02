@@ -9,14 +9,12 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang.reflect.MethodUtils;
-import org.mashti.gauge.Rate;
 import org.mashti.jetson.ChannelFuturePool;
 import org.mashti.jetson.Client;
 import org.mashti.jetson.ClientFactory;
@@ -31,37 +29,19 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AsynchronousPeerClientFactory.class);
 
-    private static final Rate rate = new Rate();
-    private static final Rate error_rate = new Rate();
-    private static final Rate succ_rate = new Rate();
-    private static final Rate flush_rate = new Rate();
     public static final Method[] SORTED_ASYNC_METHODS = ReflectionUtil.sort(AsynchronousPeerRemote.class.getMethods());
     private final ConcurrentHashMap<InetSocketAddress, AsynchronousPeerRemote> asynchronous_cached_proxy_map = new ConcurrentHashMap<InetSocketAddress, AsynchronousPeerRemote>();
 
     static {
-        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(new Runnable() {
-
-            @Override
-            public void run() {
-
-                LOGGER.info("Asynchronous call rate: {}", rate.getRate());
-                LOGGER.info("Asynchronous error rate: {}", error_rate.getRate());
-                LOGGER.info("Asynchronous succ rate: {}", succ_rate.getRate());
-                LOGGER.info("Flush rate: {}", flush_rate.getRate());
-            }
-        }, 0, 10, TimeUnit.SECONDS);
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(new Runnable() {
 
             @Override
             public void run() {
 
-                final Iterator<Map.Entry<InetSocketAddress, ChannelFuture>> iterator = PeerClientFactory.CHANNEL_POOL.getPooledEntries().iterator();
-                while (iterator.hasNext()) {
-                    Map.Entry<InetSocketAddress, ChannelFuture> next = iterator.next();
+                for (final Map.Entry<InetSocketAddress, ChannelFuture> next : PeerClientFactory.CHANNEL_POOL.getPooledEntries()) {
                     try {
                         next.getValue().channel().flush();
-                        flush_rate.mark();
                     }
                     catch (Exception e) {
                         LOGGER.error("FAILED TO FLUSH {} due to {}", next.getKey(), e);
@@ -209,7 +189,6 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
                     if (action.isOpportunistic() && action.recipientsContain(peer, reference)) {
                         final FutureResponse future_dissemination = newFutureResponse(action.getMethod(), action.getArguments(peer));
                         channel.write(future_dissemination);
-                        rate.mark();
                     }
                 }
             }
@@ -222,7 +201,6 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
             public void onSuccess(final Object result) {
 
                 if (reference != null) {
-                    succ_rate.mark();
                     reference.seen(true);
 
                     if (result instanceof PeerReference) {
@@ -244,10 +222,8 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
             public void onFailure(final Throwable t) {
 
                 if (reference != null) {
-                    if (Peer.EXPOSED_PORTS.contains(getAddress().getPort())) {
-                        error_rate.mark();
-                        LOGGER.debug("failure occurred on future {} {}", t, t.getMessage());
-                    }
+                    peer_metric.notifyRPCError(t);
+                    LOGGER.debug("failure occurred on future ", t);
                     reference.seen(false);
                 }
             }
@@ -282,10 +258,8 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
 
                             final Channel channel = channel_future.channel();
                             final ChannelFuture write = channel.write(future_response);
-                            rate.mark();
                             write.addListener(new ExceptionListener(future_response));
                             beforeFlush(channel, future_response);
-                            //                            channel.flush();
                         }
                         else {
                             setException(future.cause(), future_response);

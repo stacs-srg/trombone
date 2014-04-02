@@ -3,9 +3,7 @@ package uk.ac.standrews.cs.trombone.evaluation.scenarios;
 import java.util.ArrayList;
 import java.util.List;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
-import uk.ac.standrews.cs.trombone.core.Maintenance;
 import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
-import uk.ac.standrews.cs.trombone.core.SyntheticDelay;
 import uk.ac.standrews.cs.trombone.event.Scenario;
 import uk.ac.standrews.cs.trombone.event.churn.Churn;
 import uk.ac.standrews.cs.trombone.event.churn.Workload;
@@ -26,50 +24,21 @@ public class BaseScenario extends Scenario {
 
     }
 
-    public static List<Scenario> generateAll() {
+    public static List<Scenario> generateAll(String scenario_name_prefix, Object[][] arguments) {
 
         final List<Scenario> scenarios = new ArrayList<>();
-
-        final List<Object[]> arguments = Combinations.generateArgumentCombinations(new Object[][] {
-
-                {Constants.NO_CHURN, Constants.CHURN_1, Constants.CHURN_2, Constants.CHURN_3, Constants.CHURN_4, Constants.CHURN_5, Constants.CHURN_6},
-
-                {Constants.NO_WORKLOAD, Constants.WORKLOAD_1, Constants.WORKLOAD_2, Constants.WORKLOAD_3},
-
-                PeerConfigurationGenerator.generate(
-
-                        new Maintenance[] {
-
-                                Constants.NO_MAINTENANCE, Constants.SUCCESSOR_LIST_MAINTENANCE_5, Constants.SUCCESSOR_MAINTENANCE, Constants.RANDOM_MAINTENANCE_2,
-
-                                Constants.EVOLUTIONARY_MAINTENANCE
-
-                        },
-
-                        new SyntheticDelay[] {Constants.BLUB_UNIFORMLY_DISTRIBUTED_SYNTHETIC_DELAY}
-
-                ).toArray()
-        });
+        final List<Object[]> constructor_arguments = Combinations.generateArgumentCombinations(arguments);
 
         int index = 1;
-        for (Object[] argument : arguments) {
-
+        for (Object[] argument : constructor_arguments) {
             final Churn churn = (Churn) argument[0];
             final Workload workload = (Workload) argument[1];
             final PeerConfiguration configuration = (PeerConfiguration) argument[2];
-
-            final String name = "scenario_" + index++;
-
+            final String name = scenario_name_prefix + index++;
             scenarios.add(new BaseScenario(name, churn, workload, configuration));
 
         }
 
         return scenarios;
     }
-
-    public static void main(String[] args) {
-
-        System.out.println(generateAll().size());
-    }
-
 }

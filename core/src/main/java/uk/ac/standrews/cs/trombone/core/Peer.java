@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentSkipListSet;
 import org.mashti.jetson.Server;
 import org.mashti.jetson.ServerFactory;
 import org.mashti.jetson.exception.RPCException;
@@ -35,8 +34,6 @@ public class Peer implements PeerRemote {
     private final Maintenance.PeerMaintainer maintainer;
     private volatile PeerReference self;
 
-    public static final ConcurrentSkipListSet<Integer> EXPOSED_PORTS = new ConcurrentSkipListSet<>();
-
     Peer(final Key key) {
 
         this(new InetSocketAddress(0), key);
@@ -52,8 +49,8 @@ public class Peer implements PeerRemote {
         this.key = key;
         property_change_support = new PropertyChangeSupport(this);
 
-        state = new PeerState(key);
-        metric = new PeerMetric(this);
+        metric = new PeerMetric();
+        state = new PeerState(key, metric);
         maintainer = configuration.getMaintenance().maintain(this);
         server = SERVER_FACTORY.createServer(this);
         server.setBindAddress(address);
@@ -67,7 +64,6 @@ public class Peer implements PeerRemote {
 
         final boolean exposed = server.expose();
         if (exposed) {
-            EXPOSED_PORTS.add(getAddress().getPort());
             refreshSelfReference();
             property_change_support.firePropertyChange(EXPOSURE_PROPERTY_NAME, false, true);
             LOGGER.trace("exposed {} on {}", key, getAddress());
@@ -80,7 +76,6 @@ public class Peer implements PeerRemote {
 
         final boolean unexposed = server.unexpose();
         if (unexposed) {
-            EXPOSED_PORTS.remove(getAddress().getPort());
             property_change_support.firePropertyChange(EXPOSURE_PROPERTY_NAME, true, false);
         }
         return unexposed;
