@@ -240,16 +240,6 @@ public class EvolutionaryMaintenance extends Maintenance {
             }
         }
 
-        private List<DisseminationStrategy> generateInitialPopulation() {
-
-            final List<DisseminationStrategy> initial_population = new ArrayList<>();
-            for (int i = 0; i < population_size; i++) {
-                initial_population.add(STRATEGY_GENERATOR.generate(random));
-            }
-
-            return initial_population;
-        }
-
         private DisseminationStrategy select(final TreeMap<Double, EvaluatedDisseminationStrategy> normalized_evaluated_strategies) {
 
             final double dice = random.nextDouble();

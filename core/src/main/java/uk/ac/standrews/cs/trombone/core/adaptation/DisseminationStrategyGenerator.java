@@ -62,6 +62,7 @@ public class DisseminationStrategyGenerator {
         for (int i = 0; i < actions_size; i++) {
             strategy.addAction(generateAction(random));
         }
+        
         return strategy;
     }
 
