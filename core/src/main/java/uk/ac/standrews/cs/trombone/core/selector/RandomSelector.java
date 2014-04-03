@@ -2,21 +2,18 @@ package uk.ac.standrews.cs.trombone.core.selector;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
+import org.uncommons.maths.random.MersenneTwisterRNG;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class RandomSelector implements Selector {
+public class RandomSelector extends Selector{
 
     private static final long serialVersionUID = -2686666721712477700L;
-    private static final int SEED = 6546545;
-    private static final Random RANDOM = new Random(SEED);
-    private final int size;
 
-    public RandomSelector(int size) {
+    public RandomSelector(int size, ReachabilityCriteria reachability_criteria) {
 
-        this.size = size;
+        super(size, reachability_criteria);
     }
 
     @Override
@@ -27,17 +24,20 @@ public class RandomSelector implements Selector {
 
         final int result_size = Math.min(size, references_size);
         final List<PeerReference> result = new ArrayList<>(result_size);
+        final MersenneTwisterRNG random = peer.getRandom();
 
         for (int i = 0; i < result_size; i++) {
-            result.add(references.get(nextInt(references_size - i)));
+            final int selection_index = random.nextInt(references_size - i);
+            result.add(references.get(selection_index));
             references.remove(result.get(i));
         }
 
         return result;
     }
 
-    private synchronized int nextInt(final int max) {
+    @Override
+    public RandomSelector copy() {
 
-        return RANDOM.nextInt(max);
+        return new RandomSelector(size, reachability_criteria);
     }
 }

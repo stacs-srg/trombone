@@ -34,6 +34,7 @@ import uk.ac.standrews.cs.shabdiz.Scanner;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.core.selector.First;
 import uk.ac.standrews.cs.trombone.core.selector.Last;
+import uk.ac.standrews.cs.trombone.core.selector.Selector;
 
 class RingSizeScanner extends Scanner {
 
@@ -41,8 +42,8 @@ class RingSizeScanner extends Scanner {
     private static final String RING_SIZE_PROPERTY_NAME = "ring_size";
     private static final Duration DELAY = new Duration(1, TimeUnit.SECONDS);
     private static final Duration TIMEOUT = new Duration(3, TimeUnit.MINUTES);
-    private static final First FIRST_REACHABLE = new First(1, true);
-    private static final Last LAST_REACHABLE = new Last(1, true);
+    private static final First FIRST_REACHABLE = new First(1, Selector.ReachabilityCriteria.REACHABLE);
+    private static final Last LAST_REACHABLE = new Last(1, Selector.ReachabilityCriteria.REACHABLE);
     private final AtomicInteger ring_size;
 
     protected RingSizeScanner() {

@@ -6,13 +6,14 @@ import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public final class Self implements Selector {
+public final class Self extends Selector {
 
     private static final Self SELF_SELECTOR_INSTANCE = new Self();
     private static final long serialVersionUID = 5755937814923183362L;
 
     private Self() {
 
+        super(1, ReachabilityCriteria.REACHABLE);
     }
 
     public static Self getInstance() {
@@ -27,5 +28,17 @@ public final class Self implements Selector {
         final List<PeerReference> result = new ArrayList<>(1);
         result.add(self_reference);
         return result;
+    }
+
+    @Override
+    public Selector copy() {
+
+        return this;
+    }
+
+    @Override
+    public boolean isSingleton() {
+
+        return true;
     }
 }

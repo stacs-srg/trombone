@@ -21,14 +21,14 @@ public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
     private static final Pattern UNDERSCORE = Pattern.compile("_");
 
-    public static void main(String[] args) throws IOException, TypeMismatchException, InterruptedException {
+    public static void main(String[] args) throws IOException, TypeMismatchException {
 
         final List<ScenarioAnalyzer> scenarioAnalyzers = new ArrayList<>();
-        for (int i = 1; i <= 140; i++) {
-            final String scenario_name = "scenario_" + i;
-//            if (scenario_name.matches("scenario_(10|8|68|70|128|62|63|65|124)")) {
-                scenarioAnalyzers.add(new ScenarioAnalyzer(scenario_name));
-//            }
+        for (int i = 1; i <= 84; i++) {
+            final String scenario_name = "scenario_batch2_" + i;
+            //            if (scenario_name.matches("scenario_(10|8|68|70|128|62|63|65|124)")) {
+            scenarioAnalyzers.add(new ScenarioAnalyzer(scenario_name));
+            //            }
         }
 
         Set<String> unique_file_names = null;

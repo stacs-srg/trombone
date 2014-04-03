@@ -6,14 +6,13 @@ import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.PeerState;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class MostRecentlySeen implements Selector {
+public class MostRecentlySeen extends Selector {
 
     private static final long serialVersionUID = -4103050337428351524L;
-    private final int size;
 
-    public MostRecentlySeen(int size) {
+    public MostRecentlySeen(int size, ReachabilityCriteria reachability_criteria) {
 
-        this.size = size;
+        super(size, reachability_criteria);
     }
 
     @Override
@@ -21,5 +20,11 @@ public class MostRecentlySeen implements Selector {
 
         final PeerState state = peer.getPeerState();
         return state.mostRecentlySeen(size);
+    }
+
+    @Override
+    public Selector copy() {
+
+        return new MostRecentlySeen(size, reachability_criteria);
     }
 }

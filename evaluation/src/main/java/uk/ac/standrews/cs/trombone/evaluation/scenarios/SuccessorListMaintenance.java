@@ -2,6 +2,7 @@ package uk.ac.standrews.cs.trombone.evaluation.scenarios;
 
 import uk.ac.standrews.cs.trombone.core.DisseminationStrategy;
 import uk.ac.standrews.cs.trombone.core.selector.First;
+import uk.ac.standrews.cs.trombone.core.selector.Selector;
 import uk.ac.standrews.cs.trombone.core.util.Named;
 import uk.ac.standrews.cs.trombone.core.util.NamingUtils;
 
@@ -18,7 +19,7 @@ public class SuccessorListMaintenance extends DisseminationStrategy implements N
 
     public SuccessorListMaintenance(int successor_list_size) {
 
-        addAction(new DisseminationStrategy.Action(NON_OPPORTUNISTIC, PULL, new First(successor_list_size, false), SUCCESSOR));
+        addAction(new DisseminationStrategy.Action(NON_OPPORTUNISTIC, PULL, new First(successor_list_size, Selector.ReachabilityCriteria.REACHABLE_OR_UNREACHABLE), SUCCESSOR));
     }
 
     @Override

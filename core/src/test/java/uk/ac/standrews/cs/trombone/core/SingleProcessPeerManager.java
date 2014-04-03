@@ -14,6 +14,7 @@ import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
 import uk.ac.standrews.cs.trombone.core.key.KeyProvider;
 import uk.ac.standrews.cs.trombone.core.selector.First;
 import uk.ac.standrews.cs.trombone.core.selector.Last;
+import uk.ac.standrews.cs.trombone.core.selector.Selector;
 import uk.ac.standrews.cs.trombone.core.selector.Self;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
@@ -27,8 +28,8 @@ public class SingleProcessPeerManager implements ApplicationManager {
 
     static {
         final DisseminationStrategy strategy = MAINTENANCE.getStrategy();
-        final First successor = new First(1, true);
-        final Last predecessor = new Last(1, true);
+        final First successor = new First(1, Selector.ReachabilityCriteria.REACHABLE);
+        final Last predecessor = new Last(1, Selector.ReachabilityCriteria.REACHABLE);
         final Self self = Self.getInstance();
 
         strategy.addAction(new DisseminationStrategy.Action(false, false, predecessor, successor));

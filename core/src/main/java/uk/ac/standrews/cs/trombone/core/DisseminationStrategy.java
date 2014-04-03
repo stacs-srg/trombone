@@ -6,7 +6,6 @@ import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -24,7 +23,6 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
     private static final long serialVersionUID = 7398182589384122556L;
     static final Method PUSH_METHOD = MethodUtils.getAccessibleMethod(PeerRemote.class, "push", List.class);
     static final Method PULL_METHOD = MethodUtils.getAccessibleMethod(PeerRemote.class, "pull", Selector.class);
-    private static final List<PeerReference> EMPTY_REFERENCES = Collections.unmodifiableList(new ArrayList<PeerReference>());
     private static final Logger LOGGER = LoggerFactory.getLogger(DisseminationStrategy.class);
     private final ArrayList<Action> actions;
     private int non_opportunistic_interval_millis = 2_000;
@@ -92,10 +90,11 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
     public static class Action implements Serializable {
 
         private static final long serialVersionUID = -8157677096305292929L;
-        private final boolean opportunistic;
-        private final boolean push;
-        private final Selector data_selector;
-        private final Selector recipient_selector;
+        private boolean opportunistic;
+
+        private boolean push;
+        private Selector data_selector;
+        private Selector recipient_selector;
 
         public Action(final boolean opportunistic, final boolean push, final Selector data_selector, final Selector recipient_selector) {
 
@@ -110,10 +109,14 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
             return opportunistic;
         }
 
+        public boolean isPush() {
+
+            return push;
+        }
+
         public boolean recipientsContain(Peer local, final PeerReference recipient) {
 
-            final List<PeerReference> recipients = pullQuietly(local, recipient_selector);
-            return recipients.contains(recipient);
+            return local.pull(recipient_selector).contains(recipient);
         }
 
         public void nonOpportunistically(final Peer local) throws RPCException {
@@ -121,31 +124,34 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
             if (!opportunistic) {
 
                 final List<PeerReference> recipients = getRecipients(local);
-                if (push) {
-                    final List<PeerReference> data_to_push = getPushData(local);
-                    if (data_to_push != null && !data_to_push.isEmpty()) {
-                        for (PeerReference recipient : recipients) {
-                            if (recipient != null) {
-                                local.getAsynchronousRemote(recipient).push(data_to_push);
+                if (recipients != null && !recipients.isEmpty()) {
+                    if (push) {
+                        final List<PeerReference> data_to_push = getPushData(local);
+                        if (data_to_push != null && !data_to_push.isEmpty()) {
+                            for (PeerReference recipient : recipients) {
+                                if (recipient != null) {
+                                    local.getAsynchronousRemote(recipient).push(data_to_push);
+                                }
                             }
                         }
                     }
-                }
-                else {
-                    for (final PeerReference recipient : recipients) {
-                        if (recipient != null) {
-                            Futures.addCallback(local.getAsynchronousRemote(recipient).pull(data_selector), new FutureCallback<List<PeerReference>>() {
+                    else {
+                        for (final PeerReference recipient : recipients) {
+                            if (recipient != null) {
+                                Futures.addCallback(local.getAsynchronousRemote(recipient).pull(data_selector), new FutureCallback<List<PeerReference>>() {
 
-                                @Override
-                                public void onSuccess(final List<PeerReference> result) {
+                                    @Override
+                                    public void onSuccess(final List<PeerReference> result) {
 
-                                    local.push(result);
-                                }
+                                        local.push(result);
+                                    }
 
-                                @Override
-                                public void onFailure(final Throwable t) {
-                                }
-                            }, Maintenance.SCHEDULER);
+                                    @Override
+                                    public void onFailure(final Throwable t) {
+
+                                    }
+                                }, Maintenance.SCHEDULER);
+                            }
                         }
                     }
                 }
@@ -155,12 +161,57 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
         @Override
         public String toString() {
 
-            return "Action{" + "opportunistic=" + opportunistic + ", push=" + push + ", data_selector=" + data_selector + ", recipient_selector=" + recipient_selector + '}';
+            final StringBuilder builder = new StringBuilder();
+            builder.append("Action{");
+            builder.append(opportunistic ? "opportunistically " : "non-opportunistically ");
+            if (push) {
+                builder.append("push ");
+                builder.append(data_selector);
+                builder.append(" to ");
+                builder.append(recipient_selector);
+            }
+            else {
+                builder.append("pull ");
+                builder.append(data_selector);
+                builder.append(" from ");
+                builder.append(recipient_selector);
+            }
+            builder.append('}');
+            return builder.toString();
+        }
+
+        public void setPush(final boolean push) {
+
+            this.push = push;
+        }
+
+        public void setOpportunistic(final boolean opportunistic) {
+
+            this.opportunistic = opportunistic;
+        }
+
+        public Selector getRecipientSelector() {
+
+            return recipient_selector;
+        }
+
+        public Selector getDataSelector() {
+
+            return data_selector;
+        }
+
+        public void setRecipientSelector(final Selector recipient_selector) {
+
+            this.recipient_selector = recipient_selector;
+        }
+        public void setDataSelector(final Selector data_selector) {
+
+            this.data_selector = data_selector;
         }
 
         List<PeerReference> getPushData(final Peer local) {
 
-            return pullQuietly(local, data_selector);
+            return local.pull(data_selector);
         }
 
         Method getMethod() {
@@ -176,17 +227,6 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
         List<PeerReference> getRecipients(final Peer local) throws RPCException {
 
             return recipient_selector.select(local);
-        }
-
-        private static List<PeerReference> pullQuietly(final Peer local, Selector selector) {
-
-            try {
-                return local.pull(selector);
-            }
-            catch (RPCException e) {
-                LOGGER.warn("failed to pull from local", e);
-                return EMPTY_REFERENCES;
-            }
         }
     }
 }

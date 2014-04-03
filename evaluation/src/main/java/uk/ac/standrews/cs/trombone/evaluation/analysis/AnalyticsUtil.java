@@ -373,19 +373,21 @@ final class AnalyticsUtil {
                     final List<Path> all_csvs = FileSystemUtils.getMatchingFiles(fileSystem.getPath(fileSystem.getSeparator()), fileSystem.getPathMatcher("glob:/[0-9]*/" + csv_file));
 
                     final String csv_file_name = path.toString();
-                    if (csv_file_name.contains("_counter") || csv_file_name.contains("_gauge") || csv_file_name.contains("_size")) {
+                    
+                    LOGGER.trace("unsharding {}!{}", raw_zip_file, csv_file_name);
+                    if (csv_file_name.contains("_counter.") || csv_file_name.contains("_gauge.") || csv_file_name.contains("_size.")) {
 
                         unshardCountCsv(all_csvs, Files.newBufferedWriter(csv_file, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING));
                     }
-                    else if (csv_file_name.contains("_rate")) {
+                    else if (csv_file_name.contains("_rate.")) {
 
                         unshardRateCsv(all_csvs, Files.newBufferedWriter(csv_file, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING));
                     }
-                    else if (csv_file_name.contains("_sampler")) {
+                    else if (csv_file_name.contains("_sampler.")) {
 
                         unshardSamplerCsv(all_csvs, Files.newBufferedWriter(csv_file, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING));
                     }
-                    else if (csv_file_name.contains("_timer")) {
+                    else if (csv_file_name.contains("_timer.")) {
 
                         unshardTimerCsv(all_csvs, Files.newBufferedWriter(csv_file, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING));
                     }
@@ -398,11 +400,10 @@ final class AnalyticsUtil {
 
                 if (scenario_json == null) {
                     scenario_json = getJsonObject(scenarios.get(0));
-                   
+
                 }
                 for (Path scenario : scenarios) {
 
-                    
                     if (!scenario_json.equals(getJsonObject(scenario))) {
                         throw new RuntimeException("mismatching scenario across hosts in " + raw_zip_file);
                     }
@@ -413,8 +414,8 @@ final class AnalyticsUtil {
         assert scenario_json != null;
 
         if (!raw_zip_files.isEmpty()) {
-           
-            Files.write(raw_zip_files.get(0).getParent().getParent().resolve("scenario.json"),  MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(scenario_json).getBytes(StandardCharsets.UTF_8));
+
+            Files.write(raw_zip_files.get(0).getParent().getParent().resolve("scenario.json"), MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(scenario_json).getBytes(StandardCharsets.UTF_8));
         }
 
     }
@@ -428,7 +429,7 @@ final class AnalyticsUtil {
 
         JsonParser jp = JSON_FACTORY.createParser(builder.toString());
         return MAPPER.readTree(jp);
-        
+
     }
 
     private static String[] getHeader(final List<CsvListReader> readers) throws IOException {

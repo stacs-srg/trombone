@@ -325,7 +325,9 @@ function maintenanceToString(maintenance) {
             maintenance.mutationProbability +
             ", trial length: " +
             durationToString({timeUnit: maintenance.evolutionCycleLengthUnit, length: maintenance.evolutionCycleLength})
-            + ")";
+            + " " +
+            (maintenance.clusterer === undefined ? "OLD" : JSON.stringify(maintenance.clusterer).replace(/(\{|\}|\")/g, "-")) +
+            ")";
     }
 
     return JSON.stringify(maintenance);

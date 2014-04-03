@@ -87,6 +87,19 @@ public class PeerState implements Iterable<InternalPeerReference> {
         return references;
     }
 
+    public List<PeerReference> firstUnreachable(final int size) {
+
+        final List<PeerReference> references = new ArrayList<>(size);
+        final Iterator<InternalPeerReference> iterator = state.values().iterator();
+        while (iterator.hasNext() && references.size() < size) {
+            final InternalPeerReference next = iterator.next();
+            if (!next.isReachable()) {
+                references.add(next);
+            }
+        }
+        return references;
+    }
+
     public List<PeerReference> lastReachable(final int size) {
 
         final List<PeerReference> references = new ArrayList<>(size);
@@ -179,6 +192,19 @@ public class PeerState implements Iterable<InternalPeerReference> {
     public Iterator<InternalPeerReference> iterator() {
 
         return state.values().iterator();
+    }
+
+    public List<PeerReference> lastUnreachable(final int size) {
+
+        final List<PeerReference> references = new ArrayList<>(size);
+        final Iterator<Key> iterator = state.descendingKeySet().iterator();
+        while (iterator.hasNext() && references.size() < size) {
+            final InternalPeerReference next = state.get(iterator.next());
+            if (!next.isReachable()) {
+                references.add(next);
+            }
+        }
+        return references;
     }
 
     private static InternalPeerReference toInternalPeerReference(final PeerReference reference) {

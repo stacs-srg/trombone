@@ -2,6 +2,7 @@ package uk.ac.standrews.cs.trombone.evaluation.scenarios;
 
 import uk.ac.standrews.cs.trombone.core.DisseminationStrategy;
 import uk.ac.standrews.cs.trombone.core.selector.RandomSelector;
+import uk.ac.standrews.cs.trombone.core.selector.Selector;
 import uk.ac.standrews.cs.trombone.core.util.Named;
 import uk.ac.standrews.cs.trombone.core.util.NamingUtils;
 
@@ -14,7 +15,7 @@ public class RandomMaintenance extends DisseminationStrategy implements Named {
 
     public RandomMaintenance(int recipient_count, int data_count) {
 
-        addAction(new DisseminationStrategy.Action(SuccessorMaintenance.NON_OPPORTUNISTIC, SuccessorMaintenance.PULL, new RandomSelector(data_count), new RandomSelector(recipient_count)));
+        addAction(new DisseminationStrategy.Action(SuccessorMaintenance.NON_OPPORTUNISTIC, SuccessorMaintenance.PULL, new RandomSelector(data_count, Selector.ReachabilityCriteria.REACHABLE_OR_UNREACHABLE), new RandomSelector(recipient_count, Selector.ReachabilityCriteria.REACHABLE_OR_UNREACHABLE)));
     }
 
     @Override

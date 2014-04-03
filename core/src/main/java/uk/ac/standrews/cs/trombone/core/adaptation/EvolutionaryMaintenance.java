@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.TreeMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.math3.ml.clustering.Cluster;
 import org.apache.commons.math3.ml.clustering.Clusterer;
 import org.mashti.gauge.Sampler;
@@ -105,7 +104,7 @@ public class EvolutionaryMaintenance extends Maintenance {
         private EvolutionaryPeerMaintainer(final Peer peer) {
 
             super(peer, null);
-            random = new MersenneTwisterRNG(DigestUtils.md5(peer.getKey().getValue()));
+            random = peer.getRandom();
             metric = peer.getPeerMetric();
             evaluated_strategies = new ArrayList<>();
         }
@@ -195,9 +194,8 @@ public class EvolutionaryMaintenance extends Maintenance {
                 final DisseminationStrategy other = select(cumulative_evaluated_strategies);
                 final DisseminationStrategy offspring = STRATEGY_GENERATOR.mate(one, other, random);
 
-                if (mutation_probability.nextEvent(random)) {
-                    STRATEGY_GENERATOR.mutate(offspring, random);
-                }
+                STRATEGY_GENERATOR.mutate(offspring, random, mutation_probability);
+
                 next_strategy = offspring;
 
                 if (evaluated_strategies_size > population_size) {

@@ -2,6 +2,7 @@ package uk.ac.standrews.cs.trombone.evaluation.scenarios;
 
 import uk.ac.standrews.cs.trombone.core.DisseminationStrategy;
 import uk.ac.standrews.cs.trombone.core.selector.MostRecentlySeen;
+import uk.ac.standrews.cs.trombone.core.selector.Selector;
 import uk.ac.standrews.cs.trombone.core.util.Named;
 import uk.ac.standrews.cs.trombone.core.util.NamingUtils;
 
@@ -14,7 +15,8 @@ public class MostRecentlySeenMaintenance extends DisseminationStrategy implement
 
     public MostRecentlySeenMaintenance(int recipient_count, int data_count) {
 
-        addAction(new Action(SuccessorMaintenance.NON_OPPORTUNISTIC, SuccessorMaintenance.PULL, new MostRecentlySeen(data_count), new MostRecentlySeen(recipient_count)));
+        final MostRecentlySeen selector = new MostRecentlySeen(data_count, Selector.ReachabilityCriteria.REACHABLE_OR_UNREACHABLE);
+        addAction(new Action(SuccessorMaintenance.NON_OPPORTUNISTIC, SuccessorMaintenance.PULL, selector, selector));
     }
 
     @Override

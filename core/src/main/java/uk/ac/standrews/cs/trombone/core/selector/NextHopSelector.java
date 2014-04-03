@@ -7,13 +7,14 @@ import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class NextHopSelector implements Selector {
+public class NextHopSelector extends Selector {
 
     private static final long serialVersionUID = -5105443487433643022L;
     private final Key[] targets;
 
     public NextHopSelector(Key... targets) {
 
+        super(targets.length, ReachabilityCriteria.REACHABLE);
         this.targets = targets;
     }
 
@@ -25,5 +26,11 @@ public class NextHopSelector implements Selector {
             next_hops.add(peer.nextHop(target));
         }
         return next_hops;
+    }
+
+    @Override
+    public Selector copy() {
+
+        return new NextHopSelector(targets);
     }
 }

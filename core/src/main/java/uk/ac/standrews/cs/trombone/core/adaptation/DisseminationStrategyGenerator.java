@@ -1,48 +1,23 @@
 package uk.ac.standrews.cs.trombone.core.adaptation;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
+import org.uncommons.maths.random.Probability;
 import uk.ac.standrews.cs.trombone.core.DisseminationStrategy;
-import uk.ac.standrews.cs.trombone.core.selector.First;
-import uk.ac.standrews.cs.trombone.core.selector.Last;
-import uk.ac.standrews.cs.trombone.core.selector.MostRecentlySeen;
-import uk.ac.standrews.cs.trombone.core.selector.RandomSelector;
 import uk.ac.standrews.cs.trombone.core.selector.Selector;
-import uk.ac.standrews.cs.trombone.core.selector.Self;
-import uk.ac.standrews.cs.trombone.core.util.SelectionUtil;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class DisseminationStrategyGenerator {
 
-    private static final Set<Selector> SELECTORS = new HashSet<>();
-
-    static {
-        SELECTORS.add(new First(1, false));
-        SELECTORS.add(new First(1, true));
-        SELECTORS.add(new Last(1, false));
-        SELECTORS.add(new Last(1, true));
-        SELECTORS.add(Self.getInstance());
-        SELECTORS.add(new RandomSelector(3));
-        SELECTORS.add(new MostRecentlySeen(3));
-    }
-
+    public static final Probability ACTION_FIELD_MUTATION_PROBABILITY = new Probability(1.0 / 4);
     private final int max_action;
-    private final Set<Selector> selectors;
 
     public DisseminationStrategyGenerator(int max_action) {
 
-        this(SELECTORS, max_action);
-    }
-
-    public DisseminationStrategyGenerator(Set<Selector> selectors, int max_action) {
-
         if (max_action < 1) { throw new IllegalArgumentException("maximum number of actions must be at least 1"); }
-        this.selectors = selectors;
         this.max_action = max_action;
     }
 
@@ -57,7 +32,7 @@ public class DisseminationStrategyGenerator {
 
     public DisseminationStrategy generate(final Random random) {
 
-        final int actions_size = random.nextInt(max_action);
+        final int actions_size = random.nextInt(max_action + 1);
         final DisseminationStrategy strategy = new DisseminationStrategy();
         for (int i = 0; i < actions_size; i++) {
             strategy.addAction(generateAction(random));
@@ -66,11 +41,36 @@ public class DisseminationStrategyGenerator {
         return strategy;
     }
 
-    public void mutate(DisseminationStrategy strategy, Random random) {
+    public void mutate(DisseminationStrategy strategy, Random random, Probability mutation_probability) {
 
-        final int mutation_index = random.nextInt(strategy.size());
-        final DisseminationStrategy.Action action = generateAction(random);
-        strategy.setActionAt(mutation_index, action);
+        final int size = strategy.size();
+        final int mutation_index = random.nextInt(size);
+        strategy.setActionAt(mutation_index, generateAction(random));
+        final Probability action_mutation_chance = new Probability(mutation_probability.doubleValue() / size);
+
+        for (DisseminationStrategy.Action action : strategy) {
+            if (action_mutation_chance.nextEvent(random)) {
+                mutate(action, random, ACTION_FIELD_MUTATION_PROBABILITY);
+            }
+        }
+    }
+
+    private void mutate(final DisseminationStrategy.Action action, final Random random, Probability mutation_probability) {
+
+        if (mutation_probability.nextEvent(random)) {
+            action.setPush(!action.isPush());
+        }
+        if (mutation_probability.nextEvent(random)) {
+            action.setOpportunistic(!action.isOpportunistic());
+        }
+        if (mutation_probability.nextEvent(random)) {
+            Selector recipient_selector = action.getRecipientSelector();
+            action.setRecipientSelector(Selector.mutate(recipient_selector, random));
+        }
+        if (mutation_probability.nextEvent(random)) {
+            Selector data_selector = action.getDataSelector();
+            action.setDataSelector(Selector.mutate(data_selector, random));
+        }
     }
 
     public DisseminationStrategy mate(DisseminationStrategy first, final DisseminationStrategy second, final Random random) {
@@ -99,7 +99,7 @@ public class DisseminationStrategyGenerator {
 
         offspring.addActions(first_parent.subActionList(0, crossover_point));
         offspring.addActions(second_parent.subActionList(crossover_point, second_parent_size));
-        
+
         return offspring;
     }
 
@@ -107,8 +107,8 @@ public class DisseminationStrategyGenerator {
 
         final boolean opportunistic = random.nextBoolean();
         final boolean push = random.nextBoolean();
-        final Selector data_selector = SelectionUtil.selectRandomly(selectors, random);
-        final Selector recipient_selector = SelectionUtil.selectRandomly(selectors, random);
+        final Selector data_selector = Selector.generate(random);
+        final Selector recipient_selector = Selector.generate(random);
 
         return new DisseminationStrategy.Action(opportunistic, push, data_selector, recipient_selector);
     }

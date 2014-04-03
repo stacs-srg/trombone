@@ -10,11 +10,13 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.concurrent.Callable;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.mashti.jetson.Server;
 import org.mashti.jetson.ServerFactory;
 import org.mashti.jetson.exception.RPCException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.uncommons.maths.random.MersenneTwisterRNG;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.core.selector.Selector;
 
@@ -32,6 +34,8 @@ public class Peer implements PeerRemote {
     private final PropertyChangeSupport property_change_support;
     private final PeerMetric metric;
     private final Maintenance.PeerMaintainer maintainer;
+
+    private final MersenneTwisterRNG random;
     private volatile PeerReference self;
 
     Peer(final Key key) {
@@ -47,8 +51,8 @@ public class Peer implements PeerRemote {
     Peer(final InetSocketAddress address, final Key key, PeerConfiguration configuration) {
 
         this.key = key;
+        random = new MersenneTwisterRNG(DigestUtils.md5(key.getValue()));
         property_change_support = new PropertyChangeSupport(this);
-
         metric = new PeerMetric();
         state = new PeerState(key, metric);
         maintainer = configuration.getMaintenance().maintain(this);
@@ -58,6 +62,11 @@ public class Peer implements PeerRemote {
         remote_factory = new PeerClientFactory(this, configuration.getSyntheticDelay());
         asynchronous_remote_factory = new AsynchronousPeerClientFactory(this, configuration.getSyntheticDelay());
         refreshSelfReference();
+    }
+
+    public MersenneTwisterRNG getRandom() {
+
+        return random;
     }
 
     public synchronized boolean expose() throws IOException {
@@ -113,7 +122,7 @@ public class Peer implements PeerRemote {
     }
 
     @Override
-    public List<PeerReference> pull(final Selector selector) throws RPCException {
+    public List<PeerReference> pull(final Selector selector) {
 
         return selector.select(this);
     }
