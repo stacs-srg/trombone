@@ -91,7 +91,8 @@ public class EventExecutor {
         @Override
         public Double get() {
 
-            return PeerMetric.getGlobalSentBytesRate().getRate() / available_peer_counter.get();
+            final long available_peer_count = available_peer_counter.get();
+            return available_peer_count != 0 ? PeerMetric.getGlobalSentBytesRate().getRate() / available_peer_count : 0;
         }
     };
     private final ThreadCountGauge thread_count_gauge = new ThreadCountGauge();
@@ -122,7 +123,9 @@ public class EventExecutor {
                     }
                 }
             }
-            return number_of_reachable_state / available_peer_counter.get();
+
+            final long available_peer_count = available_peer_counter.get();
+            return available_peer_count != 0 ? number_of_reachable_state / available_peer_count : 0;
         }
     };
     private final Gauge unreachable_state_size_per_alive_peer_gauge = new Gauge() {
@@ -141,7 +144,9 @@ public class EventExecutor {
                     }
                 }
             }
-            return number_of_unreachable_state / available_peer_counter.get();
+
+            final long available_peer_count = available_peer_counter.get();
+            return available_peer_count != 0 ? number_of_unreachable_state / available_peer_count : 0;
         }
     };
 

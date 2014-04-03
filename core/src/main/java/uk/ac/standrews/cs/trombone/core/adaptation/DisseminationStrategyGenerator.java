@@ -62,7 +62,7 @@ public class DisseminationStrategyGenerator {
         for (int i = 0; i < actions_size; i++) {
             strategy.addAction(generateAction(random));
         }
-        
+
         return strategy;
     }
 
@@ -75,13 +75,31 @@ public class DisseminationStrategyGenerator {
 
     public DisseminationStrategy mate(DisseminationStrategy first, final DisseminationStrategy second, final Random random) {
 
-        final int second_size = second.size();
-        final int crossover_point = random.nextInt(Math.min(first.size(), second_size));
         final DisseminationStrategy offspring = new DisseminationStrategy();
+        final int first_size = first.size();
+        final int second_size = second.size();
 
-        offspring.addActions(first.subActionList(0, crossover_point));
-        offspring.addActions(second.subActionList(crossover_point, second_size));
+        final int min_size = Math.min(first_size, second_size);
+        final int crossover_point = min_size != 0 ? random.nextInt(min_size) : 0;
+        final boolean first_goes_first = random.nextBoolean();
 
+        final DisseminationStrategy first_parent;
+        final DisseminationStrategy second_parent;
+        final int second_parent_size;
+        if (first_goes_first) {
+            first_parent = first;
+            second_parent = second;
+            second_parent_size = second_size;
+        }
+        else {
+            first_parent = second;
+            second_parent = first;
+            second_parent_size = first_size;
+        }
+
+        offspring.addActions(first_parent.subActionList(0, crossover_point));
+        offspring.addActions(second_parent.subActionList(crossover_point, second_parent_size));
+        
         return offspring;
     }
 
