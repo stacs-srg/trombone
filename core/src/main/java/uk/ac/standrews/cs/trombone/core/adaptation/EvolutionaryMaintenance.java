@@ -20,6 +20,7 @@ import uk.ac.standrews.cs.trombone.core.Maintenance;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerMetric;
 import uk.ac.standrews.cs.trombone.core.util.CosineSimilarity;
+import uk.ac.standrews.cs.trombone.core.util.NamingUtils;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
@@ -91,6 +92,11 @@ public class EvolutionaryMaintenance extends Maintenance {
     public Clusterer<EvaluatedDisseminationStrategy> getClusterer() {
 
         return clusterer;
+    }
+
+    public String getClustererName() {
+
+        return NamingUtils.name(clusterer);
     }
 
     class EvolutionaryPeerMaintainer extends PeerMaintainer {
@@ -233,7 +239,7 @@ public class EvolutionaryMaintenance extends Maintenance {
 
             if (isStarted()) {
                 evolution.cancel(true);
-
+                strategy.getAndSet(null);
                 super.stop();
             }
         }

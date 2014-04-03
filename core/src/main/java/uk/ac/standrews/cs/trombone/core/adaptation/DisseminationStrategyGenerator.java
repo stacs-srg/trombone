@@ -12,7 +12,7 @@ import uk.ac.standrews.cs.trombone.core.selector.Selector;
  */
 public class DisseminationStrategyGenerator {
 
-    public static final Probability ACTION_FIELD_MUTATION_PROBABILITY = new Probability(1.0 / 4);
+    private static final int NUMBER_OF_ACTION_FIELDS = 4;
     private final int max_action;
 
     public DisseminationStrategyGenerator(int max_action) {
@@ -43,19 +43,24 @@ public class DisseminationStrategyGenerator {
 
     public void mutate(DisseminationStrategy strategy, Random random, Probability mutation_probability) {
 
-        final int size = strategy.size();
-        final int mutation_index = random.nextInt(size);
-        strategy.setActionAt(mutation_index, generateAction(random));
-        final Probability action_mutation_chance = new Probability(mutation_probability.doubleValue() / size);
+        final int number_of_actions = strategy.size();
+        if (number_of_actions > 0) {
 
-        for (DisseminationStrategy.Action action : strategy) {
-            if (action_mutation_chance.nextEvent(random)) {
-                mutate(action, random, ACTION_FIELD_MUTATION_PROBABILITY);
+            final Probability action_mutation_chance = new Probability(mutation_probability.doubleValue() / number_of_actions);
+            for (DisseminationStrategy.Action action : strategy) {
+                if (action_mutation_chance.nextEvent(random)) {
+                    mutate(action, random, new Probability(action_mutation_chance.doubleValue() / NUMBER_OF_ACTION_FIELDS));
+                }
+            }
+        }
+        else {
+            if (mutation_probability.nextEvent(random)) {
+                strategy.addAction(generateAction(random));
             }
         }
     }
 
-    private void mutate(final DisseminationStrategy.Action action, final Random random, Probability mutation_probability) {
+    private static void mutate(final DisseminationStrategy.Action action, final Random random, Probability mutation_probability) {
 
         if (mutation_probability.nextEvent(random)) {
             action.setPush(!action.isPush());

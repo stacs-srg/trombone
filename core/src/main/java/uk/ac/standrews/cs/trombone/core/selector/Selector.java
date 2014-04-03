@@ -82,14 +82,17 @@ public abstract class Selector implements Serializable, Copyable {
             mutant = generate(random);
         }
 
-        if (random.nextBoolean()) {
-            final boolean same_as_selector = random.nextBoolean();
-            mutant.size = same_as_selector ? selector.getSelectionSize() : getRandomSelectionSize(random);
-        }
+        if (!selector.isSingleton()) {
 
-        if (random.nextBoolean()) {
-            final boolean same_as_selector = random.nextBoolean();
-            mutant.reachability_criteria = same_as_selector ? selector.getReachabilityCriteria() : getRandomReachabilityCriteria(random);
+            if (random.nextBoolean()) {
+                final boolean same_as_selector = random.nextBoolean();
+                mutant.size = same_as_selector ? selector.getSelectionSize() : getRandomSelectionSize(random);
+            }
+
+            if (random.nextBoolean()) {
+                final boolean same_as_selector = random.nextBoolean();
+                mutant.reachability_criteria = same_as_selector ? selector.getReachabilityCriteria() : getRandomReachabilityCriteria(random);
+            }
         }
 
         return mutant;
