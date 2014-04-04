@@ -154,6 +154,10 @@ public class EvolutionaryMaintenance extends Maintenance {
             if (evaluated_strategies_size < population_size) {
                 next_strategy = STRATEGY_GENERATOR.generate(random);
             }
+            else if (last_evaluated_strategy == null) {
+                Collections.sort(evaluated_strategies);
+                next_strategy = evaluated_strategies.get(0).getStrategy();
+            }
             else {
                 assert last_evaluated_strategy != null;
 
