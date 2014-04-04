@@ -16,7 +16,7 @@ public abstract class Selector implements Serializable, Copyable {
     private static final ReachabilityCriteria[] REACHABILITY_CRITERIA = ReachabilityCriteria.values();
     private static final int REACHABILITY_CRITERIA_LENGTH = REACHABILITY_CRITERIA.length;
     private static final List<Selector> SELECTORS = new ArrayList<>();
-    private static final int SELECTORS_SIZE = SELECTORS.size();
+    private static final int SELECTORS_SIZE;
 
     static {
 
@@ -26,6 +26,8 @@ public abstract class Selector implements Serializable, Copyable {
         SELECTORS.add(new MostRecentlySeen(1, ReachabilityCriteria.REACHABLE_OR_UNREACHABLE));
         SELECTORS.add(new RandomSelector(1, ReachabilityCriteria.REACHABLE_OR_UNREACHABLE));
         SELECTORS.add(Self.getInstance());
+        
+        SELECTORS_SIZE = SELECTORS.size();
     }
 
     protected int size;

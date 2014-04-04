@@ -37,8 +37,8 @@ public class EvolutionaryMaintenance extends Maintenance {
     private static final int DISSEMINATION_STRATEGY_LIST_SIZE = 5;
     private static final DisseminationStrategyGenerator STRATEGY_GENERATOR = new DisseminationStrategyGenerator(DISSEMINATION_STRATEGY_LIST_SIZE);
     private static final Ordering<EvaluatedDisseminationStrategy> EVALUATED_DISSEMINATION_STRATEGY_ORDERING = Ordering.natural();
+    private static final Logger LOGGER = LoggerFactory.getLogger(EvolutionaryMaintenance.class);
 
-    private final Logger logger = LoggerFactory.getLogger(EvolutionaryMaintenance.class);
     private final int population_size;
     private final int elite_count;
     private final Probability mutation_probability;
@@ -125,10 +125,15 @@ public class EvolutionaryMaintenance extends Maintenance {
                     @Override
                     public void run() {
 
-                        final EnvironmentSnapshot environment_snapshot = metric.getSnapshot();
-                        final DisseminationStrategy previous_strategy = strategy.get();
-                        final DisseminationStrategy next_strategy = getNextStrategy(environment_snapshot, previous_strategy);
-                        strategy.getAndSet(next_strategy);
+                        try {
+                            final EnvironmentSnapshot environment_snapshot = metric.getSnapshot();
+                            final DisseminationStrategy previous_strategy = strategy.get();
+                            final DisseminationStrategy next_strategy = getNextStrategy(environment_snapshot, previous_strategy);
+                            strategy.getAndSet(next_strategy);
+                        }
+                        catch (Exception e) {
+                            LOGGER.error("failed to perform adaptation cycle", e);
+                        }
                     }
                 }, 0, evolution_cycle_length, evolution_cycle_unit);
 
@@ -239,6 +244,9 @@ public class EvolutionaryMaintenance extends Maintenance {
 
             if (isStarted()) {
                 evolution.cancel(true);
+                final EnvironmentSnapshot environment_snapshot = metric.getSnapshot();
+                final DisseminationStrategy previous_strategy = strategy.get();
+                getNextStrategy(environment_snapshot, previous_strategy);
                 strategy.getAndSet(null);
                 super.stop();
             }

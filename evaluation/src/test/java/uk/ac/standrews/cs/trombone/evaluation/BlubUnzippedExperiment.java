@@ -74,11 +74,11 @@ public class BlubUnzippedExperiment {
 
         for (int i = 0; i < Constants.NUMBER_OF_REPETITIONS; i++) {
 
-            for (Scenario scenario : ScenarioBatches.BATCH_1_SCENARIOS) {
+            for (Scenario scenario : ScenarioBatches.BATCH_2_SCENARIOS) {
 
-                if (scenario.getName().matches("scenario_(10|8|68|70|128|61|62|63|65|124)")) {
-                    scenarios_with_repetitions.add(scenario);
-                }
+                //                if (scenario.getName().matches("scenario_(10|8|68|70|128|61|62|63|65|124)")) {
+                scenarios_with_repetitions.add(scenario);
+                //                }
             }
         }
 

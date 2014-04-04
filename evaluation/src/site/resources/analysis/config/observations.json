@@ -326,6 +326,15 @@
             }
         },
         {
+            "title": "Evolutionary Maintenance Cluster Count",
+            "file_name": "evolutionary_maintenance_cluster_count_sampler.csv",
+            "options": {
+                "vAxis": {
+                    "title": "Number of Environment Clusters "
+                }
+            }
+        },
+        {
             "title": "Lookup Diagnostics Proportion",
             "file_name": "unreachable_state_size_per_alive_peer_gauge.csv",
             "chart_type": "PieChart"

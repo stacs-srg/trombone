@@ -3,6 +3,7 @@ package uk.ac.standrews.cs.trombone.evaluation.analysis;
 import com.google.visualization.datasource.base.TypeMismatchException;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -12,6 +13,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.standrews.cs.trombone.evaluation.util.ScenarioUtils;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
@@ -26,9 +28,9 @@ public class Main {
         final List<ScenarioAnalyzer> scenarioAnalyzers = new ArrayList<>();
         for (int i = 1; i <= 84; i++) {
             final String scenario_name = "scenario_batch2_" + i;
-            //            if (scenario_name.matches("scenario_(10|8|68|70|128|62|63|65|124)")) {
-            scenarioAnalyzers.add(new ScenarioAnalyzer(scenario_name));
-            //            }
+            if (Files.exists(ScenarioUtils.getScenarioHome(scenario_name))) {
+                scenarioAnalyzers.add(new ScenarioAnalyzer(scenario_name));
+            }
         }
 
         Set<String> unique_file_names = null;

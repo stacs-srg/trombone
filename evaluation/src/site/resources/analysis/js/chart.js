@@ -326,7 +326,7 @@ function maintenanceToString(maintenance) {
             ", trial length: " +
             durationToString({timeUnit: maintenance.evolutionCycleLengthUnit, length: maintenance.evolutionCycleLength})
             + " " +
-            (maintenance.clusterer === undefined ? "OLD" : JSON.stringify(maintenance.clusterer).replace(/(\{|\}|\")/g, "-")) +
+            (maintenance.clusterer === undefined ? "OLD" : maintenance.clustererName === undefined ? JSON.stringify(maintenance.clusterer).replace(/(\{|\}|\")/g, "-") : maintenance.clustererName ) +
             ")";
     }
 
