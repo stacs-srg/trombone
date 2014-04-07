@@ -14,6 +14,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.job.Job;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
+import uk.ac.standrews.cs.trombone.core.Maintenance;
+import uk.ac.standrews.cs.trombone.core.PeerClientFactory;
+import uk.ac.standrews.cs.trombone.core.PeerServerFactory;
 import uk.ac.standrews.cs.trombone.evaluation.util.ScenarioUtils;
 import uk.ac.standrews.cs.trombone.event.EventExecutor;
 import uk.ac.standrews.cs.trombone.event.EventQueue;
@@ -91,6 +94,9 @@ public class BlubUnzipEventExecutionJob implements Job<String> {
         finally {
             LOGGER.info("shutting down the event executor...");
             event_executor.shutdown();
+            Maintenance.SCHEDULER.shutdownNow();
+            PeerClientFactory.shutdownPeerClientFactory();
+            PeerServerFactory.shutdownPeerServerFactory();
         }
 
         LOGGER.info("finished executing events of scenario {} with host index {}", scenario_name, host_index);

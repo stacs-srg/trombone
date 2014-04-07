@@ -34,6 +34,16 @@ define(
             }
             return false;
         }
+        String.prototype.hashCode = function () {
+            var hash = 0;
+            if (this.length == 0) return hash;
+            for (i = 0; i < this.length; i++) {
+                char = this.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return hash;
+        }
 
         return{
 
@@ -76,7 +86,8 @@ define(
                         default:
                             return time_unit;
                     }
-                }, durationToString: function (duration) {
+                },
+                durationToString: function (duration) {
 
                     var time_unit = duration.timeUnit.toUpperCase();
                     var length = duration.length;
@@ -105,17 +116,14 @@ define(
 
                     return JSON.stringify(intervals);
                 },
-
                 workloadToString: function (workload) {
                     var intervals = this.intervalsToString(workload.intervals);
                     return  intervals == "Infinite" ? "None" : intervals;
                 },
-
                 churnToString: function (churn) {
                     return "session length: " + this.intervalsToString(churn.sessionLength) +
                         ", down time: " + this.intervalsToString(churn.downtime);
                 },
-
                 maintenanceToString: function (maintenance) {
 
                     if (maintenance.name == "Maintenance") {
@@ -136,7 +144,9 @@ define(
                             ", mutation prob.: " +
                             maintenance.mutationProbability +
                             ", trial length: " +
-                            this.durationToString({timeUnit: maintenance.evolutionCycleLengthUnit, length: maintenance.evolutionCycleLength})
+                            this.durationToString({timeUnit: maintenance.evolutionCycleLengthUnit, length: maintenance.evolutionCycleLength}) +
+                            ", clusterer: " +
+                            ( maintenance.clustererName === undefined ? "OLD" : maintenance.clustererName)
                             + ")";
                     }
 
@@ -154,23 +164,31 @@ define(
                 var content = this.read(url);
                 return $.parseJSON(content);
             },
-            readCSV: function (url) {
+            readCSV: function (url, columns, converters, skip_header) {
                 var content = this.read(url);
-                return $.csv.toArrays(content, { onParseValue: function (value, state) {
+                var csv_as_array = $.csv.toArrays(content, { onParseValue: function (value, state) {
 
                     var casted_value = $.csv.hooks.castToScalar(value.replace(/,/g, ""));
-
-//                    var converter_name = conversion.column[state.colNum];
-//                    if (state.rowNum > 1 && converter_name !== undefined) {
-//
-//                        var converter = window[converter_name];
-//                        if (typeof converter === 'function') {
-//                            casted_value = converter(casted_value);
-//                        }
-//                    }
+                    var converter = converters[state.colNum - 1];
+                    if (state.rowNum > 1 && converter !== undefined) {
+                        casted_value = converter(casted_value);
+                    }
 
                     return  casted_value;
                 } });
+
+                if (skip_header) {
+                    csv_as_array.splice(0, 1);
+                }
+
+                return csv_as_array.map(
+                    function (value, index) {
+                        var row = new Array();
+                        columns.forEach(function (column) {
+                            row.push(value[column]);
+                        })
+                        return row;
+                    });
             },
             resultsPath: '../../../../../results/',
             scenarioJSONPath: function (scenario_name) {

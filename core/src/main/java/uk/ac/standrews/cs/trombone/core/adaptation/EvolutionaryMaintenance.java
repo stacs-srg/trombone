@@ -141,7 +141,7 @@ public class EvolutionaryMaintenance extends Maintenance {
             }
         }
 
-        private DisseminationStrategy getNextStrategy(final EnvironmentSnapshot environment_snapshot, final DisseminationStrategy previous_strategy) {
+        private synchronized DisseminationStrategy getNextStrategy(final EnvironmentSnapshot environment_snapshot, final DisseminationStrategy previous_strategy) {
 
             final DisseminationStrategy next_strategy;
 

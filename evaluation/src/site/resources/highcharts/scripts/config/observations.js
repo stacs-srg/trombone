@@ -1,365 +1,337 @@
-define(['util', 'mark'], function (util, mark) {
+define(['util', 'mark', 'config/theme', 'data', 'series/double', 'series/verses', 'series/single'], function (util, mark, theme, data, double, verses, single) {
+
     var observations = [
         {
             title: "Event Completion Rate",
-            file_name: "event_completion_rate.csv",
-            options: {
-                vAxis: {
-                    title: "Number of Events Executed Per Second"
+            yAxis: {
+                title: {
+                    text: "Number of Events Executed Per Second"
                 }
-            }
+            },
+            series_provider: double("event_completion_rate.csv")
         },
         {
             title: "Network Size",
-            file_name: "available_peer_counter.csv",
-            chart_type: "LineChart",
-            options: {
-                title: "Network Size",
-                vAxis: {
-                    title: "Number of Available Peers "
-                }
+            series_provider: double("available_peer_counter.csv"),
+            yAxis: {
+                title: {text: "Number of Available Peers "}
             }
         },
         {
             title: "Event Execution Duration Timer",
-            file_name: "event_execution_duration_timer.csv",
-            options: {
-                vAxis: {
-                    title: "Mean Event Execution Completion Time (ms)"
-                }
+            series_provider: double("event_execution_duration_timer.csv"),
+            yAxis: {
+                title: {text: "Mean Event Execution Completion Time (ms)"}
             }
         },
         {
             title: "Event Execution Lag",
-            file_name: "event_execution_lag_sampler.csv",
-            options: {
-                vAxis: {
-                    title: "Event Execution Lag (ms)"
-                }
+            series_provider: double("event_execution_lag_sampler.csv"),
+            yAxis: {
+                title: {text: "Event Execution Lag (ms)"}
             }
         },
         {
             title: "Event Executor Queue Size",
-            file_name: "event_executor_queue_size.csv",
-            options: {
-                vAxis: {
-                    title: "Number of Events Queued by Executor"
-                }
+            series_provider: double("event_executor_queue_size.csv"),
+            yAxis: {
+                title: {text: "Number of Events Queued by Executor"}
             }
         },
         {
             title: "Event Scheduling Rate",
-            file_name: "event_scheduling_rate.csv",
-            options: {
-                vAxis: {
-                    title: "Number of Events Scheduled for Execution"
-                }
+            series_provider: double("event_scheduling_rate.csv"),
+            yAxis: {
+                title: {text: "Number of Events Scheduled for Execution"}
             }
 
         },
         {
             title: "Join Failure Rate",
-            file_name: "join_failure_rate.csv",
-            options: {
-                vAxis: {
-                    title: "Number of Failed Joins"
-                }
+            series_provider: double("join_failure_rate.csv"),
+            yAxis: {
+                title: {text: "Number of Failed Joins"}
             }
         },
         {
             title: "Join Success Rate",
-            file_name: "join_success_rate.csv",
-            options: {
-                vAxis: {
-                    title: "Number of Successful Joins"
-                }
+            series_provider: double("join_success_rate.csv"),
+            yAxis: {
+                title: {text: "Number of Successful Joins"}
             }
         },
         {
             title: "Lookup Correctness Delay",
-            file_name: "lookup_correctness_delay_timer.csv",
-            options: {
-                vAxis: {
-                    title: "Mean Correct Lookup Delay (ms)"
-                }
+            series_provider: double("lookup_correctness_delay_timer.csv"),
+            yAxis: {
+                title: {text: "Mean Correct Lookup Delay (ms)"}
             }
         },
         {
             title: "Lookup Correctness Hop Count",
-            file_name: "lookup_correctness_hop_count_sampler.csv",
-            options: {
-                vAxis: {
-                    title: "Mean Correct Lookup Hop Count"
-                }
+            series_provider: double("lookup_correctness_hop_count_sampler.csv"),
+            yAxis: {
+                title: {text: "Mean Correct Lookup Hop Count"}
             }
         },
         {
             title: "Lookup Correctness Rate",
-            file_name: "lookup_correctness_rate.csv",
-            chart_type: "LineChart",
-            options: {
-                vAxis: {
-                    title: "Number of Correct Lookups Per Second"
-                }
+            series_provider: double("lookup_correctness_rate.csv"),
+            chart: {type: "line"},
+            yAxis: {
+                title: {text: "Number of Correct Lookups Per Second"}
             }
         },
         {
             title: "Lookup Correctness Retry Count",
-            file_name: "lookup_correctness_retry_count_sampler.csv",
-            options: {
-                vAxis: {
-                    title: "Mean Correct Lookup Retry Count"
-                }
+            series_provider: double("lookup_correctness_retry_count_sampler.csv"),
+            yAxis: {
+                title: {text: "Mean Correct Lookup Retry Count"}
             }
         },
         {
             title: "Lookup Execution Rate",
-            file_name: "lookup_execution_rate.csv",
-            options: {
-                vAxis: {
-                    title: "Number of Lookups Executed Per Second"
-                }
+            series_provider: double("lookup_execution_rate.csv"),
+            yAxis: {
+                title: {text: "Number of Lookups Executed Per Second"}
             }
         },
         {
             title: "Lookup Failure Delay",
-            file_name: "lookup_failure_delay_timer.csv",
-            options: {
-                vAxis: {
-                    title: "Mean Failed Lookup Delay (ms)"
-                }
+            series_provider: double("lookup_failure_delay_timer.csv"),
+            yAxis: {
+                title: {text: "Mean Failed Lookup Delay (ms)"}
             }
         },
         {
             title: "Lookup Failure Hop Count",
-            file_name: "lookup_failure_hop_count_sampler.csv",
-            options: {
-                vAxis: {
-                    title: "Mean Failed Lookup Hop Count"
-                }
+            series_provider: double("lookup_failure_hop_count_sampler.csv"),
+            yAxis: {
+                title: {text: "Mean Failed Lookup Hop Count"}
             }
         },
         {
             title: "Lookup Failure Rate",
-            file_name: "lookup_failure_rate.csv",
-            options: {
-                vAxis: {
-                    title: "Number of Failed Lookups per Second"
-                }
+            series_provider: double("lookup_failure_rate.csv"),
+            yAxis: {
+                title: {text: "Number of Failed Lookups per Second"}
             }
         },
         {
             title: "Lookup Failure Retry Count",
-            file_name: "lookup_failure_retry_count_sampler.csv",
-            options: {
-                vAxis: {
-                    title: "Mean Failed Lookup Retry Count"
-                }
+            series_provider: double("lookup_failure_retry_count_sampler.csv"),
+            yAxis: {
+                title: {text: "Mean Failed Lookup Retry Count"}
             }
         },
         {
             title: "Lookup Incorrectness Delay Timer",
-            file_name: "lookup_incorrectness_delay_timer.csv",
-            chart_type: "LineChart",
-            options: {
-                vAxis: {
-                    title: "Mean Incorrect Lookup Delay (ms)"
-                }
+            series_provider: double("lookup_incorrectness_delay_timer.csv"),
+            chart: {type: "line"},
+            yAxis: {
+                title: {text: "Mean Incorrect Lookup Delay (ms)"}
             }
         },
         {
             title: "Lookup Incorrectness hop Count Sampler",
-            file_name: "lookup_incorrectness_hop_count_sampler.csv",
-            chart_type: "LineChart",
-            options: {
-                vAxis: {
-                    title: "Mean Incorrect Lookup Hop Count"
-                }
+            series_provider: double("lookup_incorrectness_hop_count_sampler.csv"),
+            chart: {type: "line"},
+            yAxis: {
+                title: {text: "Mean Incorrect Lookup Hop Count"}
             }
         },
         {
             title: "Lookup Incorrectness Rate",
-            file_name: "lookup_incorrectness_rate.csv",
-            chart_type: "LineChart",
-            options: {
-                vAxis: {
-                    title: "Number of Incorrect Lookups Per Second"
-                }
+            series_provider: double("lookup_incorrectness_rate.csv"),
+            chart: {type: "line"},
+            yAxis: {
+                title: {text: "Number of Incorrect Lookups Per Second"}
             }
         },
         {
             title: "Lookup Incorrectness Retry Count Sampler",
-            file_name: "lookup_incorrectness_retry_count_sampler.csv",
-            chart_type: "LineChart",
-            options: {
-                vAxis: {
-                    title: "Mean Incorrect Lookup Retry Count"
-                }
+            series_provider: double("lookup_incorrectness_retry_count_sampler.csv"),
+            chart: {type: "line"},
+            yAxis: {
+                title: {text: "Mean Incorrect Lookup Retry Count"}
             }
         },
         {
             title: "JVM Heap + Non-heap Memory Usage",
-            file_name: "memory_usage_gauge.csv",
-            conversion: {
-                column: {
-                    2: "byteToGigabyte",
-                    3: "byteToGigabyte",
-                    4: "byteToGigabyte"
-                }
-            },
-            options: {
-                vAxis: {
-                    title: "Heap and Non-heap Memory usage (GB)"
-                }
+            series_provider: double("memory_usage_gauge.csv", {
+                0: util.convert.secondToHour,
+                1: util.convert.byteToGigabyte,
+                2: util.convert.byteToGigabyte,
+                3: util.convert.byteToGigabyte
+            }),
+            yAxis: {
+                title: {text: "Heap and Non-heap Memory usage (GB)"}
             }
         },
         {
             title: "Peer Arrival Rate",
-            file_name: "peer_arrival_rate.csv",
-            chart_type: "LineChart",
-            options: {
-                vAxis: {
-                    title: "Number of Peers Arrived Per Second"
-                }
+            series_provider: double("peer_arrival_rate.csv"),
+            chart: {type: "line"},
+            yAxis: {
+                title: {text: "Number of Peers Arrived Per Second"}
             }
         },
         {
             title: "Peer Departure Rate",
-            file_name: "peer_departure_rate.csv",
-            chart_type: "LineChart",
-            options: {
-                vAxis: {
-                    title: "Number of Peers Departed Per Second"
-                }
+            series_provider: double("peer_departure_rate.csv"),
+            chart: {type: "line"},
+            yAxis: {
+                title: {text: "Number of Peers Departed Per Second"}
             }
         },
         {
             title: "Generated Events Queue Size",
-            file_name: "queue_size_gauge.csv",
-            chart_type: "LineChart",
-            options: {
-                vAxis: {
-                    title: "Number of Generated Events"
-                }
+            series_provider: double("queue_size_gauge.csv"),
+            chart: {type: "line"},
+            yAxis: {
+                title: {text: "Number of Generated Events"}
             }
         },
         {
             title: "State Size: Reachable per Alive Peer",
-            file_name: "reachable_state_size_per_alive_peer_gauge.csv",
-            chart_type: "LineChart",
-            options: {
-                vAxis: {
-                    title: "Number of Reachable State Per Alive Peer"
-                }
+            series_provider: double("reachable_state_size_per_alive_peer_gauge.csv"),
+            chart: {type: "line"},
+            yAxis: {
+                title: {text: "Number of Reachable State Per Alive Peer"}
             }
         },
         {
             title: "Sent Bytes Rate",
-            file_name: "sent_bytes_rate.csv",
-            options: {
-                vAxis: {
-                    title: "Bytes Sent Per Second"
-                }
+            series_provider: double("sent_bytes_rate.csv"),
+            yAxis: {
+                title: {text: "Bytes Sent Per Second"}
             }
         },
         {
             title: "Sent Bytes Per Alive Peer Per Second",
-            file_name: "sent_bytes_per_alive_peer_per_second_gauge.csv",
-            options: {
-                vAxis: {
-                    title: "Bytes Sent Per Alive node Per Second"
-                }
+            series_provider: double("sent_bytes_per_alive_peer_per_second_gauge.csv"),
+            yAxis: {
+                title: {text: "Bytes Sent Per Alive node Per Second"}
             }
         },
         {
             title: "JVM System Load Average Over One Minute",
-            file_name: "system_load_average_gauge.csv",
-            options: {
-                vAxis: {
-                    title: "Load Average Over One Minute"
-                }
+            series_provider: double("system_load_average_gauge.csv"),
+            yAxis: {
+                title: {text: "Load Average Over One Minute"}
             }
         },
         {
             title: "JVM Alive Thread Count",
-            file_name: "thread_count_gauge.csv",
-            chart_type: "LineChart",
-            options: {
-                vAxis: {
-                    title: "Number of Alive Threads"
-                }
+            series_provider: double("thread_count_gauge.csv"),
+            chart: {type: "line"},
+            yAxis: {
+                title: {text: "Number of Alive Threads"}
             }
         },
         {
             title: "JVM Thread CPU Usage",
-            file_name: "thread_cpu_usage_gauge.csv",
-            conversion: {
-                column: {
-                    2: util.convert.toPercent,
-                    3: "toPercent",
-                    4: "toPercent"
-                }
-            },
-            options: {
-                vAxis: {
-                    title: "% of CPU Time Consumed By Threads",
-                    useFormatFromData: true,
-                    min: 0,
-                    max: 100,
-                    viewWindow: {
-                        min: 0,
-                        max: 100
-                    },
-                    gridlines: {
-                        count: 6
-                    }
-                }
+            series_provider: double("thread_cpu_usage_gauge.csv", {
+                0: util.convert.secondToHour,
+                1: util.convert.toPercent,
+                2: util.convert.toPercent,
+                3: util.convert.toPercent
+            }),
+
+            yAxis: {
+                title: {text: "% of CPU Time Consumed By Threads"},
+                min: 0,
+                max: 100
             }
         },
         {
             title: "State Size: Unreachable per Alive Peer",
-            file_name: "unreachable_state_size_per_alive_peer_gauge.csv",
-            options: {
-                vAxis: {
-                    title: "Number of Unreachable State Per Alive Peer"
-                }
+            series_provider: double("unreachable_state_size_per_alive_peer_gauge.csv"),
+            yAxis: {
+                title: {text: "Number of Unreachable State Per Alive Peer"}
+            }
+        },
+        {
+            title: "Evolutionary Maintenance: Number of Environment Clusters",
+            series_provider: double("evolutionary_maintenance_cluster_count_sampler.csv"),
+            yAxis: {
+                title: {text: "Number of Environment Clusters"}
+            }
+        },
+        {
+            title: "Evolutionary Maintenance: Size of Environment Clusters",
+            series_provider: double("evolutionary_maintenance_cluster_size_sampler.csv"),
+            yAxis: {
+                title: {text: "Mean Size of Environment Clusters"}
+            }
+        },
+        {
+            title: "Evolutionary Maintenance: Fitness",
+            series_provider: double("evolutionary_maintenance_fitness_sampler.csv"),
+            yAxis: {
+                title: {text: "Fitness"}
+            }
+        },
+        {
+            title: "Evolutionary Maintenance: Normalised Fitness",
+            series_provider: double("evolutionary_maintenance_normalized_fitness_sampler.csv"),
+            yAxis: {
+                title: {text: "Normalised Fitness"}
+            }
+        },
+        {
+            title: "Evolutionary Maintenance: Weighted Fitness",
+            series_provider: double("evolutionary_maintenance_weighted_fitness_sampler.csv"),
+            yAxis: {
+                title: {text: "Weighted Fitness"}
             }
         },
         {
             title: "Lookup Diagnostics Proportion",
-            file_name: "unreachable_state_size_per_alive_peer_gauge.csv",
-            chart_type: "PieChart"
+            series_provider: single(
+                [data("lookup_correctness_rate.csv", [1]), data("lookup_incorrectness_rate.csv", [1]), data("lookup_failure_rate.csv", [1])]
+            ),
+            chart: {type: "pie"}
         },
         {
-            title: "Performance Vs. Cost: Lookup Delay",
-            file_name: [ "sent_bytes_per_alive_peer_per_second_gauge.csv", "lookup_correctness_delay_timer.csv"],
-            chart_type: "ScatterChart",
-            options: {
-                vAxis: {
-                    title: "Mean Correct Lookup Delay (ms)"
-                },
-                hAxis: {
-                    title: "Bytes Sent Per Node Per Second",
-                    viewWindow: {
-                        max: null
-                    }
-                }
-            }
+            title: "Performance Vs. Cost: Successful Lookup",
+            chart: {type: "scatter"},
+            yAxis: {
+                title: {text: "Mean Correct Lookup Delay (ms)"}
+            },
+            xAxis: {
+                title: {text: "Bytes Sent Per Peer Per Second"},
+                max: null
+            },
+            tooltip: {
+                headerFormat: '<b>{series.name}</b><br>',
+                pointFormat: '{point.x:.2f} Bytes/Peer/Second, {point.y:.2f} ms'
+            },
+            series_provider: verses(data("sent_bytes_per_alive_peer_per_second_gauge.csv", [1]), data("lookup_correctness_delay_timer.csv", [1]))
         },
         {
-            title: "Performance Vs. Cost: Lookup Failure",
-            file_name: [ "sent_bytes_per_alive_peer_per_second_gauge.csv", "lookup_incorrectness_rate.csv"],
-            chart_type: "ScatterChart",
-            options: {
-                vAxis: {
-                    title: "Mean Incorrect Lookup Rate per Second"
-                },
-                hAxis: {
-                    title: "Bytes Sent Per Node Per Second",
-                    viewWindow: {
-                        max: null
-                    }
+            title: "Performance Vs. Cost: Unsuccessful Lookup",
+            series_provider: verses(data("sent_bytes_per_alive_peer_per_second_gauge.csv", [1]), {
+                columnAverage: function (scenario_name) {
+                    var inc = data("lookup_incorrectness_rate.csv", [1]).columnSum(scenario_name)[0];
+                    var fail = data("lookup_failure_rate.csv", [1]).columnSum(scenario_name)[0];
+                    var total = data("lookup_execution_rate.csv", [1]).columnSum(scenario_name)[0];
+                    return [util.convert.toPercent((inc + fail) / total)];
                 }
+            }),
+            chart: {type: "scatter"},
+            yAxis: {
+                title: {text: "% of unsuccessful lookups"},
+                max: 100
+            },
+            xAxis: {
+                title: {text: "Bytes Sent Per Peer Per Second" },
+                max: null
+            },
+
+            tooltip: {
+                headerFormat: '<b>{series.name}</b><br>',
+                pointFormat: '{point.x:.2f} Bytes/Peer/Second, {point.y:.2f} %'
             }
         }
     ].sortBy("title");
@@ -370,26 +342,6 @@ define(['util', 'mark'], function (util, mark) {
         makeMenu: function () {
 
             $("#chart_list").html(mark.up(util.read("templates/sidebar.html"), {observations: observations}));
-
-
-//            observations.forEach(function (observation, index) {
-//                var link = $('<a href="javascript:void(0)" class="list-group-item" id="metric_' +
-//                    index +
-//                    '"></a>');
-//                link.append(observation.title);
-//                link.click(function () {
-//                    query.metric = index;
-//                    query.update();
-//                    $("#chart_list .active").removeClass("active");
-//                    $("#main_title").text(metric.innerText);
-//                    $(this).addClass("active");
-//                });
-//                $('#chart_list').append(link);
-//            });
-//
-//            $("#chart_list a:first").addClass("active");
-//            selected_chart = observations[0].file_name;
-//            $("#main_title").text(observations[0].title);
         }
     };
 })
