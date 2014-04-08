@@ -248,10 +248,10 @@ public class EvolutionaryMaintenance extends Maintenance {
 
             if (isStarted()) {
                 evolution.cancel(true);
-                final EnvironmentSnapshot environment_snapshot = metric.getSnapshot();
-                final DisseminationStrategy previous_strategy = strategy.get();
-                getNextStrategy(environment_snapshot, previous_strategy);
-                strategy.getAndSet(null);
+                //                final EnvironmentSnapshot environment_snapshot = metric.getSnapshot();
+                //                final DisseminationStrategy previous_strategy = strategy.get();
+                //                getNextStrategy(environment_snapshot, previous_strategy);
+                //                strategy.getAndSet(null);
                 super.stop();
             }
         }

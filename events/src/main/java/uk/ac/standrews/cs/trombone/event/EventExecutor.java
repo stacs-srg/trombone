@@ -39,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.core.InternalPeerReference;
+import uk.ac.standrews.cs.trombone.core.Maintenance;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerClientFactory;
 import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
@@ -309,7 +310,12 @@ public class EventExecutor {
                 LOGGER.warn("failed to unexpose peer {} due to {}", peer, e);
             }
         }
+
+        LOGGER.info("shutting down maintenance scheduler...");
+        Maintenance.SCHEDULER.shutdownNow();
+        LOGGER.info("shutting down peer client factory...");
         PeerClientFactory.shutdownPeerClientFactory();
+        LOGGER.info("shutting down peer server factory...");
         PeerServerFactory.shutdownPeerServerFactory();
     }
 

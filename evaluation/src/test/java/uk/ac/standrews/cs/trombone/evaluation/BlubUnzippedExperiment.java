@@ -76,9 +76,9 @@ public class BlubUnzippedExperiment {
 
             for (Scenario scenario : ScenarioBatches.BATCH_2_SCENARIOS) {
 
-                //                if (scenario.getName().matches("scenario_(10|8|68|70|128|61|62|63|65|124)")) {
-                scenarios_with_repetitions.add(scenario);
-                //                }
+                if (scenario.getName().matches("scenario_batch2_(3|15|27|39|51|63|75)")) {
+                    scenarios_with_repetitions.add(scenario);
+                }
             }
         }
 
