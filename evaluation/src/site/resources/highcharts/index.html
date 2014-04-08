@@ -225,32 +225,32 @@
     //    }
     //
     //
-//        function resizeElementHeight(element) {
-//            var height = 0;
-//            var body = window.document.body;
-//            if (window.innerHeight) {
-//                height = window.innerHeight;
-//            } else if (body.parentElement.clientHeight) {
-//                height = body.parentElement.clientHeight;
-//            } else if (body && body.clientHeight) {
-//                height = body.clientHeight;
-//            }
-//            element.style.height = ((height - element.offsetTop - 50) + "px");
-//        }
-//    
-//        resizeElementHeight(document.getElementById("chart_list"));
-//        $(function () {
-//            $("#chart2").resizable();
-//            $(window).bind('resize', function (e) {
-//                window.resizeEvt;
-//                $(window).resize(function () {
-//                    clearTimeout(window.resizeEvt);
-//                    window.resizeEvt = setTimeout(function () {
-//                        resizeElementHeight(document.getElementById("chart_list"));
-//                    }, 250);
-//                });
-//            });
-//        });
+        function resizeElementHeight(element) {
+            var height = 0;
+            var body = window.document.body;
+            if (window.innerHeight) {
+                height = window.innerHeight;
+            } else if (body.parentElement.clientHeight) {
+                height = body.parentElement.clientHeight;
+            } else if (body && body.clientHeight) {
+                height = body.clientHeight;
+            }
+            element.style.height = ((height - element.offsetTop - 50) + "px");
+        }
+    
+        resizeElementHeight(document.getElementById("chart_list"));
+        $(function () {
+            $("#chart2").resizable();
+            $(window).bind('resize', function (e) {
+                window.resizeEvt;
+                $(window).resize(function () {
+                    clearTimeout(window.resizeEvt);
+                    window.resizeEvt = setTimeout(function () {
+                        resizeElementHeight(document.getElementById("chart_list"));
+                    }, 250);
+                });
+            });
+        });
     //
     //    $(window).on('hashchange', function () {
     //        filter();

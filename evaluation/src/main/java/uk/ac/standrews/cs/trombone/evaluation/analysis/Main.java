@@ -29,7 +29,9 @@ public class Main {
         for (int i = 1; i <= 84; i++) {
             final String scenario_name = "scenario_batch2_" + i;
             if (Files.exists(ScenarioUtils.getScenarioHome(scenario_name))) {
-                scenarioAnalyzers.add(new ScenarioAnalyzer(scenario_name));
+                if (scenario_name.matches("scenario_batch2_(3|15|27|39|51|63|75)")) {
+                    scenarioAnalyzers.add(new ScenarioAnalyzer(scenario_name));
+                }
             }
         }
 
