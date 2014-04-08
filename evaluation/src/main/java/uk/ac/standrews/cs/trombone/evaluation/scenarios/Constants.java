@@ -3,6 +3,8 @@ package uk.ac.standrews.cs.trombone.evaluation.scenarios;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.math3.ml.clustering.KMeansPlusPlusClusterer;
+import org.apache.commons.math3.ml.distance.EuclideanDistance;
+import org.apache.commons.math3.random.MersenneTwister;
 import org.uncommons.maths.binary.BinaryUtils;
 import org.uncommons.maths.random.Probability;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
@@ -36,7 +38,7 @@ public final class Constants {
     public static final Maintenance MOST_RECENTLY_SEEN_3 = new Maintenance(new MostRecentlySeenMaintenance(3, 3));
     public static final Maintenance EVOLUTIONARY_MAINTENANCE = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, new PerPointClusterer<EvaluatedDisseminationStrategy>());
     public static final Maintenance EVOLUTIONARY_MAINTENANCE_PFCLUST = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, new PFClustClusterer<EvaluatedDisseminationStrategy>());
-    public static final Maintenance EVOLUTIONARY_MAINTENANCE_KMEAN_PLUS_PLUS = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, new KMeansPlusPlusClusterer<EvaluatedDisseminationStrategy>(5));
+    public static final Maintenance EVOLUTIONARY_MAINTENANCE_KMEAN_PLUS_PLUS = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, new KMeansPlusPlusClusterer<EvaluatedDisseminationStrategy>(5, 100, new EuclideanDistance(), new MersenneTwister(852)));
 
     private Constants() {
 
