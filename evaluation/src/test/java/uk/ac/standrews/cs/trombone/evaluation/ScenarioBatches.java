@@ -54,11 +54,10 @@ public final class ScenarioBatches {
     };
 
     private static final Object[][] BATCH_3 = {
-            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, {Constants.RANDOM_MAINTENANCE}
+            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, PeerConfigurationGenerator.generate(new Maintenance[] {Constants.RANDOM_MAINTENANCE}, SYNTHETIC_DELAYS).toArray()
     };
 
     public static final List<Scenario> BATCH_1_SCENARIOS = BaseScenario.generateAll("scenario_", BATCH_1);
     public static final List<Scenario> BATCH_2_SCENARIOS = BaseScenario.generateAll("scenario_batch2_", BATCH_2);
     public static final List<Scenario> BATCH_3_SCENARIOS = BaseScenario.generateAll("scenario_batch3_", BATCH_3);
-
 }
