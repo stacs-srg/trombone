@@ -58,5 +58,15 @@ require(
 
         observations.makeMenu();
         query.init();
+
+        $(window).bind('resize', function (e) {
+            window.resizeEvt;
+            $(window).resize(function () {
+                clearTimeout(window.resizeEvt);
+                window.resizeEvt = setTimeout(function () {
+                    util.resizeElementHeight(document.getElementById("chart_list"));
+                }, 250);
+            });
+        });
     }
 );

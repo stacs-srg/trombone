@@ -211,7 +211,7 @@ define(['util', 'mark', 'config/theme', 'data', 'series/double', 'series/verses'
             title: "Sent Bytes Per Alive Peer Per Second",
             series_provider: double("sent_bytes_per_alive_peer_per_second_gauge.csv"),
             yAxis: {
-                title: {text: "Bytes Sent Per Alive node Per Second"}
+                title: {text: "Bytes Sent Per Alive Peer Per Second"}
             }
         },
         {
@@ -294,7 +294,7 @@ define(['util', 'mark', 'config/theme', 'data', 'series/double', 'series/verses'
             chart: {type: "pie"}
         },
         {
-            title: "Performance Vs. Cost: Successful Lookup",
+            title: "PVC: Mean Successful Lookup Delay Vs. Bandwidth Usage",
             chart: {type: "scatter"},
             yAxis: {
                 title: {text: "Mean Correct Lookup Delay (ms)"}
@@ -310,7 +310,7 @@ define(['util', 'mark', 'config/theme', 'data', 'series/double', 'series/verses'
             series_provider: verses(data("sent_bytes_per_alive_peer_per_second_gauge.csv", [1]), data("lookup_correctness_delay_timer.csv", [1]))
         },
         {
-            title: "Performance Vs. Cost: Unsuccessful Lookup",
+            title: "PVC: Percentage of Unsuccessful Lookups Vs. Bandwidth Usage ",
             series_provider: verses(data("sent_bytes_per_alive_peer_per_second_gauge.csv", [1]), {
                 columnAverage: function (scenario_name) {
                     var inc = data("lookup_incorrectness_rate.csv", [1]).columnSum(scenario_name)[0];
@@ -333,7 +333,71 @@ define(['util', 'mark', 'config/theme', 'data', 'series/double', 'series/verses'
                 headerFormat: '<b>{series.name}</b><br>',
                 pointFormat: '{point.x:.2f} Bytes/Peer/Second, {point.y:.2f} %'
             }
+        },
+        {
+            title: "PVC: Normalized Distance Vs. Bandwidth Usage",
+            chart: {type: "scatter"},
+            yAxis: {
+                title: {text: "Euclidean Distance From Origin"}
+            },
+            xAxis: {
+                title: {text: "Bytes Sent Per Peer Per Second"},
+                max: null
+            },
+            tooltip: {
+                headerFormat: '<b>{series.name}</b><br>',
+                pointFormat: '{point.x:.2f} Bytes/Peer/Second, Distance: {point.y:.2f}'
+            },
+            series_provider: verses(data("sent_bytes_per_alive_peer_per_second_gauge.csv", [1]), {
+                columnAverage: function (scenario_name) {
+
+                    var correct_delay = data("lookup_correctness_delay_timer.csv", [1]).columnNormalizedAverage(scenario_name, 0);
+                    var inc = data("lookup_incorrectness_rate.csv", [1]).columnSum(scenario_name)[0];
+                    var fail = data("lookup_failure_rate.csv", [1]).columnSum(scenario_name)[0];
+                    var total = data("lookup_execution_rate.csv", [1]).columnSum(scenario_name)[0];
+                    var ratio_failed = (inc + fail) / total;
+
+                    var cost = data("sent_bytes_per_alive_peer_per_second_gauge.csv", [1]).columnNormalizedAverage(scenario_name, 0);
+                    var point = [correct_delay, ratio_failed, cost];
+
+                    var euclideanDistance = util.euclideanDistance(point, [0, 0, 0]);
+                    return  [euclideanDistance];
+
+                }
+            })
+        },{
+            title: "PVC: Distance Vs. Bandwidth Usage",
+            chart: {type: "scatter"},
+            yAxis: {
+                title: {text: "Euclidean Distance From Origin"}
+            },
+            xAxis: {
+                title: {text: "Bytes Sent Per Peer Per Second"},
+                max: null
+            },
+            tooltip: {
+                headerFormat: '<b>{series.name}</b><br>',
+                pointFormat: '{point.x:.2f} Bytes/Peer/Second, Distance: {point.y:.2f} '
+            },
+            series_provider: verses(data("sent_bytes_per_alive_peer_per_second_gauge.csv", [1]), {
+                columnAverage: function (scenario_name) {
+
+                    var correct_delay = data("lookup_correctness_delay_timer.csv", [1]).columnAverage(scenario_name, 0);
+                    var inc = data("lookup_incorrectness_rate.csv", [1]).columnSum(scenario_name)[0];
+                    var fail = data("lookup_failure_rate.csv", [1]).columnSum(scenario_name)[0];
+                    var total = data("lookup_execution_rate.csv", [1]).columnSum(scenario_name)[0];
+                    var ratio_failed = util.convert.toPercent((inc + fail) / total);
+
+                    var cost = data("sent_bytes_per_alive_peer_per_second_gauge.csv", [1]).columnAverage(scenario_name, 0);
+                    var point = [correct_delay, ratio_failed, cost];
+
+                    var euclideanDistance = util.euclideanDistance(point, [0, 0, 0]);
+                    return  [euclideanDistance];
+
+                }
+            })
         }
+
     ].sortBy("title");
 
 

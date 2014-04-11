@@ -29,6 +29,11 @@ define(['jquery', 'series'], function ($, series) {
                 animation: false
             }
         },
+        tooltip: {
+
+            headerFormat: '<b>{series.name}</b><br>',
+            pointFormat: 'X: {point.x:.2f} , Y: {point.y:.2f}'
+        },
 
         xAxis: {
             startOnTick: true,
@@ -56,34 +61,9 @@ define(['jquery', 'series'], function ($, series) {
             matches.forEach(function (match, index) {
 
 
-                var newVar = this.series_provider.get(match, index);
+                var series = this.series_provider.get(match, index);
 
-                this.series = this.series.concat(newVar)
-
-//                this.series.push(
-//                    {
-//                        id: match.name,
-//                        name: match.name,
-//                        data: series(this.file_name, [0, 1]).data(match.name),
-//                        zIndex: 1,
-//                        lineWidth: 1,
-//                        color: this.colours[index]
-//                    }
-//                );
-//
-//                this.series.push(
-//                    {
-//                        name: match.name + " Confidence Interval",
-//                        type: 'arearange',
-//                        data: series(this.file_name, [0, 2, 3]).data(match.name),
-//                        fillOpacity: 0.3,
-//                        zIndex: 0,
-//                        lineWidth: 0,
-//                        linkedTo: match.name,
-//                        color: this.colours[index]
-//
-//                    }
-//                );
+                this.series = this.series.concat(series)
             }, this);
         }
     }

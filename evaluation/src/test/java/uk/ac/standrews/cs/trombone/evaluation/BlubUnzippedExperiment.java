@@ -68,17 +68,21 @@ public class BlubUnzippedExperiment {
     public ExperimentWatcher watcher = new ExperimentWatcher();
 
     @Parameterized.Parameters(name = "{index} scenario: {0}")
-    public static Collection<Object[]> data() {
+    public static Collection<Object[]> data() throws IOException {
 
         final List<Scenario> scenarios_with_repetitions = new ArrayList<>();
 
-        for (int i = 0; i < Constants.NUMBER_OF_REPETITIONS; i++) {
+        for (Scenario scenario : ScenarioBatches.BATCH_2_SCENARIOS) {
+            final String scenario_name = scenario.getName();
+            final Path repetitionsHome = ScenarioUtils.getScenarioRepetitionsHome(scenario_name);
+            System.out.println(repetitionsHome);
+            int existing_repetitions = FileSystemUtils.getMatchingFiles(repetitionsHome, repetitionsHome.getFileSystem().getPathMatcher("glob:**/*.zip")).size();
 
-            for (Scenario scenario : ScenarioBatches.BATCH_2_SCENARIOS) {
+            final int required_repetitions = Math.max(0, Constants.NUMBER_OF_REPETITIONS - existing_repetitions);
+            LOGGER.info("{} repetitions of {} already exists, doing {} repetitions", existing_repetitions, scenario_name, required_repetitions);
 
-                if (scenario.getName().matches("scenario_batch2_(3|15|27|39|51|63|75)")) {
-                    scenarios_with_repetitions.add(scenario);
-                }
+            for (int i = 0; i < required_repetitions; i++) {
+                scenarios_with_repetitions.add(scenario);
             }
         }
 
@@ -107,7 +111,6 @@ public class BlubUnzippedExperiment {
         //        network.addMavenDependency("ch.qos.logback", "logback-core", "1.1.1", null);
         network.addCurrentJVMClasspath();
         network.setAutoDeployEnabled(false);
-
     }
 
     @Before

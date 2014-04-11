@@ -154,11 +154,22 @@ define(
                 }
             },
             read: function (url) {
-                return $.ajax({
+                var error;
+                var csv = $.ajax({
                     url: url,
                     async: false,
-                    dataType: 'json'
+                    dataType: 'text',
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        error = thrownError;
+                    }
                 }).responseText;
+
+                if (error != null) {
+                    alert(error);
+                    csv = "";
+                }
+
+                return csv;
             },
             readAsJSON: function (url) {
                 var content = this.read(url);
@@ -196,6 +207,31 @@ define(
             },
             analysisPath: function (scenario_name, file_name) {
                 return this.resultsPath + scenario_name + "/analysis/" + file_name;
+            },
+            resizeElementHeight: function (element) {
+                var height = 0;
+                var body = window.document.body;
+                if (window.innerHeight) {
+                    height = window.innerHeight;
+                } else if (body.parentElement.clientHeight) {
+                    height = body.parentElement.clientHeight;
+                } else if (body && body.clientHeight) {
+                    height = body.clientHeight;
+                }
+                element.style.height = ((height - element.offsetTop - 50) + "px");
+            },
+            euclideanDistance: function (p1, p2) {
+
+                if (p1.length != p2.length) {
+                    throw  "unequal pint lengths"
+                }
+
+                var sum = 0;
+                for (var i = 0; i < p1.length; i++) {
+                    var dp = p1[i] - p2[i];
+                    sum += dp * dp;
+                }
+                return Math.sqrt(sum);
             }
         }
     });

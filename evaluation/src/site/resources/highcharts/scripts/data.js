@@ -19,7 +19,7 @@ define(['jquery', 'util', 'cache', 'jstat'], function ($, util, cache, jstat) {
                 if (state.rowNum > 1 && converter !== undefined) {
                     casted_value = converter(casted_value);
                 }
-                if(isNaN(casted_value)){
+                if (isNaN(casted_value)) {
                     return  0;
                 }
                 return  casted_value;
@@ -65,7 +65,24 @@ define(['jquery', 'util', 'cache', 'jstat'], function ($, util, cache, jstat) {
             },
             columnSum: function (scenario_name) {
                 return jStat(this.get(scenario_name)).sum();
+            },
+            columnMax: function (scenario_name) {
+                return jStat(this.get(scenario_name)).max();
+            },
+            columnMin: function (scenario_name) {
+                return jStat(this.get(scenario_name)).min();
+            },
+            columnNormalizedAverage: function (scenario_name, column_index) {
+
+                var value = this.columnAverage(scenario_name)[column_index]
+//                var min = this.columnMin(scenario_name)[column_index];
+//                var max = this.columnMax(scenario_name)[column_index];
+                var min = 0;
+                var max = 800;
+                var max_minus_min = (max - min);
+                return max_minus_min !=0 ? (value - min) / max_minus_min : 0;
             }
+
         }
     }
 })

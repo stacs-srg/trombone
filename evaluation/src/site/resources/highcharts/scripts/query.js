@@ -1,4 +1,4 @@
-define(['jquery', 'observations', 'config/scenarios', 'chart', 'series', 'config/theme'], function ($, observations, scenarios, chart, series, theme) {
+define(['jquery', 'observations', 'config/scenarios', 'chart', 'series', 'config/theme', 'util'], function ($, observations, scenarios, chart, series, theme, util) {
 
     var encodeArray = function (array) {
         var encoded = "";
@@ -141,7 +141,7 @@ define(['jquery', 'observations', 'config/scenarios', 'chart', 'series', 'config
             $('#matches_nav a:first').tab('show');
 //            $('#filter').collapse('hide');
             $('#matches').collapse('show');
-
+            util.resizeElementHeight(document.getElementById("chart_list"));
         },
         matches: function () {
 
