@@ -9,6 +9,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.ml.clustering.CentroidCluster;
 import org.apache.commons.math3.ml.clustering.DoublePoint;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,7 @@ public class PFClustClustererTest {
     };
 
     @Test
+    @Ignore
     public void testSpeed() throws Exception {
 
         final PFClustClusterer<DoublePoint> clusterer = new PFClustClusterer<DoublePoint>();
