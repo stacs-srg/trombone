@@ -13,6 +13,7 @@ import java.nio.file.PathMatcher;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,10 @@ public final class FileSystemUtils {
     }
 
     public static List<Path> getMatchingFiles(final Path path, final PathMatcher matcher) throws IOException {
+
+        if (!Files.exists(path)) {
+            return Collections.emptyList();
+        }
 
         final List<Path> matched_files = new ArrayList<>();
         Files.walkFileTree(path, new FileVisitor<Path>() {

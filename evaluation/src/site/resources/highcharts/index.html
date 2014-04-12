@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="styles/bootstrap.min.css">
     <link rel="stylesheet" href="styles/bootstrap-theme.min.css">
     <link rel="stylesheet" href="https://rawgithub.com/jh3y/-cs-spinner/master/csspinner.css">
+    <link rel="stylesheet" href="css/ui-lightness/jquery-ui-1.10.4.min.css">
     <script data-main="scripts/main" src="scripts/lib/require-2.1.11.js"></script>
 
 </head>
@@ -26,11 +27,7 @@
                 <div class="csspinner traditional" id="spinner" style="float:left; display: none; height: 100%; width: 100%"></div>
                 <div id="chart" style=" width: 100%; height: 100%;" class="ui-widget-content"></div>
             </div>
-
-            <div class="btn-group" style="margin:  5px 0;">
-                <button type="button" class="btn btn-default" onclick='reset();' title="Reset"><span class="glyphicon glyphicon-refresh"/> Reset</button>
-            </div>
-
+            <div id="extras"></div>
             <div class="panel-group" id="filter_accordion">
                 <div class="panel panel-default">
                     <div class="panel-heading">

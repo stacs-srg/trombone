@@ -72,11 +72,10 @@ public class BlubUnzippedExperiment {
 
         final List<Scenario> scenarios_with_repetitions = new ArrayList<>();
 
-        for (Scenario scenario : ScenarioBatches.BATCH_2_SCENARIOS) {
+        for (Scenario scenario : ScenarioBatches.BATCH_4_SCENARIOS) {
             final String scenario_name = scenario.getName();
             final Path repetitionsHome = ScenarioUtils.getScenarioRepetitionsHome(scenario_name);
-            System.out.println(repetitionsHome);
-            int existing_repetitions = FileSystemUtils.getMatchingFiles(repetitionsHome, repetitionsHome.getFileSystem().getPathMatcher("glob:**/*.zip")).size();
+            int existing_repetitions = Files.exists(repetitionsHome)? FileSystemUtils.getMatchingFiles(repetitionsHome, repetitionsHome.getFileSystem().getPathMatcher("glob:**/*.zip")).size() : 0;
 
             final int required_repetitions = Math.max(0, Constants.NUMBER_OF_REPETITIONS - existing_repetitions);
             LOGGER.info("{} repetitions of {} already exists, doing {} repetitions", existing_repetitions, scenario_name, required_repetitions);

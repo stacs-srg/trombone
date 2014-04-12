@@ -43,7 +43,7 @@ public final class ScenarioBatches {
             //@formatter:on
 
             SYNTHETIC_DELAYS
-    ).toArray();
+    ).toArray();                                                
 
     private static final Object[][] BATCH_1 = {
             ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, CONFIGURATION_STATIC_AND_BASIC_ADAPTIVE
@@ -57,7 +57,19 @@ public final class ScenarioBatches {
             ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, PeerConfigurationGenerator.generate(new Maintenance[] {Constants.RANDOM_MAINTENANCE}, SYNTHETIC_DELAYS).toArray()
     };
 
+    private static final Object[][] BATCH_4 = {
+            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, PeerConfigurationGenerator.generate(
+            new Maintenance[] {
+                    Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST,
+                    Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_20,
+                    Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_30,
+                    Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_40,
+                    Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_50,
+            }, SYNTHETIC_DELAYS).toArray()
+    };
+
     public static final List<Scenario> BATCH_1_SCENARIOS = BaseScenario.generateAll("scenario_", BATCH_1);
     public static final List<Scenario> BATCH_2_SCENARIOS = BaseScenario.generateAll("scenario_batch2_", BATCH_2);
     public static final List<Scenario> BATCH_3_SCENARIOS = BaseScenario.generateAll("scenario_batch3_", BATCH_3);
+    public static final List<Scenario> BATCH_4_SCENARIOS = BaseScenario.generateAll("scenario_batch4_", BATCH_4);
 }

@@ -20,8 +20,7 @@ define(['data', 'config/theme'], function (data, theme) {
                             [x, y]
                         ],
                         color: theme.colours[index],
-                        update11: function (value) {
-                            console.log(x ,x * value)
+                        update: function (value) {
                             data[1] = x * value;
                         }
                     }

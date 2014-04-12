@@ -149,6 +149,16 @@ define(
                             ( maintenance.clustererName === undefined ? "OLD" : maintenance.clustererName)
                             + ")";
                     }
+                    if (maintenance.name == "RandomMaintenance") {
+
+                        return "RandomSearch(population size: " +
+                            maintenance.populationSize +
+                            ", trial length: " +
+                            this.durationToString({timeUnit: maintenance.evolutionCycleLengthUnit, length: maintenance.evolutionCycleLength}) +
+                            ", clusterer: " +
+                            ( maintenance.clustererName === undefined ? "OLD" : maintenance.clustererName)
+                            + ")";
+                    }
 
                     return JSON.stringify(maintenance);
                 }

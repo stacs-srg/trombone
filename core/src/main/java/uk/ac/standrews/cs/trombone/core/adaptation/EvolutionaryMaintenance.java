@@ -54,7 +54,8 @@ public class EvolutionaryMaintenance extends Maintenance {
         return listener;
     }
 
-    public EvolutionaryMaintenance(int population_size, int elite_count, Probability mutation_probability, long evolution_cycle_length, TimeUnit evolution_cycle_unit, Clusterer<EvaluatedDisseminationStrategy> clusterer) {
+    public EvolutionaryMaintenance(int population_size, int elite_count, Probability mutation_probability, 
+                                   long evolution_cycle_length, TimeUnit evolution_cycle_unit, Clusterer<EvaluatedDisseminationStrategy> clusterer) {
 
         this.population_size = population_size;
         this.elite_count = elite_count;
@@ -162,47 +163,51 @@ public class EvolutionaryMaintenance extends Maintenance {
                 assert last_evaluated_strategy != null;
 
                 Collections.sort(evaluated_strategies);
-                Cluster<EvaluatedDisseminationStrategy> current_cluster = getCurrentEnvironmentCluster(last_evaluated_strategy);
-
+                
+                final Cluster<EvaluatedDisseminationStrategy> current_cluster = getCurrentEnvironmentCluster(last_evaluated_strategy);
                 final List<EvaluatedDisseminationStrategy> current_cluster_points = current_cluster.getPoints();
-                final double total_fitness = this.total_fitness.get();
-                int index = 0;
-                double total_weighted_fitness = 0;
-
-                for (EvaluatedDisseminationStrategy evaluated_strategy : evaluated_strategies) {
-
-                    final double normalized_fitness = evaluated_strategy.getNormalizedFitness(total_fitness);
-                    final double weighted_fitness;
-
-                    if (index < elite_count || current_cluster_points.contains(evaluated_strategy)) {
-                        weighted_fitness = normalized_fitness;
-                    }
-                    else {
-                        final double similarity = CosineSimilarity.getSimilarity(evaluated_strategy, current_cluster);
-                        weighted_fitness = Double.isNaN(similarity) ? normalized_fitness : normalized_fitness * similarity;
-                    }
-
-                    total_weighted_fitness += weighted_fitness;
-                    evaluated_strategy.setWeightedFitness(weighted_fitness);
-
-                    FITNESS_SAMPLER.update(evaluated_strategy.getFitness());
-                    NORMALIZED_FITNESS_SAMPLER.update(normalized_fitness);
-                    WEIGHTED_FITNESS_SAMPLER.update(weighted_fitness);
-                    index++;
-                }
-
-                final TreeMap<Double, EvaluatedDisseminationStrategy> cumulative_evaluated_strategies = getCumulativeWeightedFitness(total_weighted_fitness);
-                final DisseminationStrategy one = select(cumulative_evaluated_strategies);
-                final DisseminationStrategy other = select(cumulative_evaluated_strategies);
-                final DisseminationStrategy offspring = STRATEGY_GENERATOR.mate(one, other, random);
-
-                STRATEGY_GENERATOR.mutate(offspring, random, mutation_probability);
-
-                next_strategy = offspring;
-
+                next_strategy =  generateNextStrategy(current_cluster);
                 removeLeastFitFromCurrentCluster(current_cluster_points);
             }
             return next_strategy;
+        }
+
+        protected DisseminationStrategy generateNextStrategy(final Cluster<EvaluatedDisseminationStrategy> current_cluster) {
+
+            final List<EvaluatedDisseminationStrategy> current_cluster_points = current_cluster.getPoints();
+            final double total_fitness = this.total_fitness.get();
+            int index = 0;
+            double total_weighted_fitness = 0;
+
+            for (EvaluatedDisseminationStrategy evaluated_strategy : evaluated_strategies) {
+
+                final double normalized_fitness = evaluated_strategy.getNormalizedFitness(total_fitness);
+                final double weighted_fitness;
+
+                if (index < elite_count || current_cluster_points.contains(evaluated_strategy)) {
+                    weighted_fitness = normalized_fitness;
+                }
+                else {
+                    final double similarity = CosineSimilarity.getSimilarity(evaluated_strategy, current_cluster);
+                    weighted_fitness = Double.isNaN(similarity) ? normalized_fitness : normalized_fitness * similarity;
+                }
+
+                total_weighted_fitness += weighted_fitness;
+                evaluated_strategy.setWeightedFitness(weighted_fitness);
+
+                FITNESS_SAMPLER.update(evaluated_strategy.getFitness());
+                NORMALIZED_FITNESS_SAMPLER.update(normalized_fitness);
+                WEIGHTED_FITNESS_SAMPLER.update(weighted_fitness);
+                index++;
+            }
+
+            final TreeMap<Double, EvaluatedDisseminationStrategy> cumulative_evaluated_strategies = getCumulativeWeightedFitness(total_weighted_fitness);
+            final DisseminationStrategy one = select(cumulative_evaluated_strategies);
+            final DisseminationStrategy other = select(cumulative_evaluated_strategies);
+            final DisseminationStrategy offspring = STRATEGY_GENERATOR.mate(one, other, random);
+
+            STRATEGY_GENERATOR.mutate(offspring, random, mutation_probability);
+            return offspring;
         }
 
         protected Cluster<EvaluatedDisseminationStrategy> getCurrentEnvironmentCluster(final EvaluatedDisseminationStrategy last_evaluated_strategy) {

@@ -22,7 +22,7 @@ public class PFClustClusterer<Point extends Clusterable> extends Clusterer<Point
     /**
      * Represents the number of iterations of the randomization loop
      */
-    static int RANDOMIZATION_LOOP = 1000;
+    static int RANDOMIZATION_LOOP = 100;
     /**
      * The cut-off percentage of the selected threshold
      */

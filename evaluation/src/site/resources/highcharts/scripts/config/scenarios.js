@@ -57,7 +57,14 @@ define(['util', 'mark'], function (util, mark) {
         'scenario_batch2_69','scenario_batch2_70', 'scenario_batch2_71', 'scenario_batch2_72',
         'scenario_batch2_73', 'scenario_batch2_74','scenario_batch2_75','scenario_batch2_76',
         'scenario_batch2_77', 'scenario_batch2_78', 'scenario_batch2_79','scenario_batch2_80',
-        'scenario_batch2_81', 'scenario_batch2_82','scenario_batch2_83', 'scenario_batch2_84'
+        'scenario_batch2_81', 'scenario_batch2_82','scenario_batch2_83', 'scenario_batch2_84',
+        'scenario_batch3_1', 'scenario_batch3_2', 'scenario_batch3_2', 'scenario_batch3_4',
+        'scenario_batch3_5', 'scenario_batch3_6', 'scenario_batch3_6', 'scenario_batch3_8',
+        'scenario_batch3_9', 'scenario_batch3_10', 'scenario_batch3_10', 'scenario_batch3_12',
+        'scenario_batch3_13', 'scenario_batch3_14', 'scenario_batch3_14', 'scenario_batch3_16',
+        'scenario_batch3_17', 'scenario_batch3_18', 'scenario_batch3_18', 'scenario_batch3_20',
+        'scenario_batch3_21', 'scenario_batch3_22', 'scenario_batch3_22', 'scenario_batch3_24',
+        'scenario_batch3_25', 'scenario_batch3_26', 'scenario_batch3_27', 'scenario_batch3_28'
     ];
     var scenarios = new Array();
     var tidied_scenarios = new Array();

@@ -9,7 +9,6 @@ define(['jquery', 'observations', 'config/scenarios', 'chart', 'series', 'config
         });
         return encoded;
     }
-
     var decodeArray = function (encoded_array) {
         var decoded_array = new Array();
         encoded_array.split("-").forEach(function (element) {
@@ -85,22 +84,8 @@ define(['jquery', 'observations', 'config/scenarios', 'chart', 'series', 'config
                 $("#maintenance_" + selection).prop('checked', true);
             })
 
-            chart.showLoading("Loading...");
+            chart.renderer(this, observations.observations[this.metric]);
 
-            var observation = observations.observations[this.metric];
-            observation = theme.extend(observation)
-
-            if (!observation.chart.onePerMatch) {
-
-                if (observation.series_provider !== undefined) {
-                    observation.populateSeries(this.matches())
-                }
-
-            } else {
-                alert("not implemented yet");
-            }
-            chart = new Highcharts.Chart(observation);
-            chart.hideLoading();
 
             var matches_nav = $('#matches_nav');
             var matches_content = $('#matches_content');
@@ -170,4 +155,5 @@ define(['jquery', 'observations', 'config/scenarios', 'chart', 'series', 'config
             return matches;
         }
     }
-});
+})
+;

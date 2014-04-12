@@ -3,6 +3,7 @@ require.config(
         baseUrl: 'scripts',
         paths: {
             jquery: 'lib/jquery-1.11.0',
+            jquery_ui: 'lib/jquery-ui-1.10.4.min',
             mustache: 'lib/mustache',
             filesaver: 'lib/filesaver',
             jstat: 'lib/jstat',
@@ -19,6 +20,9 @@ require.config(
 
         },
         shim: {
+            jquery_ui: {
+                deps: ['jquery']
+            },
             bootstrap: {
                 deps: ['jquery']
             },
