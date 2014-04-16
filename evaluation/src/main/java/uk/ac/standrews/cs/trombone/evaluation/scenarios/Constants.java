@@ -41,7 +41,7 @@ public final class Constants {
     public static final Maintenance MOST_RECENTLY_SEEN_3 = new Maintenance(new MostRecentlySeenMaintenance(3, 3));
     public static final Maintenance RANDOM_MAINTENANCE = new RandomMaintenance(10, 2, TimeUnit.MINUTES, new PerPointClusterer<EvaluatedDisseminationStrategy>());
 
-    public static final EvolutionaryMaintenance.ElapsedTimeTerminationCondition TEN_HOUR_TERMINATION_CONDITION = new EvolutionaryMaintenance.ElapsedTimeTerminationCondition(5, TimeUnit.SECONDS);
+    public static final EvolutionaryMaintenance.ElapsedTimeTerminationCondition TEN_HOUR_TERMINATION_CONDITION = new EvolutionaryMaintenance.ElapsedTimeTerminationCondition(10, TimeUnit.HOURS);
 
     public static final EvolutionaryMaintenance EVOLUTIONARY_MAINTENANCE_PFCLUST_10 = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
     public static final EvolutionaryMaintenance EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_10_HOURS = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
