@@ -80,11 +80,13 @@ public class PFClustClustererTest {
     public void testCluster() throws Exception {
 
         final PFClustClusterer clusterer = new PFClustClusterer();
-        for (String test_file_name : TEST_FILE_NAMES) {
+        for (final String test_file_name : TEST_FILE_NAMES) {
+
             LOGGER.info("testing {}", test_file_name);
-            int expected_clusters = Integer.parseInt(FilenameUtils.getBaseName(test_file_name.substring(test_file_name.lastIndexOf("_") + 1)));
+            final int expected_clusters = Integer.parseInt(FilenameUtils.getBaseName(test_file_name.substring(test_file_name.lastIndexOf("_") + 1)));
             final URL resource = getClass().getResource("/uk/ac/standrews/cs/trombone/core/adaptation/clustering/pfclust/" + test_file_name);
             final RealMatrix realMatrix = MatrixReader.toMatrix(Paths.get(resource.toURI()));
+
             final Clustering process = clusterer.process(realMatrix);
             assertEquals(expected_clusters, process.size());
         }

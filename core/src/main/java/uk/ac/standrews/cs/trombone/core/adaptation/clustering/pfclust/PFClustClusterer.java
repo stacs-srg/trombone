@@ -18,7 +18,7 @@ public class PFClustClusterer<Point extends Clusterable> extends Clusterer<Point
 
     private static final CosineSimilarity COSINE_SIMILARITY = new CosineSimilarity();
     /** The number of iterations of the main loop. */
-    public static final int DEFAULT_MAIN_LOOP = 4;
+    public static final int DEFAULT_MAIN_LOOP = 2;
     /**
      * Represents the number of iterations of the randomization loop
      */
@@ -32,7 +32,7 @@ public class PFClustClusterer<Point extends Clusterable> extends Clusterer<Point
      */
     public static double RAND_THRESHOLD = 0.99;
     /** The maximum number of iterations to execute the convergence step of the algorithm. */
-    public static int maxIteration = 10;
+    public static int maxIteration = 3;
     private final Random random;
 
     public PFClustClusterer() {

@@ -20,6 +20,7 @@ import uk.ac.standrews.cs.trombone.core.Maintenance;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerMetric;
 import uk.ac.standrews.cs.trombone.core.util.CosineSimilarity;
+import uk.ac.standrews.cs.trombone.core.util.Named;
 import uk.ac.standrews.cs.trombone.core.util.NamingUtils;
 
 /**
@@ -45,6 +46,7 @@ public class EvolutionaryMaintenance extends Maintenance {
     private final long evolution_cycle_length;
     private final TimeUnit evolution_cycle_unit;
     protected final Clusterer<EvaluatedDisseminationStrategy> clusterer;
+    private TerminationCondition termination_condition;
 
     @Override
     protected PeerMaintainer maintain(Peer peer) {
@@ -54,8 +56,7 @@ public class EvolutionaryMaintenance extends Maintenance {
         return listener;
     }
 
-    public EvolutionaryMaintenance(int population_size, int elite_count, Probability mutation_probability, 
-                                   long evolution_cycle_length, TimeUnit evolution_cycle_unit, Clusterer<EvaluatedDisseminationStrategy> clusterer) {
+    public EvolutionaryMaintenance(int population_size, int elite_count, Probability mutation_probability, long evolution_cycle_length, TimeUnit evolution_cycle_unit, Clusterer<EvaluatedDisseminationStrategy> clusterer) {
 
         this.population_size = population_size;
         this.elite_count = elite_count;
@@ -100,6 +101,16 @@ public class EvolutionaryMaintenance extends Maintenance {
         return NamingUtils.name(clusterer);
     }
 
+    public TerminationCondition getTerminationCondition() {
+
+        return termination_condition;
+    }
+
+    public void setTerminationCondition(final TerminationCondition termination_condition) {
+
+        this.termination_condition = termination_condition;
+    }
+
     class EvolutionaryPeerMaintainer extends PeerMaintainer {
 
         protected final MersenneTwisterRNG random;
@@ -107,6 +118,7 @@ public class EvolutionaryMaintenance extends Maintenance {
         protected final List<EvaluatedDisseminationStrategy> evaluated_strategies;
         protected final AtomicDouble total_fitness = new AtomicDouble();
         private ScheduledFuture<?> evolution;
+        private long first_start_millis;
 
         protected EvolutionaryPeerMaintainer(final Peer peer) {
 
@@ -120,6 +132,10 @@ public class EvolutionaryMaintenance extends Maintenance {
         protected synchronized void start() {
 
             if (!isStarted()) {
+
+                if (!hasStartedBefore()) {
+                    updateFirstStartTime();
+                }
 
                 evolution = SCHEDULER.scheduleWithFixedDelay(new Runnable() {
 
@@ -142,34 +158,62 @@ public class EvolutionaryMaintenance extends Maintenance {
             }
         }
 
+        protected long getElapsedMillisecondsSinceFirstStart() {
+
+            return hasStartedBefore() ? System.currentTimeMillis() - first_start_millis : 0;
+        }
+
+        private void updateFirstStartTime() {
+
+            first_start_millis = System.currentTimeMillis();
+        }
+
+        private boolean hasStartedBefore() {
+
+            return first_start_millis > 0;
+        }
+
         protected synchronized DisseminationStrategy getNextStrategy(final EnvironmentSnapshot environment_snapshot, final DisseminationStrategy previous_strategy) {
 
             final DisseminationStrategy next_strategy;
+            final boolean termination_condition_met = isTerminationConditionMet();
 
             EvaluatedDisseminationStrategy last_evaluated_strategy = null;
-            if (previous_strategy != null) {
+            if (previous_strategy != null && (!termination_condition_met || evaluated_strategies.size() < population_size)) {
                 last_evaluated_strategy = addToEvaluatedStrategies(environment_snapshot, previous_strategy);
             }
 
             final int evaluated_strategies_size = evaluated_strategies.size();
             if (evaluated_strategies_size < population_size) {
+                if (termination_condition_met) {
+                    LOGGER.warn("termination condition has been met but there are not enough evaluated strategies, population size: {}, evaluated size: {}", population_size, evaluated_strategies_size);
+                }
                 next_strategy = STRATEGY_GENERATOR.generate(random);
             }
             else if (last_evaluated_strategy == null) {
-                Collections.sort(evaluated_strategies);
+                Collections.sort(evaluated_strategies, EVALUATED_DISSEMINATION_STRATEGY_ORDERING);
                 next_strategy = evaluated_strategies.get(0).getStrategy();
             }
             else {
                 assert last_evaluated_strategy != null;
+                Collections.sort(evaluated_strategies, EVALUATED_DISSEMINATION_STRATEGY_ORDERING);
 
-                Collections.sort(evaluated_strategies);
-                
                 final Cluster<EvaluatedDisseminationStrategy> current_cluster = getCurrentEnvironmentCluster(last_evaluated_strategy);
                 final List<EvaluatedDisseminationStrategy> current_cluster_points = current_cluster.getPoints();
-                next_strategy =  generateNextStrategy(current_cluster);
-                removeLeastFitFromCurrentCluster(current_cluster_points);
+                if (termination_condition_met) {
+                    next_strategy = mostFit(current_cluster_points).getStrategy();
+                }
+                else {
+                    next_strategy = generateNextStrategy(current_cluster);
+                    removeLeastFitFromCurrentCluster(current_cluster_points);
+                }
             }
             return next_strategy;
+        }
+
+        private boolean isTerminationConditionMet() {
+
+            return termination_condition != null ? termination_condition.terminate(this) : false;
         }
 
         protected DisseminationStrategy generateNextStrategy(final Cluster<EvaluatedDisseminationStrategy> current_cluster) {
@@ -232,6 +276,11 @@ public class EvolutionaryMaintenance extends Maintenance {
             return current_cluster_points.isEmpty() ? null : EVALUATED_DISSEMINATION_STRATEGY_ORDERING.greatestOf(current_cluster_points, 1).get(0);
         }
 
+        protected EvaluatedDisseminationStrategy mostFit(final List<EvaluatedDisseminationStrategy> current_cluster_points) {
+
+            return current_cluster_points.isEmpty() ? null : EVALUATED_DISSEMINATION_STRATEGY_ORDERING.leastOf(current_cluster_points, 1).get(0);
+        }
+
         protected EvaluatedDisseminationStrategy addToEvaluatedStrategies(final EnvironmentSnapshot environment_snapshot, final DisseminationStrategy previous_strategy) {
 
             final EvaluatedDisseminationStrategy evaluated_strategy = new EvaluatedDisseminationStrategy(previous_strategy, environment_snapshot);
@@ -279,19 +328,6 @@ public class EvolutionaryMaintenance extends Maintenance {
             return selected.getStrategy();
         }
 
-        private TreeMap<Double, EvaluatedDisseminationStrategy> getCumulativeFitness() {
-
-            final TreeMap<Double, EvaluatedDisseminationStrategy> cumulative_evaluated_strategies = new TreeMap<>();
-            final double total_fitness = this.total_fitness.get();
-            double cumulative_normalized_fitness = 0;
-            for (final EvaluatedDisseminationStrategy evaluated_strategy : evaluated_strategies) {
-                final double normalized_fitness = evaluated_strategy.getNormalizedFitness(total_fitness);
-                cumulative_normalized_fitness += normalized_fitness;
-                cumulative_evaluated_strategies.put(cumulative_normalized_fitness, evaluated_strategy);
-            }
-            return cumulative_evaluated_strategies;
-        }
-
         private TreeMap<Double, EvaluatedDisseminationStrategy> getCumulativeWeightedFitness(final double total_weighted_fitness) {
 
             final TreeMap<Double, EvaluatedDisseminationStrategy> cumulative_weighted_fitness = new TreeMap<>();
@@ -303,6 +339,48 @@ public class EvolutionaryMaintenance extends Maintenance {
                 cumulative_weighted_fitness.put(cumulative_normalized_fitness, evaluated_strategy);
             }
             return cumulative_weighted_fitness;
+        }
+    }
+
+    public interface TerminationCondition {
+
+        boolean terminate(EvolutionaryPeerMaintainer maintainer);
+    }
+
+    public static class ElapsedTimeTerminationCondition implements TerminationCondition, Named {
+
+        private final long elapsed_time_millis;
+        private final long duration;
+        private final TimeUnit duration_unit;
+
+        public ElapsedTimeTerminationCondition(long duration, TimeUnit duration_unit) {
+
+            this.duration = duration;
+            this.duration_unit = duration_unit;
+
+            elapsed_time_millis = TimeUnit.MILLISECONDS.convert(duration, duration_unit);
+        }
+
+        @Override
+        public boolean terminate(final EvolutionaryPeerMaintainer maintainer) {
+
+            return maintainer.getElapsedMillisecondsSinceFirstStart() >= elapsed_time_millis;
+        }
+
+        @Override
+        public String getName() {
+
+            return NamingUtils.name(this);
+        }
+
+        public long getDuration() {
+
+            return duration;
+        }
+
+        public TimeUnit getDurationUnit() {
+
+            return duration_unit;
         }
     }
 }

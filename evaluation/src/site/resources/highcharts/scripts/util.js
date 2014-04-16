@@ -44,6 +44,9 @@ define(
             }
             return hash;
         }
+        String.prototype.startsWith = function (str) {
+            return this.indexOf(str) == 0;
+        };
 
         return{
 
@@ -124,7 +127,7 @@ define(
                     return "session length: " + this.intervalsToString(churn.sessionLength) +
                         ", down time: " + this.intervalsToString(churn.downtime);
                 },
-                maintenanceToString: function (maintenance) {
+                maintenanceToString: function (maintenance, scenario) {
 
                     if (maintenance.name == "Maintenance") {
 
@@ -146,7 +149,7 @@ define(
                             ", trial length: " +
                             this.durationToString({timeUnit: maintenance.evolutionCycleLengthUnit, length: maintenance.evolutionCycleLength}) +
                             ", clusterer: " +
-                            ( maintenance.clustererName === undefined ? "OLD" : maintenance.clustererName)
+                            ( maintenance.clustererName === undefined ? "None[small-space]" : maintenance.clustererName == 'PFClustClusterer' && scenario.name.startsWith('scenario_batch4_')? maintenance.clustererName + 'Optimised' : maintenance.clustererName);
                             + ")";
                     }
                     if (maintenance.name == "RandomMaintenance") {

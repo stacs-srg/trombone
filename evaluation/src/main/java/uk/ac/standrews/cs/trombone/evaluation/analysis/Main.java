@@ -26,8 +26,8 @@ public class Main {
     public static void main(String[] args) throws IOException, TypeMismatchException {
 
         final List<ScenarioAnalyzer> scenarioAnalyzers = new ArrayList<>();
-        for (int i = 1; i <= 84; i++) {
-            final String scenario_name = "scenario_batch3_" + i;
+        for (int i = 1; i <= 140; i++) {
+            final String scenario_name = "scenario_batch4_" + i;
             if (Files.exists(ScenarioUtils.getScenarioHome(scenario_name))) {
 //                if (scenario_name.matches("scenario_batch2_(40)")) {
                     scenarioAnalyzers.add(new ScenarioAnalyzer(scenario_name));

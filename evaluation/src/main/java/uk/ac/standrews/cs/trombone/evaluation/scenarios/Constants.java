@@ -32,7 +32,7 @@ public final class Constants {
     public static final int NUMBER_OF_REPETITIONS = 5;
     public static final int NETWORK_SIZE = 1_000;
     public static final PFClustClusterer<EvaluatedDisseminationStrategy> PF_CLUST_CLUSTERER = new PFClustClusterer<>();
-    
+    public static final Duration FOURTEEN_HOURS_EXPERIMENT_DURATION = new Duration(14, TimeUnit.HOURS);
     public static final Probability MUTATION_PROBABILITY = new Probability(0.1);
     public static final Maintenance NO_MAINTENANCE = new Maintenance(null);
     public static final Maintenance SUCCESSOR_MAINTENANCE = new Maintenance(new SuccessorMaintenance());
@@ -40,13 +40,22 @@ public final class Constants {
     public static final Maintenance RANDOM_SELECTOR_MAINTENANCE_3 = new Maintenance(new RandomSelectorMaintenance(3, 3));
     public static final Maintenance MOST_RECENTLY_SEEN_3 = new Maintenance(new MostRecentlySeenMaintenance(3, 3));
     public static final Maintenance RANDOM_MAINTENANCE = new RandomMaintenance(10, 2, TimeUnit.MINUTES, new PerPointClusterer<EvaluatedDisseminationStrategy>());
-    public static final Maintenance EVOLUTIONARY_MAINTENANCE = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, new PerPointClusterer<EvaluatedDisseminationStrategy>());
-    public static final Maintenance EVOLUTIONARY_MAINTENANCE_PFCLUST = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
-    public static final Maintenance EVOLUTIONARY_MAINTENANCE_PFCLUST_20 = new EvolutionaryMaintenance(20, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
-    public static final Maintenance EVOLUTIONARY_MAINTENANCE_PFCLUST_30 = new EvolutionaryMaintenance(30, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
-    public static final Maintenance EVOLUTIONARY_MAINTENANCE_PFCLUST_40 = new EvolutionaryMaintenance(40, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
-    public static final Maintenance EVOLUTIONARY_MAINTENANCE_PFCLUST_50 = new EvolutionaryMaintenance(50, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
-    public static final Maintenance EVOLUTIONARY_MAINTENANCE_KMEAN_PLUS_PLUS = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, new KMeansPlusPlusClusterer<EvaluatedDisseminationStrategy>(5, 100, new EuclideanDistance(), new MersenneTwister(852)));
+
+    public static final EvolutionaryMaintenance.ElapsedTimeTerminationCondition TEN_HOUR_TERMINATION_CONDITION = new EvolutionaryMaintenance.ElapsedTimeTerminationCondition(5, TimeUnit.SECONDS);
+
+    public static final EvolutionaryMaintenance EVOLUTIONARY_MAINTENANCE_PFCLUST_10 = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
+    public static final EvolutionaryMaintenance EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_10_HOURS = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
+
+    static {
+        EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_10_HOURS.setTerminationCondition(TEN_HOUR_TERMINATION_CONDITION);
+    }
+
+    public static final EvolutionaryMaintenance EVOLUTIONARY_MAINTENANCE_PFCLUST_20 = new EvolutionaryMaintenance(20, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
+    public static final EvolutionaryMaintenance EVOLUTIONARY_MAINTENANCE_PFCLUST_30 = new EvolutionaryMaintenance(30, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
+    public static final EvolutionaryMaintenance EVOLUTIONARY_MAINTENANCE_PFCLUST_40 = new EvolutionaryMaintenance(40, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
+    public static final EvolutionaryMaintenance EVOLUTIONARY_MAINTENANCE_PFCLUST_50 = new EvolutionaryMaintenance(50, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
+    public static final EvolutionaryMaintenance EVOLUTIONARY_MAINTENANCE_KMEAN_PLUS_PLUS_10 = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, new KMeansPlusPlusClusterer<EvaluatedDisseminationStrategy>(5, 100, new EuclideanDistance(), new MersenneTwister(852)));
+    public static final EvolutionaryMaintenance EVOLUTIONARY_MAINTENANCE_PER_POINT_CLUSTER_10 = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, new PerPointClusterer<EvaluatedDisseminationStrategy>());
 
     private Constants() {
 

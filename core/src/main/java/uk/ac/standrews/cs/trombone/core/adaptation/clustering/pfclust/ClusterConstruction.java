@@ -55,14 +55,13 @@ public class ClusterConstruction {
      * @return a clustering built from the given threshold
      */
     public static Clustering buildClustering(final RealMatrix matrix, final double threshold) {
-       final  Clustering clustering = new Clustering(matrix);
-        
+
+        final Clustering clustering = new Clustering(matrix);
+
         final ArrayList<Integer> unClusteredElements = new ArrayList<Integer>();
         for (int j = 0; j < matrix.getRowDimension(); ++j) {
             unClusteredElements.add(j);
         }
-
-        
 
         //Finds the two most similar elements i and j from a similarity matrix
         int[] elements = findMostSimilarElements(matrix, unClusteredElements, threshold);
@@ -124,13 +123,13 @@ public class ClusterConstruction {
         int[] elements = new int[2];
 
         final int unclustered_size = unClusteredElements.size();
-        
-        for (int k = 0; k < unclustered_size ; k++) {
-            
+
+        for (int k = 0; k < unclustered_size; k++) {
+
             int kElement = unClusteredElements.get(k);
-            
+
             for (int j = k + 1; j < unclustered_size; ++j) {
-                
+
                 int jElement = unClusteredElements.get(j);
                 if (value < matrix.getEntry(kElement, jElement)) {
                     value = matrix.getEntry(kElement, jElement);
@@ -171,10 +170,11 @@ public class ClusterConstruction {
             }
         }
 
-        if (maxSimilarity != -1) {
-            int denominator = cluster.size() * (cluster.size() + 1) / 2;
+        if (Double.compare(maxSimilarity, -1) != 0) {
+            final int cluster_size = cluster.size();
+            int denominator = cluster_size * (cluster_size + 1) / 2;
             double meanClusterSimilarity = (cluster.calculateSum() + maxSimilarity) / denominator;
-            if (maxSimilarity >= cluster.size() * PFClustClusterer.P * threshold && meanClusterSimilarity >= threshold) {
+            if (maxSimilarity >= cluster_size * PFClustClusterer.P * threshold && meanClusterSimilarity >= threshold) {
                 cluster.addElement(maxSimilarElement);
                 cluster.setSimilarity(meanClusterSimilarity);
                 unClusteredElements.remove((Integer) maxSimilarElement);

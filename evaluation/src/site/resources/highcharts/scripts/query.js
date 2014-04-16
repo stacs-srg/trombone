@@ -131,9 +131,12 @@ define(['jquery', 'observations', 'config/scenarios', 'chart', 'series', 'config
         matches: function () {
 
             var matches = new Array();
+            var churn_keys = Object.keys(scenarios.by_churn);
+            var workload_keys = Object.keys(scenarios.by_workload);
+            var maintenance_keys = Object.keys(scenarios.by_maintenance);
             this.churn.forEach(function (selection) {
 
-                scenarios.by_churn[Object.keys(scenarios.by_churn)[selection]].forEach(function (element) {
+                scenarios.by_churn[churn_keys[selection]].forEach(function (element) {
                     matches.push(element);
                 });
             }, this)
@@ -141,14 +144,14 @@ define(['jquery', 'observations', 'config/scenarios', 'chart', 'series', 'config
             matches = matches.filter(function (element) {
                 var found = false;
                 this.workload.forEach(function (selection) {
-                    found = found || element.workload == Object.keys(scenarios.by_workload)[selection];
+                    found = found || element.workload == workload_keys[selection];
                 });
                 return found;
             }, this)
             matches = matches.filter(function (element) {
                 var found = false;
                 this.maintenance.forEach(function (selection) {
-                    found = found || element.maintenance == Object.keys(scenarios.by_maintenance)[selection];
+                    found = found || element.maintenance == maintenance_keys[selection];
                 });
                 return found;
             }, this)
