@@ -1,11 +1,14 @@
 package uk.ac.standrews.cs.trombone.core.key;
 
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.TreeSet;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.core.util.RelativeRingDistanceComparator;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -16,10 +19,12 @@ import static org.junit.Assert.assertTrue;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class KeyTest {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(KeyTest.class);
     private static final Key _5 = Key.valueOf(5);
     private static final Key _minus5 = Key.valueOf(-5);
     private static final Key _7 = Key.valueOf(7);
     private static final Key _0 = Key.valueOf(0);
+    private static final double DELTA = 1e-15;
     private static final Random random = new Random(894156);
 
     @Test
@@ -96,6 +101,78 @@ public class KeyTest {
         assertNotEquals(_5, Key.valueOf(555));
         assertEquals(_5.hashCode(), Key.valueOf(5).hashCode());
         assertNotEquals(_5.hashCode(), Key.valueOf(555).hashCode());
+    }
+
+    @Test
+    public void testIntValue() throws Exception {
+
+        for (int i = 0; i < 1000; i++) {
+            final Integer value = random.nextInt();
+            assertEquals(value.intValue(), Key.valueOf(value).intValue());
+        }
+    }
+
+    @Test
+    public void testLongValue() throws Exception {
+
+        for (int i = 0; i < 1000; i++) {
+            final Long value = random.nextLong();
+            assertEquals(value.longValue(), Key.valueOf(value).longValue());
+        }
+    }
+
+    @Test
+    public void testDoubleValue() throws Exception {
+
+        for (int i = 0; i < 1000; i++) {
+            final Double value = random.nextDouble();
+            assertEquals(value, Key.valueOf(value).doubleValue(), DELTA);
+        }
+    }
+
+    @Test
+    public void testFloatValue() throws Exception {
+
+        for (int i = 0; i < 1000; i++) {
+            final float value = random.nextFloat();
+            assertEquals(value, Key.valueOf(value).floatValue(), DELTA);
+        }
+    }
+    @Test
+    public void testShortValue() throws Exception {
+
+        for (int i = 0; i < 1000; i++) {
+            final Short value = (short) (random.nextInt() - Short.MIN_VALUE);
+            assertEquals(value.shortValue(), Key.valueOf(value).shortValue());
+        }
+    }
+
+    @Test
+    public void testByteValue() throws Exception {
+
+        System.out.println(Key.valueOf(1.0d).floatValue());
+        System.out.println(Key.valueOf(1.0f));
+        System.out.println(Key.valueOf(1));
+        System.out.println(Key.valueOf(Long.valueOf(1)));
+        
+        for (int i = 0; i < 1000; i++) {
+            final int length = random.nextInt(99) + 1;
+            final byte[] value = new byte[length];
+            random.nextBytes(value);
+
+            final Key key = Key.valueOf(value);
+            final BigInteger big_integer = new BigInteger(value);
+
+            LOGGER.info("key: {}, key_length: {}, big_int: {}", key, length, big_integer);
+
+            assertEquals(value[length - 1], key.byteValue());
+//            assertEquals(big_integer.byteValue(), key.byteValue());
+//            assertEquals(big_integer.shortValue(), key.shortValue());
+//            assertEquals(big_integer.intValue(), key.intValue());
+//            assertEquals(big_integer.longValue(), key.longValue());
+//            assertEquals(big_integer.floatValue(), key.floatValue(), DELTA);
+//            assertEquals(big_integer.doubleValue(), key.doubleValue(), DELTA);
+        }
     }
 
     private static Key newRandomKeyOfLengthInBits(int length) {

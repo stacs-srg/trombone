@@ -1,6 +1,5 @@
 package uk.ac.standrews.cs.trombone.core.key;
 
-import java.io.Serializable;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -8,13 +7,15 @@ import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class Key implements Comparable<Key>, Serializable {
+public class Key extends Number implements Comparable<Key> {
 
     private static final long serialVersionUID = -9022058863275074475L;
     private static final BigInteger TWO = BigInteger.valueOf(2);
     private static final int SHORT_SIZE_IN_BYTES = Short.SIZE / Byte.SIZE;
     private static final int INTEGER_SIZE_IN_BYTES = Integer.SIZE / Byte.SIZE;
+    private static final int FLOAT_SIZE_IN_BYTES = Float.SIZE / Byte.SIZE;
     private static final int LONG_SIZE_IN_BYTES = Long.SIZE / Byte.SIZE;
+    private static final int DOUBLE_SIZE_IN_BYTES = Double.SIZE / Byte.SIZE;
     private final byte[] value;
     private final int length;
     private Integer hashcode;
@@ -50,6 +51,18 @@ public class Key implements Comparable<Key>, Serializable {
     public static Key valueOf(long value) {
 
         final byte[] key_value = ByteBuffer.allocate(LONG_SIZE_IN_BYTES).putLong(value).array();
+        return valueOf(key_value);
+    }
+
+    public static Key valueOf(double value) {
+
+        final byte[] key_value = ByteBuffer.allocate(DOUBLE_SIZE_IN_BYTES).putDouble(value).array();
+        return valueOf(key_value);
+    }
+
+    public static Key valueOf(float value) {
+
+        final byte[] key_value = ByteBuffer.allocate(FLOAT_SIZE_IN_BYTES).putFloat(value).array();
         return valueOf(key_value);
     }
 
@@ -114,6 +127,57 @@ public class Key implements Comparable<Key>, Serializable {
     public String toString() {
 
         return Hex.encodeHexString(value);
+    }
+
+    @Override
+    public byte byteValue() {
+
+        return ByteBuffer.wrap(value).get(Math.max(0, value.length - 1));
+    }
+
+    @Override
+    public short shortValue() {
+
+        if (value.length < SHORT_SIZE_IN_BYTES) {
+            return byteValue();
+        }
+        return ByteBuffer.wrap(value).getShort(Math.max(0, value.length - SHORT_SIZE_IN_BYTES));
+    }
+
+    @Override
+    public int intValue() {
+
+        if (value.length < INTEGER_SIZE_IN_BYTES) {
+            return shortValue();
+        }
+        return ByteBuffer.wrap(value).getInt(Math.max(0, value.length - INTEGER_SIZE_IN_BYTES));
+    }
+
+    @Override
+    public long longValue() {
+
+        if (value.length < LONG_SIZE_IN_BYTES) {
+            return intValue();
+        }
+        return ByteBuffer.wrap(value).getLong(Math.max(0, value.length - LONG_SIZE_IN_BYTES));
+    }
+
+    @Override
+    public float floatValue() {
+
+        if (value.length < FLOAT_SIZE_IN_BYTES) {
+            return shortValue();
+        }
+        return ByteBuffer.wrap(value).getFloat(Math.max(0, value.length - FLOAT_SIZE_IN_BYTES));
+    }
+
+    @Override
+    public double doubleValue() {
+
+        if (value.length < DOUBLE_SIZE_IN_BYTES) {
+            return floatValue();
+        }
+        return ByteBuffer.wrap(value).getDouble(Math.max(0, value.length - DOUBLE_SIZE_IN_BYTES));
     }
 
     private static byte[] copy(final byte[] value) {

@@ -41,12 +41,10 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.core.InternalPeerReference;
 import uk.ac.standrews.cs.trombone.core.Maintenance;
 import uk.ac.standrews.cs.trombone.core.Peer;
-import uk.ac.standrews.cs.trombone.core.PeerClientFactory;
 import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
 import uk.ac.standrews.cs.trombone.core.PeerFactory;
 import uk.ac.standrews.cs.trombone.core.PeerMetric;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
-import uk.ac.standrews.cs.trombone.core.PeerServerFactory;
 import uk.ac.standrews.cs.trombone.core.PeerState;
 import uk.ac.standrews.cs.trombone.core.adaptation.EvolutionaryMaintenance;
 
@@ -313,10 +311,10 @@ public class EventExecutor {
 
         LOGGER.info("shutting down maintenance scheduler...");
         Maintenance.SCHEDULER.shutdownNow();
-        LOGGER.info("shutting down peer client factory...");
-        PeerClientFactory.shutdownPeerClientFactory();
-        LOGGER.info("shutting down peer server factory...");
-        PeerServerFactory.shutdownPeerServerFactory();
+        //        LOGGER.info("shutting down peer client factory...");
+        //        PeerClientFactory.shutdownPeerClientFactory();
+        //        LOGGER.info("shutting down peer server factory...");
+        //        PeerServerFactory.shutdownPeerServerFactory();
     }
 
     public synchronized void stop() {

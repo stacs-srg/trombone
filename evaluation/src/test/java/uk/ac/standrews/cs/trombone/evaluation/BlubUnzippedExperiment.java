@@ -7,9 +7,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -63,6 +65,7 @@ public class BlubUnzippedExperiment {
 
     private final List<ApplicationDescriptor> workers = new ArrayList<>();
     private final WorkerManager manager;
+    private static final long RANDOM_SEED = 895623;
 
     @Rule
     public ExperimentWatcher watcher = new ExperimentWatcher();
@@ -75,7 +78,7 @@ public class BlubUnzippedExperiment {
         for (Scenario scenario : ScenarioBatches.BATCH_5_SCENARIOS) {
             final String scenario_name = scenario.getName();
             final Path repetitionsHome = ScenarioUtils.getScenarioRepetitionsHome(scenario_name);
-            int existing_repetitions = Files.exists(repetitionsHome)? FileSystemUtils.getMatchingFiles(repetitionsHome, repetitionsHome.getFileSystem().getPathMatcher("glob:**/*.zip")).size() : 0;
+            int existing_repetitions = Files.exists(repetitionsHome) ? FileSystemUtils.getMatchingFiles(repetitionsHome, repetitionsHome.getFileSystem().getPathMatcher("glob:**/*.zip")).size() : 0;
 
             final int required_repetitions = Math.max(0, Constants.NUMBER_OF_REPETITIONS - existing_repetitions);
             LOGGER.info("{} repetitions of {} already exists, doing {} repetitions", existing_repetitions, scenario_name, required_repetitions);
@@ -85,6 +88,7 @@ public class BlubUnzippedExperiment {
             }
         }
 
+        Collections.shuffle(scenarios_with_repetitions, new Random(RANDOM_SEED));
         return Combinations.generateArgumentCombinations(new Object[][] {
                 scenarios_with_repetitions.toArray()
         });
