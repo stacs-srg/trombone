@@ -24,13 +24,16 @@ define(['jquery', 'observations', 'config/scenarios', 'chart', 'series', 'config
         churn: [],
         workload: [],
         maintenance: [],
+        experiment_duration: [],
         encode: function () {
             var encoded = this.metric + "_";
             encoded += encodeArray(this.churn) + "_";
             encoded += encodeArray(this.workload) + "_";
-            encoded += encodeArray(this.maintenance);
+            encoded += encodeArray(this.maintenance) + "_";
+            encoded += encodeArray(this.experiment_duration);
             return encoded;
         },
+        
         decode: function (encoded) {
 
             if (encoded === undefined || encoded.trim() == '') {
@@ -38,6 +41,7 @@ define(['jquery', 'observations', 'config/scenarios', 'chart', 'series', 'config
                 this.churn = [];
                 this.workload = [];
                 this.maintenance = [];
+                this.experiment_duration = [];
             } else {
 
                 encoded.split("_").forEach(function (value, index) {
@@ -54,6 +58,9 @@ define(['jquery', 'observations', 'config/scenarios', 'chart', 'series', 'config
                             break;
                         case 3:
                             this.maintenance = decodeArray(value);
+                            break;
+                        case 4:
+                            this.experiment_duration = decodeArray(value);
                             break;
                         default:
                             console.log("unknown encoded query format", index, value)
@@ -82,6 +89,9 @@ define(['jquery', 'observations', 'config/scenarios', 'chart', 'series', 'config
             })
             this.maintenance.forEach(function (selection) {
                 $("#maintenance_" + selection).prop('checked', true);
+            })
+            this.experiment_duration.forEach(function (selection) {
+                $("#experiment_duration_" + selection).prop('checked', true);
             })
 
             chart.renderer(this, observations.observations[this.metric]);
@@ -134,6 +144,7 @@ define(['jquery', 'observations', 'config/scenarios', 'chart', 'series', 'config
             var churn_keys = Object.keys(scenarios.by_churn);
             var workload_keys = Object.keys(scenarios.by_workload);
             var maintenance_keys = Object.keys(scenarios.by_maintenance);
+            var experiment_duration_keys = Object.keys(scenarios.by_experiment_duration);
             this.churn.forEach(function (selection) {
 
                 scenarios.by_churn[churn_keys[selection]].forEach(function (element) {
@@ -152,6 +163,13 @@ define(['jquery', 'observations', 'config/scenarios', 'chart', 'series', 'config
                 var found = false;
                 this.maintenance.forEach(function (selection) {
                     found = found || element.maintenance == maintenance_keys[selection];
+                });
+                return found;
+            }, this)
+            matches = matches.filter(function (element) {
+                var found = false;
+                this.experiment_duration.forEach(function (selection) {
+                    found = found || element.experiment_duration == experiment_duration_keys[selection];
                 });
                 return found;
             }, this)

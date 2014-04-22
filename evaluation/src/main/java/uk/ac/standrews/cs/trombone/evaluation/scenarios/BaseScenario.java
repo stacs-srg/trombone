@@ -17,7 +17,7 @@ public class BaseScenario extends Scenario {
 
         super(name, Constants.SCENARIO_MASTER_SEED);
         setPeerKeyProvider(Constants.PEER_KEY_PROVIDER.copy());
-        setExperimentDuration(Constants.EXPERIMENT_DURATION);
+        setExperimentDuration(Constants.EXPERIMENT_DURATION_4);
         setObservationInterval(Constants.OBSERVATION_INTERVAL);
         setLookupRetryCount(Constants.LOOKUP_RETRY_COUNT);
         addHost("localhost", Constants.NETWORK_SIZE, Constants.PORT_NUMBER_PROVIDER, churn.copy(), workload.copy(), configuration);

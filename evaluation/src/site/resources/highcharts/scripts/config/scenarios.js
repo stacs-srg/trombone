@@ -98,7 +98,13 @@ define(['util', 'mark'], function (util, mark) {
         'scenario_batch4_125', 'scenario_batch4_126', 'scenario_batch4_127','scenario_batch4_128',
         'scenario_batch4_129', 'scenario_batch4_130', 'scenario_batch4_131','scenario_batch4_132',
         'scenario_batch4_133', 'scenario_batch4_134', 'scenario_batch4_135','scenario_batch4_136',
-        'scenario_batch4_137','scenario_batch4_138','scenario_batch4_139','scenario_batch4_140'
+        'scenario_batch4_137','scenario_batch4_138','scenario_batch4_139','scenario_batch4_140',
+        'scenario_batch5_1','scenario_batch5_2','scenario_batch5_3','scenario_batch5_4','scenario_batch5_5',
+        'scenario_batch5_6','scenario_batch5_7','scenario_batch5_8','scenario_batch5_9','scenario_batch5_10',
+        'scenario_batch5_11','scenario_batch5_12','scenario_batch5_13','scenario_batch5_14','scenario_batch5_15',
+        'scenario_batch5_16','scenario_batch5_17','scenario_batch5_18','scenario_batch5_19','scenario_batch5_20',
+        'scenario_batch5_21','scenario_batch5_22','scenario_batch5_23','scenario_batch5_24','scenario_batch5_25',
+        'scenario_batch5_26','scenario_batch5_27','scenario_batch5_28'
     ];
     var scenarios = new Array();
     var tidied_scenarios = new Array();
@@ -125,11 +131,13 @@ define(['util', 'mark'], function (util, mark) {
     var by_churn = tidied_scenarios.groupBy("churn");
     var by_workload = tidied_scenarios.groupBy("workload");
     var by_maintenance = tidied_scenarios.groupBy("maintenance");
+    var by_experiment_duration = tidied_scenarios.groupBy("experiment_duration");
 
 
     $("#churn_filters").html(mark.up(util.read("templates/filter.html"), {labels: Object.keys(by_churn), property_name: 'churn'}));
     $("#workload_filters").html(mark.up(util.read("templates/filter.html"), {labels: Object.keys(by_workload), property_name: 'workload'}));
     $("#maintenance_filters").html(mark.up(util.read("templates/filter.html"), {labels: Object.keys(by_maintenance), property_name: 'maintenance'}));
+    $("#experiment_duration_filters").html(mark.up(util.read("templates/filter.html"), {labels: Object.keys(by_experiment_duration), property_name: 'experiment_duration'}));
 
     return {
         scenario_names: scenario_names,
@@ -137,6 +145,7 @@ define(['util', 'mark'], function (util, mark) {
         tidied_scenarios: tidied_scenarios,
         by_churn: by_churn,
         by_workload: by_workload,
-        by_maintenance: by_maintenance
+        by_maintenance: by_maintenance,
+        by_experiment_duration: by_experiment_duration
     };
 });

@@ -10,7 +10,7 @@ public class PlatformJustification extends Scenario {
     public PlatformJustification(String name) {
 
         super(name, Constants.SCENARIO_MASTER_SEED);
-        setExperimentDuration(Constants.EXPERIMENT_DURATION);
+        setExperimentDuration(Constants.EXPERIMENT_DURATION_4);
         setObservationInterval(Constants.OBSERVATION_INTERVAL);
         setLookupRetryCount(Constants.LOOKUP_RETRY_COUNT);
         setPeerKeyProvider(Constants.PEER_KEY_PROVIDER.copy());

@@ -42,7 +42,7 @@ define(['jquery', 'series'], function ($, series) {
                 text: "Time Through Experiment (Hours)"
             },
             min: 0,
-            max: 4
+            max: 14
         },
         yAxis: {
             min: 0

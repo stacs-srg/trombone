@@ -1,5 +1,6 @@
 package uk.ac.standrews.cs.trombone.evaluation;
 
+import java.util.ArrayList;
 import java.util.List;
 import uk.ac.standrews.cs.trombone.core.Maintenance;
 import uk.ac.standrews.cs.trombone.core.SyntheticDelay;
@@ -66,17 +67,53 @@ public final class ScenarioBatches {
     private static final Object[][] BATCH_5 = {
             ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, PeerConfigurationGenerator.generate(new Maintenance[] {Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_10_HOURS}, SYNTHETIC_DELAYS).toArray()
     };
+    private static final Object[][] BATCH_6 = {
+            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, PeerConfigurationGenerator.generate(new Maintenance[] {Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_8_HOURS}, SYNTHETIC_DELAYS).toArray()
+    };
+    private static final Object[][] BATCH_7 = {
+            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, PeerConfigurationGenerator.generate(new Maintenance[] {Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_6_HOURS}, SYNTHETIC_DELAYS).toArray()
+    };
+    private static final Object[][] BATCH_8 = {
+            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, PeerConfigurationGenerator.generate(new Maintenance[] {Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_4_HOURS}, SYNTHETIC_DELAYS).toArray()
+    };
+    private static final Object[][] BATCH_9 = {
+            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, PeerConfigurationGenerator.generate(new Maintenance[] {Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_2_HOURS}, SYNTHETIC_DELAYS).toArray()
+    };
 
     public static final List<Scenario> BATCH_1_SCENARIOS = BaseScenario.generateAll("scenario_", BATCH_1);
     public static final List<Scenario> BATCH_2_SCENARIOS = BaseScenario.generateAll("scenario_batch2_", BATCH_2);
     public static final List<Scenario> BATCH_3_SCENARIOS = BaseScenario.generateAll("scenario_batch3_", BATCH_3);
     public static final List<Scenario> BATCH_4_SCENARIOS = BaseScenario.generateAll("scenario_batch4_", BATCH_4);
+
     public static final List<Scenario> BATCH_5_SCENARIOS = BaseScenario.generateAll("scenario_batch5_", BATCH_5);
+    public static final List<Scenario> BATCH_6_SCENARIOS = BaseScenario.generateAll("scenario_batch6_", BATCH_6);
+    public static final List<Scenario> BATCH_7_SCENARIOS = BaseScenario.generateAll("scenario_batch7_", BATCH_7);
+    public static final List<Scenario> BATCH_8_SCENARIOS = BaseScenario.generateAll("scenario_batch8_", BATCH_8);
+    public static final List<Scenario> BATCH_9_SCENARIOS = BaseScenario.generateAll("scenario_batch9_", BATCH_9);
+    public static final List<Scenario> BATCHES_6_TO_9_SCENARIOS = new ArrayList<>();
 
     static {
 
         for (Scenario scenario : BATCH_5_SCENARIOS) {
-            scenario.setExperimentDuration(Constants.FOURTEEN_HOURS_EXPERIMENT_DURATION);
+            scenario.setExperimentDuration(Constants.EXPERIMENT_DURATION_14);
         }
+        for (Scenario scenario : BATCH_6_SCENARIOS) {
+            scenario.setExperimentDuration(Constants.EXPERIMENT_DURATION_12);
+        }
+        for (Scenario scenario : BATCH_7_SCENARIOS) {
+            scenario.setExperimentDuration(Constants.EXPERIMENT_DURATION_10);
+        }
+        for (Scenario scenario : BATCH_8_SCENARIOS) {
+            scenario.setExperimentDuration(Constants.EXPERIMENT_DURATION_8);
+        }
+        for (Scenario scenario : BATCH_9_SCENARIOS) {
+            scenario.setExperimentDuration(Constants.EXPERIMENT_DURATION_6);
+        }
+
+        BATCHES_6_TO_9_SCENARIOS.addAll(BATCH_6_SCENARIOS);
+        BATCHES_6_TO_9_SCENARIOS.addAll(BATCH_7_SCENARIOS);
+        BATCHES_6_TO_9_SCENARIOS.addAll(BATCH_8_SCENARIOS);
+        BATCHES_6_TO_9_SCENARIOS.addAll(BATCH_9_SCENARIOS);
     }
+
 }
