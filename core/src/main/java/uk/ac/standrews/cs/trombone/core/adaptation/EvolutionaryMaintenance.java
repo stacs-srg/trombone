@@ -33,6 +33,7 @@ public class EvolutionaryMaintenance extends Maintenance {
     public static final Sampler FITNESS_SAMPLER = new Sampler();
     public static final Sampler NORMALIZED_FITNESS_SAMPLER = new Sampler();
     public static final Sampler WEIGHTED_FITNESS_SAMPLER = new Sampler();
+    public static final Sampler STRATEGY_ACTION_SIZE_SAMPLER = new Sampler();
 
     private static final long serialVersionUID = -3613808902480933796L;
     private static final int DISSEMINATION_STRATEGY_LIST_SIZE = 5;
@@ -111,7 +112,7 @@ public class EvolutionaryMaintenance extends Maintenance {
         this.termination_condition = termination_condition;
     }
 
-    class EvolutionaryPeerMaintainer extends PeerMaintainer {
+    public class EvolutionaryPeerMaintainer extends PeerMaintainer {
 
         protected final MersenneTwisterRNG random;
         protected final PeerMetric metric;
@@ -126,6 +127,11 @@ public class EvolutionaryMaintenance extends Maintenance {
             random = peer.getRandom();
             metric = peer.getPeerMetric();
             evaluated_strategies = new ArrayList<>();
+        }
+
+        public List<EvaluatedDisseminationStrategy> getEvaluated_strategies() {
+
+            return Collections.unmodifiableList(evaluated_strategies);
         }
 
         @Override
@@ -144,9 +150,10 @@ public class EvolutionaryMaintenance extends Maintenance {
 
                         try {
                             final EnvironmentSnapshot environment_snapshot = metric.getSnapshot();
-                            final DisseminationStrategy previous_strategy = strategy.get();
+                            final DisseminationStrategy previous_strategy = getDisseminationStrategy();
                             final DisseminationStrategy next_strategy = getNextStrategy(environment_snapshot, previous_strategy);
-                            strategy.getAndSet(next_strategy);
+                            setDisseminationStrategy(next_strategy);
+                            STRATEGY_ACTION_SIZE_SAMPLER.update(next_strategy.size());
                         }
                         catch (Exception e) {
                             LOGGER.error("failed to perform adaptation cycle", e);
@@ -173,7 +180,7 @@ public class EvolutionaryMaintenance extends Maintenance {
             return first_start_millis > 0;
         }
 
-        protected synchronized DisseminationStrategy getNextStrategy(final EnvironmentSnapshot environment_snapshot, final DisseminationStrategy previous_strategy) {
+        private synchronized DisseminationStrategy getNextStrategy(final EnvironmentSnapshot environment_snapshot, final DisseminationStrategy previous_strategy) {
 
             final DisseminationStrategy next_strategy;
             final boolean termination_condition_met = isTerminationConditionMet();
@@ -205,6 +212,9 @@ public class EvolutionaryMaintenance extends Maintenance {
                 }
                 else {
                     next_strategy = generateNextStrategy(current_cluster);
+                }
+
+                if (evaluated_strategies.size() < population_size) {
                     removeLeastFitFromCurrentCluster(current_cluster_points);
                 }
             }
@@ -304,9 +314,9 @@ public class EvolutionaryMaintenance extends Maintenance {
             if (isStarted()) {
                 evolution.cancel(true);
                 final EnvironmentSnapshot environment_snapshot = metric.getSnapshot();
-                final DisseminationStrategy previous_strategy = strategy.get();
+                final DisseminationStrategy previous_strategy = getDisseminationStrategy();
                 getNextStrategy(environment_snapshot, previous_strategy);
-                strategy.getAndSet(null);
+                setDisseminationStrategy(null);
                 super.stop();
             }
         }

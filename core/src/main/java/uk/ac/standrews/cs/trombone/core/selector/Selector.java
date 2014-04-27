@@ -7,9 +7,11 @@ import java.util.Random;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.util.Copyable;
+import uk.ac.standrews.cs.trombone.core.util.Named;
+import uk.ac.standrews.cs.trombone.core.util.NamingUtils;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public abstract class Selector implements Serializable, Copyable {
+public abstract class Selector implements Serializable, Copyable, Named {
 
     private static final long serialVersionUID = -1994233167230411201L;
     private static final int MAX_SELECTION_SIZE = 3;
@@ -20,13 +22,13 @@ public abstract class Selector implements Serializable, Copyable {
 
     static {
 
-        SELECTORS.add(EmptySelector.getInstance());
+        SELECTORS.add(EmptySelector.INSTANCE);
         SELECTORS.add(new First(1, ReachabilityCriteria.REACHABLE_OR_UNREACHABLE));
         SELECTORS.add(new Last(1, ReachabilityCriteria.REACHABLE_OR_UNREACHABLE));
         SELECTORS.add(new MostRecentlySeen(1, ReachabilityCriteria.REACHABLE_OR_UNREACHABLE));
         SELECTORS.add(new RandomSelector(1, ReachabilityCriteria.REACHABLE_OR_UNREACHABLE));
-        SELECTORS.add(Self.getInstance());
-        
+        SELECTORS.add(Self.INSTANCE);
+
         SELECTORS_SIZE = SELECTORS.size();
     }
 
@@ -62,7 +64,7 @@ public abstract class Selector implements Serializable, Copyable {
 
     private static int getRandomSelectionSize(final Random random) {
 
-        return random.nextInt(MAX_SELECTION_SIZE) + 1;
+        return random.nextInt(MAX_SELECTION_SIZE - 1) + 1;
     }
 
     private static ReachabilityCriteria getRandomReachabilityCriteria(final Random random) {
@@ -98,6 +100,12 @@ public abstract class Selector implements Serializable, Copyable {
         }
 
         return mutant;
+    }
+
+    @Override
+    public String getName() {
+
+        return NamingUtils.name(this);
     }
 
     public int getSelectionSize() {

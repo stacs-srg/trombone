@@ -1,11 +1,15 @@
 package uk.ac.standrews.cs.trombone.event;
 
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -22,6 +26,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.apache.commons.codec.DecoderException;
+import org.apache.commons.io.FileUtils;
 import org.json.JSONObject;
 import org.mashti.gauge.Counter;
 import org.mashti.gauge.Gauge;
@@ -29,15 +34,18 @@ import org.mashti.gauge.MetricRegistry;
 import org.mashti.gauge.Rate;
 import org.mashti.gauge.Sampler;
 import org.mashti.gauge.Timer;
+import org.mashti.gauge.jvm.GarbageCollectorCpuUsageGauge;
 import org.mashti.gauge.jvm.MemoryUsageGauge;
 import org.mashti.gauge.jvm.SystemLoadAverageGauge;
 import org.mashti.gauge.jvm.ThreadCountGauge;
 import org.mashti.gauge.jvm.ThreadCpuUsageGauge;
 import org.mashti.gauge.reporter.CsvReporter;
 import org.mashti.jetson.util.NamedThreadFactory;
+import org.mashti.sina.distribution.statistic.Statistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
+import uk.ac.standrews.cs.trombone.core.DisseminationStrategy;
 import uk.ac.standrews.cs.trombone.core.InternalPeerReference;
 import uk.ac.standrews.cs.trombone.core.Maintenance;
 import uk.ac.standrews.cs.trombone.core.Peer;
@@ -46,6 +54,7 @@ import uk.ac.standrews.cs.trombone.core.PeerFactory;
 import uk.ac.standrews.cs.trombone.core.PeerMetric;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.PeerState;
+import uk.ac.standrews.cs.trombone.core.adaptation.EvaluatedDisseminationStrategy;
 import uk.ac.standrews.cs.trombone.core.adaptation.EvolutionaryMaintenance;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
@@ -81,6 +90,7 @@ public class EventExecutor {
     private final Semaphore load_balancer;
     private final Map<PeerReference, Peer> peers_map = new ConcurrentSkipListMap<PeerReference, Peer>();
     private final EventReader event_reader;
+    private final Path observations_home;
     private final MetricRegistry metric_registry;
     private final CsvReporter csv_reporter;
     private final Rate join_failure_rate = new Rate();
@@ -97,6 +107,7 @@ public class EventExecutor {
     private final ThreadCountGauge thread_count_gauge = new ThreadCountGauge();
     private final SystemLoadAverageGauge system_load_average_gauge = new SystemLoadAverageGauge();
     private final ThreadCpuUsageGauge thread_cpu_usage_gauge = new ThreadCpuUsageGauge();
+    private final GarbageCollectorCpuUsageGauge gc_cpu_usage_gauge = new GarbageCollectorCpuUsageGauge();
     private final MemoryUsageGauge memory_usage_gauge = new MemoryUsageGauge();
     private final Gauge event_executor_queue_size = new Gauge() {
 
@@ -149,6 +160,37 @@ public class EventExecutor {
         }
     };
 
+    private final Sampler strategy_uniformity_sampler = new Sampler() {
+
+        @Override
+        protected Statistics get() {
+
+            final HashMultiset<DisseminationStrategy> strategies = HashMultiset.create();
+            for (Peer peer : peers_map.values()) {
+                if (peer.isExposed()) {
+                    strategies.add(peer.getDisseminationStrategy());
+                }
+            }
+            final Statistics statistics = new Statistics();
+            for (Multiset.Entry<DisseminationStrategy> entry : strategies.entrySet()) {
+                statistics.addSample(entry.getCount());
+            }
+            return statistics;
+        }
+
+        @Override
+        public Statistics getAndReset() {
+
+            return get();
+        }
+
+        @Override
+        public void update(final double sample) {
+
+            LOGGER.warn("update is unsupported by this sampler");
+        }
+    };
+
     private final Gauge<Integer> queue_size_gauge = new Gauge<Integer>() {
 
         @Override
@@ -176,6 +218,7 @@ public class EventExecutor {
     public EventExecutor(final EventReader reader, Path observations_home) {
 
         event_reader = reader;
+        this.observations_home = observations_home;
         runnable_events = new DelayQueue<RunnableExperimentEvent>();
         task_populator = Executors.newSingleThreadExecutor(new NamedThreadFactory("task_populator_"));
         task_scheduler = Executors.newSingleThreadExecutor(new NamedThreadFactory("task_scheduler_"));
@@ -216,6 +259,7 @@ public class EventExecutor {
         metric_registry.register("thread_count_gauge", thread_count_gauge);
         metric_registry.register("system_load_average_gauge", system_load_average_gauge);
         metric_registry.register("thread_cpu_usage_gauge", thread_cpu_usage_gauge);
+        metric_registry.register("gc_cpu_usage_gauge", gc_cpu_usage_gauge);
         metric_registry.register("memory_usage_gauge", memory_usage_gauge);
         metric_registry.register("evolutionary_maintenance_cluster_count_sampler", EvolutionaryMaintenance.CLUSTER_COUNT_SAMPLER);
         metric_registry.register("evolutionary_maintenance_cluster_size_sampler", EvolutionaryMaintenance.CLUSTER_SIZE_SAMPLER);
@@ -223,6 +267,9 @@ public class EventExecutor {
         metric_registry.register("evolutionary_maintenance_normalized_fitness_sampler", EvolutionaryMaintenance.NORMALIZED_FITNESS_SAMPLER);
         metric_registry.register("evolutionary_maintenance_weighted_fitness_sampler", EvolutionaryMaintenance.WEIGHTED_FITNESS_SAMPLER);
         metric_registry.register("rpc_error_rate", PeerMetric.getGlobalRPCErrorRate());
+        metric_registry.register("reconfiguration_rate", Maintenance.RECONFIGURATION_RATE);
+        metric_registry.register("strategy_action_size_sampler", EvolutionaryMaintenance.STRATEGY_ACTION_SIZE_SAMPLER);
+        metric_registry.register("strategy_uniformity_sampler", strategy_uniformity_sampler);
 
         csv_reporter = new CsvReporter(metric_registry, observations_home);
         task_populator_future = startTaskQueuePopulator();
@@ -232,14 +279,12 @@ public class EventExecutor {
 
         final JSONObject observation_interval_json = scenario_properties.getJSONObject("observationInterval");
         return new Duration(observation_interval_json.getLong("length"), TimeUnit.valueOf(observation_interval_json.getString("timeUnit")));
-
     }
 
     public Duration getExperimentDuration() {
 
         final JSONObject observation_interval_json = scenario_properties.getJSONObject("experimentDuration");
         return new Duration(observation_interval_json.getLong("length"), TimeUnit.valueOf(observation_interval_json.getString("timeUnit")));
-
     }
 
     private int getLookupRetryCount() {
@@ -300,13 +345,31 @@ public class EventExecutor {
         task_populator.shutdownNow();
         task_scheduler.shutdownNow();
 
+        Map<String, List<EvaluatedDisseminationStrategy>> node_strategies = new HashMap<>();
+
         for (Peer peer : peers_map.values()) {
+
+            final Maintenance.PeerMaintainer peerMaintainer = peer.getPeerMaintainer();
+            if (peerMaintainer instanceof EvolutionaryMaintenance.EvolutionaryPeerMaintainer) {
+                EvolutionaryMaintenance.EvolutionaryPeerMaintainer evolutionary_maintainer = (EvolutionaryMaintenance.EvolutionaryPeerMaintainer) peerMaintainer;
+                node_strategies.put(peer.getKey().toString(), evolutionary_maintainer.getEvaluated_strategies());
+            }
+
             try {
                 peer.unexpose();
             }
             catch (Exception e) {
-                LOGGER.warn("failed to unexpose peer {} due to {}", peer, e);
+                LOGGER.debug("failed to unexpose peer {} due to {}", peer, e);
             }
+        }
+
+        final JSONObject strategies_json = new JSONObject(node_strategies);
+        try {
+            FileUtils.write(observations_home.resolve("evaluated_strategies_per_peer.json").toFile(), strategies_json.toString(4), StandardCharsets.UTF_8, false);
+        }
+        catch (Exception e) {
+            LOGGER.error("failed to save evaluated strategies per peer", e);
+            LOGGER.error("Evaluated strategies per peer {}", strategies_json);
         }
 
         LOGGER.info("shutting down maintenance scheduler...");
@@ -544,16 +607,18 @@ public class EventExecutor {
 
             try {
                 final JoinEvent join_event = (JoinEvent) getEvent();
-                final boolean successfully_exposed = peer.expose();
-                if (successfully_exposed) {
-                    peer_arrival_rate.mark();
-                    available_peer_counter.increment();
-                }
-                else {
-                    logger.warn("exposure of peer {} was unsuccessful", peer);
-                }
+                if (!peer.isExposed()) {
+                    final boolean successfully_exposed = peer.expose();
+                    if (successfully_exposed) {
+                        peer_arrival_rate.mark();
+                        available_peer_counter.increment();
+                    }
+                    else {
+                        logger.warn("exposure of peer {} was unsuccessful", peer);
+                    }
 
-                joinWithTimeout(peer, join_event.getDurationInNanos(), join_event.getKnownPeerReferences());
+                    joinWithTimeout(peer, join_event.getDurationInNanos(), join_event.getKnownPeerReferences());
+                }
             }
             catch (final IOException e) {
                 logger.warn("failed to expose peer {} on address {}", peer, peer.getAddress());

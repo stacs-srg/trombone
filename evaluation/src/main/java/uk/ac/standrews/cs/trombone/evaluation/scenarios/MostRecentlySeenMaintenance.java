@@ -15,8 +15,9 @@ public class MostRecentlySeenMaintenance extends DisseminationStrategy implement
 
     public MostRecentlySeenMaintenance(int recipient_count, int data_count) {
 
-        final MostRecentlySeen selector = new MostRecentlySeen(data_count, Selector.ReachabilityCriteria.REACHABLE_OR_UNREACHABLE);
-        addAction(new Action(SuccessorMaintenance.NON_OPPORTUNISTIC, SuccessorMaintenance.PULL, selector, selector));
+        final MostRecentlySeen data_selector = new MostRecentlySeen(data_count, Selector.ReachabilityCriteria.REACHABLE_OR_UNREACHABLE);
+        final MostRecentlySeen recipient_selector = new MostRecentlySeen(recipient_count, Selector.ReachabilityCriteria.REACHABLE_OR_UNREACHABLE);
+        addAction(new Action(SuccessorMaintenance.NON_OPPORTUNISTIC, SuccessorMaintenance.PULL, data_selector, recipient_selector));
     }
 
     @Override

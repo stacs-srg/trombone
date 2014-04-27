@@ -366,6 +366,11 @@ public class Peer implements PeerRemote {
         return maintainer.getDisseminationStrategy();
     }
 
+    public Maintenance.PeerMaintainer getPeerMaintainer() {
+
+        return maintainer;
+    }
+
     private PeerReference lookup(final Key target, final PeerMetric.LookupMeasurement measurement) throws RPCException {
 
         PeerReference current_hop = self;

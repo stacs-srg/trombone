@@ -6,13 +6,12 @@ import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.apache.commons.lang.reflect.MethodUtils;
 import org.mashti.jetson.exception.RPCException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.core.selector.Selector;
 
 /**
@@ -23,7 +22,6 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
     private static final long serialVersionUID = 7398182589384122556L;
     static final Method PUSH_METHOD = MethodUtils.getAccessibleMethod(PeerRemote.class, "push", List.class);
     static final Method PULL_METHOD = MethodUtils.getAccessibleMethod(PeerRemote.class, "pull", Selector.class);
-    private static final Logger LOGGER = LoggerFactory.getLogger(DisseminationStrategy.class);
     private final ArrayList<Action> actions;
     private int non_opportunistic_interval_millis = 2_000;
 
@@ -78,6 +76,11 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
         this.actions.addAll(actions);
     }
 
+    public List<Action> getActions() {
+
+        return Collections.unmodifiableList(actions);
+    }
+
     @Override
     public String toString() {
 
@@ -85,6 +88,28 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
         sb.append("actions=").append(actions);
         sb.append('}');
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+
+        if (this == o) { return true; }
+        if (!(o instanceof DisseminationStrategy)) { return false; }
+
+        final DisseminationStrategy that = (DisseminationStrategy) o;
+
+        if (non_opportunistic_interval_millis != that.non_opportunistic_interval_millis) { return false; }
+        if (actions != null ? !actions.equals(that.actions) : that.actions != null) { return false; }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+
+        int result = actions != null ? actions.hashCode() : 0;
+        result = 31 * result + non_opportunistic_interval_millis;
+        return result;
     }
 
     public static class Action implements Serializable {
@@ -204,6 +229,7 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
 
             this.recipient_selector = recipient_selector;
         }
+
         public void setDataSelector(final Selector data_selector) {
 
             this.data_selector = data_selector;
@@ -227,6 +253,32 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
         List<PeerReference> getRecipients(final Peer local) throws RPCException {
 
             return recipient_selector.select(local);
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+
+            if (this == o) { return true; }
+            if (!(o instanceof Action)) { return false; }
+
+            final Action action = (Action) o;
+
+            if (opportunistic != action.opportunistic) { return false; }
+            if (push != action.push) { return false; }
+            if (data_selector != null ? !data_selector.equals(action.data_selector) : action.data_selector != null) { return false; }
+            if (recipient_selector != null ? !recipient_selector.equals(action.recipient_selector) : action.recipient_selector != null) { return false; }
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+
+            int result = (opportunistic ? 1 : 0);
+            result = 31 * result + (push ? 1 : 0);
+            result = 31 * result + (data_selector != null ? data_selector.hashCode() : 0);
+            result = 31 * result + (recipient_selector != null ? recipient_selector.hashCode() : 0);
+            return result;
         }
     }
 }

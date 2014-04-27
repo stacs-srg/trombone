@@ -5,9 +5,12 @@ import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +55,14 @@ import uk.ac.standrews.cs.trombone.event.Scenario;
 @RunWith(Parallelized.class)
 public class BlubUnzippedExperiment {
 
+    static final Path BLUB_NODE_RESULTS_HOME = Paths.get("/state", "partition1", "t3", "evaluation");
+    static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss-SSS");
     private static final LinkedBlockingQueue<String> AVAILABLE_HOSTS = new LinkedBlockingQueue<>(BlubCluster.getNodeNames());
+
+    static {
+        AVAILABLE_HOSTS.remove("compute-0-6.local");
+    }
+
     private static final Duration ADDITIONAL_WAIT = new Duration(30, TimeUnit.MINUTES);
 
     private static WorkerNetwork network;
@@ -75,7 +85,7 @@ public class BlubUnzippedExperiment {
 
         final List<Scenario> scenarios_with_repetitions = new ArrayList<>();
 
-        for (Scenario scenario : ScenarioBatches.BATCHES_6_TO_9_SCENARIOS) {
+        for (Scenario scenario : ScenarioBatches.BATCH_1_SCENARIOS) {
             final String scenario_name = scenario.getName();
             final Path repetitionsHome = ScenarioUtils.getScenarioRepetitionsHome(scenario_name);
             int existing_repetitions = Files.exists(repetitionsHome) ? FileSystemUtils.getMatchingFiles(repetitionsHome, repetitionsHome.getFileSystem().getPathMatcher("glob:**/*.zip")).size() : 0;
@@ -163,8 +173,8 @@ public class BlubUnzippedExperiment {
         }
 
         final Path repetitions = ScenarioUtils.getScenarioRepetitionsHome(scenario_name);
-        BlubZipEventExecutionJob.assureRepetitionsDirectoryExists(repetitions);
-        final Path observations = BlubZipEventExecutionJob.newObservationsPath(repetitions);
+        assureRepetitionsDirectoryExists(repetitions);
+        final Path observations = newObservationsPath(repetitions);
         LOGGER.info("collected observations will be stored at {}", observations.toAbsolutePath());
 
         Exception error = null;
@@ -229,6 +239,18 @@ public class BlubUnzippedExperiment {
 
             returnHosts();
             semaphore.release();
+        }
+    }
+
+    static synchronized Path newObservationsPath(final Path repetitions) {
+
+        return repetitions.resolve(DATE_FORMAT.format(new Date()) + ".zip");
+    }
+
+    static void assureRepetitionsDirectoryExists(final Path repetitions) throws IOException {
+
+        if (!Files.isDirectory(repetitions)) {
+            Files.createDirectories(repetitions);
         }
     }
 

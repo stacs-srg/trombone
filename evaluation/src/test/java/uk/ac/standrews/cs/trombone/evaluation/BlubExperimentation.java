@@ -8,6 +8,5 @@ import org.junit.runners.Suite;
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses( {
-        ScenarioBatches.class, BlubBatchEventUpload.class, BlubZippedExperiment.class
 })
 public class BlubExperimentation {}

@@ -2,6 +2,8 @@ package uk.ac.standrews.cs.trombone.evaluation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.core.Maintenance;
 import uk.ac.standrews.cs.trombone.core.SyntheticDelay;
 import uk.ac.standrews.cs.trombone.evaluation.scenarios.BaseScenario;
@@ -25,10 +27,11 @@ public final class ScenarioBatches {
                     Constants.NO_MAINTENANCE, 
                     Constants.SUCCESSOR_LIST_MAINTENANCE_5, 
                     Constants.SUCCESSOR_MAINTENANCE, 
-                    Constants.RANDOM_SELECTOR_MAINTENANCE_3, 
+                    Constants.RANDOM_SELECTOR_MAINTENANCE_3,
+                    Constants.MOST_RECENTLY_SEEN_3,
                     
                     //Basic Adaptive: no clustering
-                    Constants.EVOLUTIONARY_MAINTENANCE_PER_POINT_CLUSTER_10
+                    Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10
             },
             //@formatter:on
 
@@ -90,7 +93,7 @@ public final class ScenarioBatches {
     public static final List<Scenario> BATCH_7_SCENARIOS = BaseScenario.generateAll("scenario_batch7_", BATCH_7);
     public static final List<Scenario> BATCH_8_SCENARIOS = BaseScenario.generateAll("scenario_batch8_", BATCH_8);
     public static final List<Scenario> BATCH_9_SCENARIOS = BaseScenario.generateAll("scenario_batch9_", BATCH_9);
-    public static final List<Scenario> BATCHES_6_TO_9_SCENARIOS = new ArrayList<>();
+    public static final List<Scenario> BATCHES_5_TO_9_SCENARIOS = new ArrayList<>();
 
     static {
 
@@ -110,10 +113,24 @@ public final class ScenarioBatches {
             scenario.setExperimentDuration(Constants.EXPERIMENT_DURATION_6);
         }
 
-        BATCHES_6_TO_9_SCENARIOS.addAll(BATCH_6_SCENARIOS);
-        BATCHES_6_TO_9_SCENARIOS.addAll(BATCH_7_SCENARIOS);
-        BATCHES_6_TO_9_SCENARIOS.addAll(BATCH_8_SCENARIOS);
-        BATCHES_6_TO_9_SCENARIOS.addAll(BATCH_9_SCENARIOS);
+        BATCHES_5_TO_9_SCENARIOS.addAll(BATCH_5_SCENARIOS);
+        BATCHES_5_TO_9_SCENARIOS.addAll(BATCH_6_SCENARIOS);
+        BATCHES_5_TO_9_SCENARIOS.addAll(BATCH_7_SCENARIOS);
+        BATCHES_5_TO_9_SCENARIOS.addAll(BATCH_8_SCENARIOS);
+        BATCHES_5_TO_9_SCENARIOS.addAll(BATCH_9_SCENARIOS);
+    }
+
+    public static void main(String[] args) {
+
+        System.out.println(BATCHES_5_TO_9_SCENARIOS.size());
+        Duration dd = new Duration(0, TimeUnit.HOURS);
+        for (Scenario scenario : BATCHES_5_TO_9_SCENARIOS) {
+            
+            dd = dd.add(scenario.getExperimentDuration());
+            
+        }
+
+        System.out.println(dd);
     }
 
 }

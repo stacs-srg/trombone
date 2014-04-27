@@ -149,7 +149,7 @@ define(
                             ", trial length: " +
                             this.durationToString({timeUnit: maintenance.evolutionCycleLengthUnit, length: maintenance.evolutionCycleLength}) +
                             ", clusterer: " +
-                            ( maintenance.clustererName === undefined ? "None[small-space]" : maintenance.clustererName == 'PFClustClusterer' && scenario.name.startsWith('scenario_batch4_')? maintenance.clustererName + 'Optimised' : maintenance.clustererName);
+                            ( maintenance.clustererName === undefined ? "None[small-space]" : maintenance.clustererName == 'PFClustClusterer' && scenario.name.match(/scenario_batch(4|5|6|7|8|9)_.*/) != null? maintenance.clustererName + 'Optimised' : maintenance.clustererName);
                             + ")";
                     }
                     if (maintenance.name == "RandomMaintenance") {

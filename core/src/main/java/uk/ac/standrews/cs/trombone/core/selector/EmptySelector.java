@@ -11,16 +11,11 @@ import uk.ac.standrews.cs.trombone.core.PeerReference;
 public final class EmptySelector extends Selector {
 
     private static final long serialVersionUID = -7162399826632352226L;
-    private static final EmptySelector EMPTY_SELECTOR = new EmptySelector();
+    public static final EmptySelector INSTANCE = new EmptySelector();
 
     private EmptySelector() {
 
         super(0, ReachabilityCriteria.REACHABLE_OR_UNREACHABLE);
-    }
-
-    public static EmptySelector getInstance() {
-
-        return EMPTY_SELECTOR;
     }
 
     @Override

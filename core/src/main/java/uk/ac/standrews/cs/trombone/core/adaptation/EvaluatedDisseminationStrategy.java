@@ -3,8 +3,6 @@ package uk.ac.standrews.cs.trombone.core.adaptation;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.math3.ml.clustering.Clusterable;
 import org.apache.commons.math3.ml.distance.EuclideanDistance;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.core.DisseminationStrategy;
 
 /**
@@ -12,7 +10,6 @@ import uk.ac.standrews.cs.trombone.core.DisseminationStrategy;
  */
 public class EvaluatedDisseminationStrategy implements Comparable<EvaluatedDisseminationStrategy>, Clusterable {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(EvaluatedDisseminationStrategy.class);
     private static final double[] ORIGIN = {0, 0, 0};
     private static final EuclideanDistance EUCLIDEAN_DISTANCE = new EuclideanDistance();
     private final DisseminationStrategy strategy;
@@ -20,13 +17,15 @@ public class EvaluatedDisseminationStrategy implements Comparable<EvaluatedDisse
     private final EnvironmentSnapshot environment;
     private final int hashcode;
     private double weighted_fitness;
+    private final double[] fitness_point;
 
     public EvaluatedDisseminationStrategy(final DisseminationStrategy strategy, EnvironmentSnapshot environment_snapshot) {
 
         this.strategy = strategy;
-        fitness = calculateFitness(environment_snapshot);
         environment = environment_snapshot;
-        hashcode = new HashCodeBuilder(79, 31).append(fitness).append(strategy).append(environment).toHashCode();
+        fitness_point = getFitnessPoint(environment_snapshot);
+        fitness = calculateFitness(fitness_point);
+        hashcode = new HashCodeBuilder(79, 31).append(fitness).append(strategy).append(environment).append(strategy).toHashCode();
     }
 
     public double getFitness() {
@@ -34,7 +33,7 @@ public class EvaluatedDisseminationStrategy implements Comparable<EvaluatedDisse
         return fitness;
     }
 
-    public double getNormalizedFitness(double total) {
+    double getNormalizedFitness(double total) {
 
         return total != 0 ? 1 - fitness / total : 1;
     }
@@ -81,22 +80,31 @@ public class EvaluatedDisseminationStrategy implements Comparable<EvaluatedDisse
         return environment.getPoint();
     }
 
-    public void setWeightedFitness(final double weighted_fitness) {
+    public double[] getFitnessPoint() {
+
+        return fitness_point;
+    }
+
+    void setWeightedFitness(final double weighted_fitness) {
 
         this.weighted_fitness = weighted_fitness;
     }
 
-    public double getWeightedFitness() {
+    double getWeightedFitness() {
 
         return weighted_fitness;
     }
 
-    private double calculateFitness(final EnvironmentSnapshot environment_snapshot) {
+    private static double[] getFitnessPoint(final EnvironmentSnapshot environment_snapshot) {
 
         final double mean_lookup_success_delay_millis = environment_snapshot.getNormalizedMeanLookupSuccessDelayMillis();
         final double sent_bytes_rate_per_second = environment_snapshot.getNormalizedSentBytesRatePerSecond();
         final double lookup_failure_rate = environment_snapshot.getNormalizedLookupFailureRate();
-        final double inverse_fitness = EUCLIDEAN_DISTANCE.compute(new double[] {mean_lookup_success_delay_millis, sent_bytes_rate_per_second, lookup_failure_rate}, ORIGIN);
-        return inverse_fitness;
+        return new double[] {mean_lookup_success_delay_millis, sent_bytes_rate_per_second, lookup_failure_rate};
+    }
+
+    private static double calculateFitness(final double[] fitness_point) {
+
+        return EUCLIDEAN_DISTANCE.compute(fitness_point, ORIGIN);
     }
 }

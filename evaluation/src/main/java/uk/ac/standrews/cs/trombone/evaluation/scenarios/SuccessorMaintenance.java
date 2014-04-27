@@ -20,7 +20,7 @@ public class SuccessorMaintenance extends DisseminationStrategy implements Named
     static final First SUCCESSOR = new First(1, Selector.ReachabilityCriteria.REACHABLE);
     static final Last PREDECESSOR = new Last(1, Selector.ReachabilityCriteria.REACHABLE);
     static final Last REACHABLE_PREDECESSOR = new Last(1, Selector.ReachabilityCriteria.REACHABLE);
-    static final Self SELF = Self.getInstance();
+    static final Self SELF = Self.INSTANCE;
     private static final long serialVersionUID = 3153617698283830110L;
 
     public SuccessorMaintenance() {

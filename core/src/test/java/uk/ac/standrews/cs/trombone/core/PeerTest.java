@@ -80,7 +80,7 @@ public class PeerTest {
     @Test
     public void testPull() throws Exception {
 
-        final List<PeerReference> reference = peer.pull(Self.getInstance());
+        final List<PeerReference> reference = peer.pull(Self.INSTANCE);
         assertEquals(peer_reference, reference.get(0));
     }
 

@@ -19,7 +19,7 @@ import uk.ac.standrews.cs.trombone.event.EventExecutor;
 import uk.ac.standrews.cs.trombone.event.EventQueue;
 import uk.ac.standrews.cs.trombone.event.Scenario;
 
-import static uk.ac.standrews.cs.trombone.evaluation.BlubBatchEventUpload.BLUB_NODE_RESULTS_HOME;
+import static uk.ac.standrews.cs.trombone.evaluation.BlubUnzippedExperiment.BLUB_NODE_RESULTS_HOME;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
@@ -127,7 +127,7 @@ public class BlubUnzipEventExecutionJob implements Job<String> {
 
     private static Scenario getScenarioByName(final String scenario_name) {
 
-        for (Scenario scenario : ScenarioBatches.BATCHES_6_TO_9_SCENARIOS) {
+        for (Scenario scenario : ScenarioBatches.BATCH_1_SCENARIOS) {
             if (scenario.getName().equals(scenario_name)) {
                 return scenario;
             }

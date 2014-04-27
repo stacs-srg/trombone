@@ -30,7 +30,7 @@ public class SingleProcessPeerManager implements ApplicationManager {
         final DisseminationStrategy strategy = MAINTENANCE.getStrategy();
         final First successor = new First(1, Selector.ReachabilityCriteria.REACHABLE);
         final Last predecessor = new Last(1, Selector.ReachabilityCriteria.REACHABLE);
-        final Self self = Self.getInstance();
+        final Self self = Self.INSTANCE;
 
         strategy.addAction(new DisseminationStrategy.Action(false, false, predecessor, successor));
         strategy.addAction(new DisseminationStrategy.Action(false, false, successor, predecessor));
