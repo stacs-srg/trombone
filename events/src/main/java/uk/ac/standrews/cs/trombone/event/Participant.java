@@ -2,11 +2,13 @@ package uk.ac.standrews.cs.trombone.event;
 
 import java.net.InetSocketAddress;
 import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
+import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
+import uk.ac.standrews.cs.trombone.core.PeerFactory;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.key.Key;
-import uk.ac.standrews.cs.trombone.event.churn.Churn;
-import uk.ac.standrews.cs.trombone.event.churn.Workload;
+import uk.ac.standrews.cs.trombone.event.environment.Churn;
+import uk.ac.standrews.cs.trombone.event.environment.Workload;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class Participant implements Comparable<Participant> {
@@ -19,6 +21,8 @@ public class Participant implements Comparable<Participant> {
     private final PeerConfiguration configuration;
     private final PeerReference reference;
     private int host_index;
+
+    private Peer peer;
 
     public Participant(int id, final Key key, final InetSocketAddress address, final Churn churn, final Workload workload, final PeerConfiguration configuration) {
 
@@ -116,5 +120,13 @@ public class Participant implements Comparable<Participant> {
     public void setHostIndex(final int host_index) {
 
         this.host_index = host_index;
+    }
+
+    public synchronized Peer getPeer() {
+
+        if (peer == null) {
+            peer = PeerFactory.createPeer(reference, configuration);
+        }
+        return peer;
     }
 }

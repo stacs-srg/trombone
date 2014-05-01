@@ -1,4 +1,4 @@
-package uk.ac.standrews.cs.trombone.event.churn;
+package uk.ac.standrews.cs.trombone.event.environment;
 
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
@@ -8,7 +8,7 @@ import uk.ac.standrews.cs.trombone.core.util.Named;
 import uk.ac.standrews.cs.trombone.core.util.NamingUtils;
 
 import static java.lang.Math.PI;
-import static uk.ac.standrews.cs.trombone.event.churn.FixedExponentialInterval.nextExponential;
+import static uk.ac.standrews.cs.trombone.event.environment.FixedExponentialInterval.nextExponential;
 
 /**
  * Generates exponentially distributed intervals with oscillating mean interval.

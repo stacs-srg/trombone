@@ -29,8 +29,10 @@ public class ScenarioAnalyzer implements Closeable {
 
         this.scenario_name = scenario_name;
         repetitions = getRepetitions();
-                LOGGER.info("unsharding {}", scenario_name);
-                AnalyticsUtil.unshard(repetitions);
+
+        // TODO unshard only if the data is sharded
+        LOGGER.info("unsharding {}", scenario_name);
+        AnalyticsUtil.unshard(repetitions);
 
         file_systems = new ArrayList<>();
         for (Path repetition : repetitions) {

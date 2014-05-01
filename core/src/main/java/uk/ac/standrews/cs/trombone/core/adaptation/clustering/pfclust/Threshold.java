@@ -96,7 +96,7 @@ public class Threshold {
         int size = distribution.size();
 
         //Holds threshold values.
-        ArrayList<Double> thresholds = new ArrayList<Double>();
+        ArrayList<Double> thresholds = new ArrayList<>();
 
         //Selects two values from 95% and 95.75% levels.
         thresholds.add(distribution.get((int) (size * 0.05)));

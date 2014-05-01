@@ -5,6 +5,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.ml.clustering.CentroidCluster;
@@ -28,6 +29,7 @@ public class PFClustClustererTest {
     private static final int POINTS_COUNT = 100;
     private static final int POINT_DIMENSION = 10;
     private static final CosineSimilarity COSINE_SIMILARITY = new CosineSimilarity();
+    public static final byte[] SEED = DigestUtils.md5("test");
     private static String[] TEST_FILE_NAMES = {
             "cath_12.tsv", "random_14.tsv", "s_2.tsv", "s_3.tsv"
     };
@@ -36,7 +38,7 @@ public class PFClustClustererTest {
     @Ignore
     public void testSpeed() throws Exception {
 
-        final PFClustClusterer<DoublePoint> clusterer = new PFClustClusterer<DoublePoint>();
+        final PFClustClusterer<DoublePoint> clusterer = new PFClustClusterer<DoublePoint>(SEED);
         System.out.println("'point_count', 'cluster_size', 'clustering_time_ms'");
         for (int i = 500; i <= 500; i++) {
 
@@ -79,7 +81,7 @@ public class PFClustClustererTest {
     @Test
     public void testCluster() throws Exception {
 
-        final PFClustClusterer clusterer = new PFClustClusterer();
+        final PFClustClusterer clusterer = new PFClustClusterer(SEED);
         for (final String test_file_name : TEST_FILE_NAMES) {
 
             LOGGER.info("testing {}", test_file_name);

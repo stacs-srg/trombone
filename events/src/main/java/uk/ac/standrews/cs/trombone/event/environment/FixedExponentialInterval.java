@@ -1,4 +1,4 @@
-package uk.ac.standrews.cs.trombone.event.churn;
+package uk.ac.standrews.cs.trombone.event.environment;
 
 import java.util.Arrays;
 import java.util.Random;

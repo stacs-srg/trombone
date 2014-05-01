@@ -17,7 +17,7 @@
  * along with Trombone.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package uk.ac.standrews.cs.trombone.event.churn;
+package uk.ac.standrews.cs.trombone.event.environment;
 
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.core.key.Key;

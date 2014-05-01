@@ -13,11 +13,8 @@ import uk.ac.standrews.cs.trombone.core.PeerReference;
  */
 public class JoinEvent extends Event {
 
-    public static final String PARAMETER_DELIMITER = " ";
-    static final int JOIN_EVENT_CODE = 1;
     private static final long serialVersionUID = 82641656657049852L;
     private Long duration_nanos;
-    private Set<Participant> known_peers;
     private Set<PeerReference> known_peer_references;
 
     JoinEvent(final Participant source, long time_nanos) {
@@ -31,15 +28,10 @@ public class JoinEvent extends Event {
         setDurationInNanos(session_duration);
     }
 
-    JoinEvent(final PeerReference source, Integer source_id, long occurrence_time_nanos) {
-
-        super(source, source_id, occurrence_time_nanos);
-    }
-
     @Override
     public int hashCode() {
 
-        return new HashCodeBuilder().append(getCode()).appendSuper(super.hashCode()).toHashCode();
+        return new HashCodeBuilder().append(duration_nanos).appendSuper(super.hashCode()).toHashCode();
     }
 
     @Override
@@ -49,7 +41,7 @@ public class JoinEvent extends Event {
         if (!(other instanceof JoinEvent)) { return false; }
         final JoinEvent that = (JoinEvent) other;
 
-        return known_peers.equals(that.known_peers) && super.equals(other);
+        return duration_nanos == that.duration_nanos && super.equals(other);
     }
 
     @Override
@@ -58,7 +50,7 @@ public class JoinEvent extends Event {
         final StringBuilder sb = new StringBuilder("JoinEvent{");
         sb.append("time=").append(getTimeInNanos());
         sb.append(", peer=").append(getSource());
-        sb.append(", known_peers=").append(Arrays.toString(known_peers.toArray()));
+        sb.append(", known_peer_references=").append(Arrays.toString(known_peer_references.toArray()));
         sb.append('}');
         return sb.toString();
     }
@@ -76,7 +68,6 @@ public class JoinEvent extends Event {
 
     public void setKnownPeers(final Set<Participant> known_peers) {
 
-        this.known_peers = known_peers;
         Set<PeerReference> references = new HashSet<>();
         for (Participant known_peer : known_peers) {
 
@@ -93,27 +84,6 @@ public class JoinEvent extends Event {
     public Set<PeerReference> getKnownPeerReferences() {
 
         return known_peer_references;
-    }
-
-    @Override
-    int getCode() {
-
-        return JOIN_EVENT_CODE;
-    }
-
-    @Override
-    String getParameters() {
-
-        if (duration_nanos == null) { throw new IllegalArgumentException("duration must be specified when peer is available"); }
-
-        final StringBuilder parameters = new StringBuilder();
-        parameters.append(duration_nanos);
-        parameters.append(PARAMETER_DELIMITER);
-        for (Participant known_peer : known_peers) {
-            parameters.append(known_peer.getId());
-            parameters.append(PARAMETER_DELIMITER);
-        }
-        return parameters.toString().trim();
     }
 
     void setDurationInNanos(Long duration_nanos) {

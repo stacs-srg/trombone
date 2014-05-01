@@ -11,38 +11,27 @@ public abstract class Event extends EventObject implements Comparable<Event> {
     private static final long serialVersionUID = -3008406138733512647L;
     private static final AtomicLong NEXT_ID = new AtomicLong();
     protected final Long time_nanos;
-    private final Integer source_id;
     private final Long id;
     private transient Participant participant;
 
     protected Event(final Participant source, Long time_nanos) {
 
-        this(source.getReference(), source.getId(), time_nanos);
+        this(source.getReference(), time_nanos);
         participant = source;
     }
 
-    /**
-     * @param source the peer on which this event occurs
-     * @param source_id
-     * @param time_nanos the moment in time at which this event occurs
-     */
-    protected Event(final PeerReference source, Integer source_id, Long time_nanos) {
+    protected Event(final PeerReference source, Long time_nanos) {
 
         super(source);
-        this.source_id = source_id;
         this.time_nanos = time_nanos;
         id = NEXT_ID.getAndIncrement();
+
     }
 
     @Override
     public PeerReference getSource() {
 
         return (PeerReference) super.getSource();
-    }
-
-    public Integer getSourceId() {
-
-        return source_id;
     }
 
     public Long getTimeInNanos() {
@@ -76,8 +65,4 @@ public abstract class Event extends EventObject implements Comparable<Event> {
 
         return participant;
     }
-
-    abstract int getCode();
-
-    abstract String getParameters();
 }

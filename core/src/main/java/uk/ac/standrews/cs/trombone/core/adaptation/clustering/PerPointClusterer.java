@@ -25,7 +25,7 @@ public final class PerPointClusterer<Point extends Clusterable> extends Clustere
     @Override
     public List<CentroidCluster<Point>> cluster(final Collection<Point> points) {
 
-        List<CentroidCluster<Point>> clustering = new ArrayList<>(points.size());
+        final List<CentroidCluster<Point>> clustering = new ArrayList<>(points.size());
         for (Point point : points) {
             final CentroidCluster<Point> cluster = new CentroidCluster<>(point);
             cluster.addPoint(point);

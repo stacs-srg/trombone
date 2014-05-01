@@ -17,7 +17,7 @@
  * along with Trombone.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package uk.ac.standrews.cs.trombone.event.churn;
+package uk.ac.standrews.cs.trombone.event.environment;
 
 import java.util.concurrent.TimeUnit;
 import org.uncommons.maths.random.Probability;
@@ -52,7 +52,7 @@ public class Churn implements Copyable {
 
     public Probability getAvailabilityAt(final long time_nanos) {
 
-        checkTime(time_nanos);
+        checkPositiveTime(time_nanos);
 
         final double mean_session_length = session_lengths.getMeanAt(time_nanos);
         final double mean_downtime = downtimes.getMeanAt(time_nanos);
@@ -63,17 +63,17 @@ public class Churn implements Copyable {
 
     public long getSessionLengthAt(final long time_nanos) {
 
-        checkTime(time_nanos);
+        checkPositiveTime(time_nanos);
         return session_lengths.get(time_nanos);
     }
 
     public long getDowntimeAt(final long time_nanos) {
 
-        checkTime(time_nanos);
+        checkPositiveTime(time_nanos);
         return downtimes.get(time_nanos);
     }
 
-    private void checkTime(final long time_nanos) {
+    private static void checkPositiveTime(final long time_nanos) {
 
         if (time_nanos < 0) {
             throw new IllegalArgumentException("time through experiment cannot be negative: " + time_nanos);

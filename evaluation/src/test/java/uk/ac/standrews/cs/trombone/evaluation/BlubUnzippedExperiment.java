@@ -60,7 +60,7 @@ public class BlubUnzippedExperiment {
     private static final LinkedBlockingQueue<String> AVAILABLE_HOSTS = new LinkedBlockingQueue<>(BlubCluster.getNodeNames());
 
     static {
-        AVAILABLE_HOSTS.remove("compute-0-6.local");
+        //        AVAILABLE_HOSTS.remove("compute-0-6.local");
     }
 
     private static final Duration ADDITIONAL_WAIT = new Duration(30, TimeUnit.MINUTES);
@@ -76,6 +76,7 @@ public class BlubUnzippedExperiment {
     private final List<ApplicationDescriptor> workers = new ArrayList<>();
     private final WorkerManager manager;
     private static final long RANDOM_SEED = 895623;
+    private static final Random RANDOM = new Random(RANDOM_SEED);
 
     @Rule
     public ExperimentWatcher watcher = new ExperimentWatcher();
@@ -98,7 +99,7 @@ public class BlubUnzippedExperiment {
             }
         }
 
-        Collections.shuffle(scenarios_with_repetitions, new Random(RANDOM_SEED));
+        Collections.shuffle(scenarios_with_repetitions, RANDOM);
         return Combinations.generateArgumentCombinations(new Object[][] {
                 scenarios_with_repetitions.toArray()
         });
@@ -116,7 +117,8 @@ public class BlubUnzippedExperiment {
 
         network = new WorkerNetwork();
         final WorkerManager manager = network.getWorkerManager();
-        manager.setWorkerJVMArguments("-Xmx6G -Xms1G -XX:MaxPermSize=512m -XX:+HeapDumpOnOutOfMemoryError -XX:+UseG1GC");
+        manager.setWorkerJVMArguments("-Xmx6G -Xms1G -XX:MaxPermSize=512m -XX:+HeapDumpOnOutOfMemoryError");
+        //        manager.setWorkerJVMArguments("-Xmx6G -Xms1G -XX:MaxPermSize=512m -XX:+HeapDumpOnOutOfMemoryError -XX:+UseG1GC");
         manager.setWorkerDeploymentTimeout(new Duration(5, TimeUnit.MINUTES));
 
         //        network.addMavenDependency("uk.ac.standrews.cs.t3", "evaluation", "1.0-SNAPSHOT", "tests");

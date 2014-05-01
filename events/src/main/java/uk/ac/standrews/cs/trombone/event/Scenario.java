@@ -38,8 +38,8 @@ import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.core.key.KeyProvider;
 import uk.ac.standrews.cs.trombone.core.util.Copyable;
 import uk.ac.standrews.cs.trombone.core.util.Named;
-import uk.ac.standrews.cs.trombone.event.churn.Churn;
-import uk.ac.standrews.cs.trombone.event.churn.Workload;
+import uk.ac.standrews.cs.trombone.event.environment.Churn;
+import uk.ac.standrews.cs.trombone.event.environment.Workload;
 import uk.ac.standrews.cs.trombone.event.provider.SequentialPortNumberProvider;
 
 /**
@@ -200,7 +200,6 @@ public class Scenario implements Named, Copyable {
             for (int i = 0; i < host_scenario.peer_count; i++) {
 
                 final Key peer_key = peer_key_provider.get();
-                //                final InetSocketAddress peer_address = InetSocketAddress.createUnresolved(host_scenario.getHostName(), host_scenario.getNextPort());
                 final InetSocketAddress peer_address = new InetSocketAddress(host_scenario.getHostName(), host_scenario.getNextPort());
                 final Participant participant = new Participant(next_id, peer_key, peer_address, host_scenario.churn, host_scenario.workload, host_scenario.configuration);
                 participant.setHostIndex(host_scenario.host_index);

@@ -8,21 +8,12 @@ import uk.ac.standrews.cs.trombone.core.key.Key;
 public class LookupEvent extends Event {
 
     private static final long serialVersionUID = 8171231149854930079L;
-    static final int LOOKUP_EVENT_CODE = 2;
     private final Key target;
     private transient PeerReference expected_result;
-    private Integer expected_result_id;
-    private Integer target_id;
 
     LookupEvent(final Participant source, final Long time_nanos, final Key target) {
 
         super(source, time_nanos);
-        this.target = target;
-    }
-
-    LookupEvent(final PeerReference source, Integer source_id, final Long time_nanos, final Key target) {
-
-        super(source, source_id, time_nanos);
         this.target = target;
     }
 
@@ -39,13 +30,11 @@ public class LookupEvent extends Event {
     public void setExpectedResult(final Participant expected_result) {
 
         this.expected_result = expected_result.getReference();
-        expected_result_id = expected_result.getId();
     }
 
-    public void setExpectedResult(final PeerReference expected_result, Integer expected_result_id) {
+    public void setExpectedResult(final PeerReference expected_result) {
 
         this.expected_result = expected_result;
-        this.expected_result_id = expected_result_id;
     }
 
     @Override
@@ -73,23 +62,5 @@ public class LookupEvent extends Event {
         sb.append(", expected_result=").append(expected_result);
         sb.append('}');
         return sb.toString();
-    }
-
-    public void setTargetId(Integer target_id) {
-
-        this.target_id = target_id;
-    }
-
-    @Override
-    int getCode() {
-
-        return LOOKUP_EVENT_CODE;
-    }
-
-    @Override
-    String getParameters() {
-
-        if (target_id == null) { throw new NullPointerException("target id is null"); }
-        return target_id + ":" + expected_result_id;
     }
 }

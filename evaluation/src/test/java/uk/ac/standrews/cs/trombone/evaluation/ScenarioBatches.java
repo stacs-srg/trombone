@@ -16,7 +16,8 @@ import uk.ac.standrews.cs.trombone.event.Scenario;
  */
 public final class ScenarioBatches {
 
-    private static final Object[] ALL_CHURN_MODELS = {Constants.NO_CHURN, Constants.CHURN_1, Constants.CHURN_2, Constants.CHURN_3, Constants.CHURN_4, Constants.CHURN_5, Constants.CHURN_6};
+    //    private static final Object[] ALL_CHURN_MODELS = {Constants.NO_CHURN, Constants.CHURN_1, Constants.CHURN_2, Constants.CHURN_3, Constants.CHURN_4, Constants.CHURN_5, Constants.CHURN_6};
+    private static final Object[] ALL_CHURN_MODELS = {Constants.NO_CHURN, Constants.CHURN_1, Constants.CHURN_2, Constants.CHURN_4, Constants.CHURN_5, Constants.CHURN_6};
     private static final Object[] ALL_WORKLOAD_MODELS = {Constants.NO_WORKLOAD, Constants.WORKLOAD_1, Constants.WORKLOAD_2, Constants.WORKLOAD_3};
 
     private static final SyntheticDelay[] SYNTHETIC_DELAYS = {Constants.BLUB_UNIFORMLY_DISTRIBUTED_SYNTHETIC_DELAY};
@@ -30,8 +31,10 @@ public final class ScenarioBatches {
                     Constants.RANDOM_SELECTOR_MAINTENANCE_3,
                     Constants.MOST_RECENTLY_SEEN_3,
                     
-                    //Basic Adaptive: no clustering
-                    Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10
+                    Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10 ,
+                    Constants.EVOLUTIONARY_MAINTENANCE_PER_POINT_CLUSTER_10,
+                    Constants.EVOLUTIONARY_MAINTENANCE_KMEAN_PLUS_PLUS_10,
+                    Constants.RANDOM_MAINTENANCE_10
             },
             //@formatter:on
 
@@ -49,38 +52,38 @@ public final class ScenarioBatches {
     ).toArray();
 
     private static final Object[][] BATCH_1 = {
-            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, CONFIGURATION_STATIC_AND_BASIC_ADAPTIVE
+            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, CONFIGURATION_STATIC_AND_BASIC_ADAPTIVE, {Constants.EXPERIMENT_DURATION_4}
     };
 
     private static final Object[][] BATCH_2 = {
-            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, CONFIGURATION_ADAPTIVE
+            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, CONFIGURATION_ADAPTIVE, {Constants.EXPERIMENT_DURATION_4}
     };
 
     private static final Object[][] BATCH_3 = {
-            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, PeerConfigurationGenerator.generate(new Maintenance[] {Constants.RANDOM_MAINTENANCE}, SYNTHETIC_DELAYS).toArray()
+            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, PeerConfigurationGenerator.generate(new Maintenance[] {Constants.RANDOM_MAINTENANCE_10}, SYNTHETIC_DELAYS).toArray(), {Constants.EXPERIMENT_DURATION_4}
     };
 
     private static final Object[][] BATCH_4 = {
             ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, PeerConfigurationGenerator.generate(new Maintenance[] {
                     Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10, Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_20, Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_30, Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_40, Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_50
             }, SYNTHETIC_DELAYS
-    ).toArray()
+    ).toArray(), {Constants.EXPERIMENT_DURATION_4}
     };
 
     private static final Object[][] BATCH_5 = {
-            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, PeerConfigurationGenerator.generate(new Maintenance[] {Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_10_HOURS}, SYNTHETIC_DELAYS).toArray()
+            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, PeerConfigurationGenerator.generate(new Maintenance[] {Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_10_HOURS}, SYNTHETIC_DELAYS).toArray(), {Constants.EXPERIMENT_DURATION_14}
     };
     private static final Object[][] BATCH_6 = {
-            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, PeerConfigurationGenerator.generate(new Maintenance[] {Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_8_HOURS}, SYNTHETIC_DELAYS).toArray()
+            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, PeerConfigurationGenerator.generate(new Maintenance[] {Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_8_HOURS}, SYNTHETIC_DELAYS).toArray(), {Constants.EXPERIMENT_DURATION_12}
     };
     private static final Object[][] BATCH_7 = {
-            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, PeerConfigurationGenerator.generate(new Maintenance[] {Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_6_HOURS}, SYNTHETIC_DELAYS).toArray()
+            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, PeerConfigurationGenerator.generate(new Maintenance[] {Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_6_HOURS}, SYNTHETIC_DELAYS).toArray(), {Constants.EXPERIMENT_DURATION_10}
     };
     private static final Object[][] BATCH_8 = {
-            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, PeerConfigurationGenerator.generate(new Maintenance[] {Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_4_HOURS}, SYNTHETIC_DELAYS).toArray()
+            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, PeerConfigurationGenerator.generate(new Maintenance[] {Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_4_HOURS}, SYNTHETIC_DELAYS).toArray(), {Constants.EXPERIMENT_DURATION_8}
     };
     private static final Object[][] BATCH_9 = {
-            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, PeerConfigurationGenerator.generate(new Maintenance[] {Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_2_HOURS}, SYNTHETIC_DELAYS).toArray()
+            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, PeerConfigurationGenerator.generate(new Maintenance[] {Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_2_HOURS}, SYNTHETIC_DELAYS).toArray(), {Constants.EXPERIMENT_DURATION_6}
     };
 
     public static final List<Scenario> BATCH_1_SCENARIOS = BaseScenario.generateAll("scenario_", BATCH_1);
@@ -97,22 +100,6 @@ public final class ScenarioBatches {
 
     static {
 
-        for (Scenario scenario : BATCH_5_SCENARIOS) {
-            scenario.setExperimentDuration(Constants.EXPERIMENT_DURATION_14);
-        }
-        for (Scenario scenario : BATCH_6_SCENARIOS) {
-            scenario.setExperimentDuration(Constants.EXPERIMENT_DURATION_12);
-        }
-        for (Scenario scenario : BATCH_7_SCENARIOS) {
-            scenario.setExperimentDuration(Constants.EXPERIMENT_DURATION_10);
-        }
-        for (Scenario scenario : BATCH_8_SCENARIOS) {
-            scenario.setExperimentDuration(Constants.EXPERIMENT_DURATION_8);
-        }
-        for (Scenario scenario : BATCH_9_SCENARIOS) {
-            scenario.setExperimentDuration(Constants.EXPERIMENT_DURATION_6);
-        }
-
         BATCHES_5_TO_9_SCENARIOS.addAll(BATCH_5_SCENARIOS);
         BATCHES_5_TO_9_SCENARIOS.addAll(BATCH_6_SCENARIOS);
         BATCHES_5_TO_9_SCENARIOS.addAll(BATCH_7_SCENARIOS);
@@ -122,12 +109,11 @@ public final class ScenarioBatches {
 
     public static void main(String[] args) {
 
-        System.out.println(BATCHES_5_TO_9_SCENARIOS.size());
+        System.out.println(BATCH_1_SCENARIOS.size());
         Duration dd = new Duration(0, TimeUnit.HOURS);
-        for (Scenario scenario : BATCHES_5_TO_9_SCENARIOS) {
-            
+        for (Scenario scenario : BATCH_1_SCENARIOS) {
+
             dd = dd.add(scenario.getExperimentDuration());
-            
         }
 
         System.out.println(dd);

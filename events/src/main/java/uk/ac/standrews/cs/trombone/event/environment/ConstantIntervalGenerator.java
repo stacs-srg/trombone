@@ -1,4 +1,4 @@
-package uk.ac.standrews.cs.trombone.event.churn;
+package uk.ac.standrews.cs.trombone.event.environment;
 
 import java.util.concurrent.TimeUnit;
 import uk.ac.standrews.cs.shabdiz.util.Duration;

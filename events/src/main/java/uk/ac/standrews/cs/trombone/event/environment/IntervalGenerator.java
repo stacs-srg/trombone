@@ -1,4 +1,4 @@
-package uk.ac.standrews.cs.trombone.event.churn;
+package uk.ac.standrews.cs.trombone.event.environment;
 
 import uk.ac.standrews.cs.trombone.core.util.Copyable;
 
@@ -9,7 +9,7 @@ public interface IntervalGenerator extends Copyable {
 
     long get(long time_nanos);
 
-    long getMeanAt(final long time_nanos);
+    long getMeanAt(long time_nanos);
 
     @Override
     IntervalGenerator copy();

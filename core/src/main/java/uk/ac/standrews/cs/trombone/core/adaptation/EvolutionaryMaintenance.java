@@ -129,7 +129,7 @@ public class EvolutionaryMaintenance extends Maintenance {
             evaluated_strategies = new ArrayList<>();
         }
 
-        public List<EvaluatedDisseminationStrategy> getEvaluated_strategies() {
+        public List<EvaluatedDisseminationStrategy> getEvaluatedStrategies() {
 
             return Collections.unmodifiableList(evaluated_strategies);
         }

@@ -17,25 +17,26 @@ import uk.ac.standrews.cs.trombone.core.adaptation.clustering.PerPointClusterer;
 import uk.ac.standrews.cs.trombone.core.adaptation.clustering.pfclust.PFClustClusterer;
 import uk.ac.standrews.cs.trombone.core.key.KeyProvider;
 import uk.ac.standrews.cs.trombone.core.key.ZipfKeyProvider;
-import uk.ac.standrews.cs.trombone.event.churn.Churn;
-import uk.ac.standrews.cs.trombone.event.churn.FixedExponentialInterval;
-import uk.ac.standrews.cs.trombone.event.churn.IntervalGenerator;
-import uk.ac.standrews.cs.trombone.event.churn.OscillatingExponentialInterval;
-import uk.ac.standrews.cs.trombone.event.churn.Workload;
+import uk.ac.standrews.cs.trombone.event.environment.Churn;
+import uk.ac.standrews.cs.trombone.event.environment.FixedExponentialInterval;
+import uk.ac.standrews.cs.trombone.event.environment.IntervalGenerator;
+import uk.ac.standrews.cs.trombone.event.environment.OscillatingExponentialInterval;
+import uk.ac.standrews.cs.trombone.event.environment.Workload;
 import uk.ac.standrews.cs.trombone.event.provider.SequentialPortNumberProvider;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public final class Constants {
-    
+
     private Constants() {
 
     }
-    
+
+    public static final byte[] SCENARIO_MASTER_SEED = BinaryUtils.convertHexStringToBytes("2AAFEAE2AB6A2C60109803310D9254DF");
     public static final int NUMBER_OF_REPETITIONS = 5;
     public static final int NETWORK_SIZE = 1_000;
-    public static final PFClustClusterer<EvaluatedDisseminationStrategy> PF_CLUST_CLUSTERER = new PFClustClusterer<>();
+    public static final PFClustClusterer<EvaluatedDisseminationStrategy> PF_CLUST_CLUSTERER = new PFClustClusterer<>(SCENARIO_MASTER_SEED);
 
     public static final Duration EXPERIMENT_DURATION_14 = new Duration(14, TimeUnit.HOURS);
     public static final Duration EXPERIMENT_DURATION_12 = new Duration(12, TimeUnit.HOURS);
@@ -50,7 +51,7 @@ public final class Constants {
     public static final Maintenance SUCCESSOR_LIST_MAINTENANCE_5 = new Maintenance(new SuccessorListMaintenance(5));
     public static final Maintenance RANDOM_SELECTOR_MAINTENANCE_3 = new Maintenance(new RandomSelectorMaintenance(3, 3));
     public static final Maintenance MOST_RECENTLY_SEEN_3 = new Maintenance(new MostRecentlySeenMaintenance(3, 3));
-    public static final Maintenance RANDOM_MAINTENANCE = new RandomMaintenance(10, 2, TimeUnit.MINUTES, new PerPointClusterer<EvaluatedDisseminationStrategy>());
+    public static final Maintenance RANDOM_MAINTENANCE_10 = new RandomMaintenance(10, 2, TimeUnit.MINUTES, new PerPointClusterer<EvaluatedDisseminationStrategy>());
 
     public static final EvolutionaryMaintenance.ElapsedTimeTerminationCondition TERMINATION_CONDITION_10 = new EvolutionaryMaintenance.ElapsedTimeTerminationCondition(10, TimeUnit.HOURS);
     public static final EvolutionaryMaintenance.ElapsedTimeTerminationCondition TERMINATION_CONDITION_8 = new EvolutionaryMaintenance.ElapsedTimeTerminationCondition(8, TimeUnit.HOURS);
@@ -58,7 +59,7 @@ public final class Constants {
     public static final EvolutionaryMaintenance.ElapsedTimeTerminationCondition TERMINATION_CONDITION_4 = new EvolutionaryMaintenance.ElapsedTimeTerminationCondition(4, TimeUnit.HOURS);
     public static final EvolutionaryMaintenance.ElapsedTimeTerminationCondition TERMINATION_CONDITION_2 = new EvolutionaryMaintenance.ElapsedTimeTerminationCondition(2, TimeUnit.HOURS);
 
-    public static final EvolutionaryMaintenance EVOLUTIONARY_MAINTENANCE_PFCLUST_10 = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
+    public static final EvolutionaryMaintenance EVOLUTIONARY_MAINTENANCE_PFCLUST_10 = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.SECONDS, PF_CLUST_CLUSTERER);
 
     public static final EvolutionaryMaintenance EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_10_HOURS = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
     public static final EvolutionaryMaintenance EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_8_HOURS = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
@@ -81,7 +82,6 @@ public final class Constants {
     public static final EvolutionaryMaintenance EVOLUTIONARY_MAINTENANCE_KMEAN_PLUS_PLUS_10 = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, new KMeansPlusPlusClusterer<EvaluatedDisseminationStrategy>(5, 100, new EuclideanDistance(), new MersenneTwister(852)));
     public static final EvolutionaryMaintenance EVOLUTIONARY_MAINTENANCE_PER_POINT_CLUSTER_10 = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, new PerPointClusterer<EvaluatedDisseminationStrategy>());
 
-
     private static final byte[] SEED = BinaryUtils.convertHexStringToBytes("2ABFEAE2AB6A2C60109803310D9254DF");
     public static final UniformSyntheticDelay BLUB_UNIFORMLY_DISTRIBUTED_SYNTHETIC_DELAY = new UniformSyntheticDelay(233763, 866279, DigestUtils.md5("masih"));
     public static final int ACTIVE_MAINTENANCE_INTERVAL_MILLIS = 1_500;
@@ -96,25 +96,28 @@ public final class Constants {
     public static final Duration DURATION_1_S = new Duration(1, TimeUnit.SECONDS);
     public static final Duration DURATION_10_S = new Duration(10, TimeUnit.SECONDS);
     public static final Duration DURATION_30_S = new Duration(30, TimeUnit.SECONDS);
-    public static final Duration DURATION_1_MIN = new Duration(1, TimeUnit.MINUTES); // 1  sec
-    public static final Duration DURATION_10_MIN = new Duration(10, TimeUnit.MINUTES);    // 10 sec
+    public static final Duration DURATION_1_MIN = new Duration(1, TimeUnit.MINUTES);
+    public static final Duration DURATION_10_MIN = new Duration(10, TimeUnit.MINUTES);    
     public static final Duration DURATION_30_MIN = new Duration(30, TimeUnit.MINUTES);
-    public static final Duration DURATION_2_HOUR = new Duration(2 , TimeUnit.HOURS);     //  2 min
+    public static final Duration DURATION_2_HOUR = new Duration(2, TimeUnit.HOURS);   
 
     // Distributions
     public static final IntervalGenerator FIXED_EXP_1_S = new FixedExponentialInterval(DURATION_1_S, SEED);
     public static final IntervalGenerator FIXED_EXP_10_S = new FixedExponentialInterval(DURATION_10_S, SEED);
     public static final IntervalGenerator FIXED_EXP_30_S = new FixedExponentialInterval(DURATION_30_S, SEED);
-    public static final IntervalGenerator FIXED_EXP_30_MIN = new FixedExponentialInterval(DURATION_30_MIN, SEED); 
+    public static final IntervalGenerator FIXED_EXP_10_MIN = new FixedExponentialInterval(DURATION_10_MIN, SEED);
+    public static final IntervalGenerator FIXED_EXP_30_MIN = new FixedExponentialInterval(DURATION_30_MIN, SEED);
     public static final IntervalGenerator OSCILLATING_EXP_10_S_TO_1_S = new OscillatingExponentialInterval(DURATION_10_S, DURATION_1_S, DURATION_30_MIN, SEED);
     public static final IntervalGenerator OSCILLATING_EXP_10_MIN_TO_1_MIN = new OscillatingExponentialInterval(DURATION_10_MIN, DURATION_1_MIN, DURATION_2_HOUR, SEED);
     public static final IntervalGenerator OSCILLATING_EXP_1_MIN_TO_10_MIN = new OscillatingExponentialInterval(DURATION_1_MIN, DURATION_10_MIN, DURATION_2_HOUR, SEED);
 
     // Churn patterns
     public static final Churn NO_CHURN = Churn.NONE;
-    public static final Churn CHURN_1 = new Churn(FIXED_EXP_30_S, FIXED_EXP_30_S);
-    public static final Churn CHURN_2 = new Churn(FIXED_EXP_30_S, FIXED_EXP_30_MIN);
-    public static final Churn CHURN_3 = new Churn(FIXED_EXP_30_MIN, FIXED_EXP_30_S);
+    //    public static final Churn CHURN_1 = new Churn(FIXED_EXP_30_S, FIXED_EXP_30_S);
+    //    public static final Churn CHURN_2 = new Churn(FIXED_EXP_30_S, FIXED_EXP_30_MIN);
+    //    public static final Churn CHURN_3 = new Churn(FIXED_EXP_30_MIN, FIXED_EXP_30_S);
+    public static final Churn CHURN_1 = new Churn(FIXED_EXP_30_MIN, FIXED_EXP_10_MIN);
+    public static final Churn CHURN_2 = new Churn(FIXED_EXP_10_MIN, FIXED_EXP_30_MIN);
     public static final Churn CHURN_4 = new Churn(FIXED_EXP_30_MIN, FIXED_EXP_30_MIN);
     public static final Churn CHURN_5 = new Churn(OSCILLATING_EXP_10_MIN_TO_1_MIN, OSCILLATING_EXP_10_MIN_TO_1_MIN);
     public static final Churn CHURN_6 = new Churn(OSCILLATING_EXP_10_MIN_TO_1_MIN, OSCILLATING_EXP_1_MIN_TO_10_MIN);
@@ -126,5 +129,5 @@ public final class Constants {
     public static final Workload WORKLOAD_3 = new Workload(TARGET_KEY_PROVIDER, OSCILLATING_EXP_10_S_TO_1_S);
 
     public static final PeerConfiguration NO_MAINTENANCE_CONFIGURATION = new PeerConfiguration(NO_MAINTENANCE, BLUB_UNIFORMLY_DISTRIBUTED_SYNTHETIC_DELAY);
-    public static final byte[] SCENARIO_MASTER_SEED = BinaryUtils.convertHexStringToBytes("2AAFEAE2AB6A2C60109803310D9254DF");
+
 }

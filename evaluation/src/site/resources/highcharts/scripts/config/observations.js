@@ -213,6 +213,18 @@ define(['jquery', 'jquery_ui', 'util', 'mark', 'config/theme', 'data', 'series/d
             yAxis: {
                 title: {text: "Bytes Sent Per Alive Peer Per Second"}
             }
+        }, {
+            title: "RPC Error Rate Per Second",
+            series_provider: double("rpc_error_rate.csv"),
+            yAxis: {
+                title: {text: "RPC Error Rate Per Second"}
+            }
+        },, {
+            title: "Reconfiguration Rate Per Second",
+            series_provider: double("reconfiguration_rate.csv"),
+            yAxis: {
+                title: {text: "Reconfiguration Rate Per Second"}
+            }
         },
         {
             title: "JVM System Load Average Over One Minute",
@@ -243,6 +255,20 @@ define(['jquery', 'jquery_ui', 'util', 'mark', 'config/theme', 'data', 'series/d
                 min: 0,
                 max: 100
             }
+        },,
+        {
+            title: "JVM GC CPU Usage",
+            series_provider: double("gc_cpu_usage_gauge.csv", {
+                0: util.convert.secondToHour,
+                1: util.convert.toPercent,
+                2: util.convert.toPercent,
+                3: util.convert.toPercent
+            }),
+
+            yAxis: {
+                title: {text: "% of CPU Time Consumed By GC"},
+                min: 0
+            }
         },
         {
             title: "State Size: Unreachable per Alive Peer",
@@ -263,6 +289,20 @@ define(['jquery', 'jquery_ui', 'util', 'mark', 'config/theme', 'data', 'series/d
             series_provider: double("evolutionary_maintenance_cluster_size_sampler.csv"),
             yAxis: {
                 title: {text: "Mean Size of Environment Clusters"}
+            }
+        },
+        {
+            title: "Evolutionary Maintenance: Strategy Action Size",
+            series_provider: double("strategy_action_size_sampler.csv"),
+            yAxis: {
+                title: {text: "Mean Strategy Action Size"}
+            }
+        },
+        {
+            title: "Evolutionary Maintenance: Strategy Uniformity",
+            series_provider: double("strategy_uniformity_sampler.csv"),
+            yAxis: {
+                title: {text: "Mean Number of identical strategies across peers"}
             }
         },
         {

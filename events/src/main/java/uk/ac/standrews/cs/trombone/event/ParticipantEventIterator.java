@@ -1,13 +1,12 @@
 package uk.ac.standrews.cs.trombone.event;
 
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 import java.util.Random;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.mashti.gauge.util.LongAdder;
 import uk.ac.standrews.cs.trombone.core.key.Key;
-import uk.ac.standrews.cs.trombone.event.churn.Churn;
-import uk.ac.standrews.cs.trombone.event.churn.Workload;
+import uk.ac.standrews.cs.trombone.event.environment.Churn;
+import uk.ac.standrews.cs.trombone.event.environment.Workload;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
@@ -23,6 +22,8 @@ public class ParticipantEventIterator implements Iterator<Event>, Comparable<Par
     private final Random random;
     private boolean available;
     private long session_end_time;
+    private Event next_event;
+    private Event current_event;
 
     public ParticipantEventIterator(Participant participant, long experiment_duration_nanos, final Random random) {
 
@@ -32,16 +33,10 @@ public class ParticipantEventIterator implements Iterator<Event>, Comparable<Par
         churn = participant.getChurn();
         workload = participant.getWorkload();
         hashcode = new HashCodeBuilder(23, 91).append(participant).append(experiment_duration_nanos).toHashCode();
+        next_event = updateNextEvent();
     }
 
-    @Override
-    public synchronized boolean hasNext() {
-
-        return !(isTimeUp() && !available);
-    }
-
-    @Override
-    public synchronized Event next() {
+    private Event updateNextEvent() {
 
         final Event next_event;
         if (isTimeUp()) {
@@ -53,11 +48,24 @@ public class ParticipantEventIterator implements Iterator<Event>, Comparable<Par
         else {
             next_event = nextLookupEvent();
         }
-
         return next_event;
     }
 
-    public Long getCurrentTime() {
+    @Override
+    public synchronized boolean hasNext() {
+
+        return next_event != current_event;
+    }
+
+    @Override
+    public synchronized Event next() {
+
+        current_event = next_event;
+        next_event = updateNextEvent();
+        return current_event;
+    }
+
+    private Long getCurrentTime() {
 
         return current_time_nanos.longValue();
     }
@@ -71,8 +79,8 @@ public class ParticipantEventIterator implements Iterator<Event>, Comparable<Par
     @Override
     public int compareTo(final ParticipantEventIterator other) {
 
-        final int time_comparison = getCurrentTime().compareTo(other.getCurrentTime());
-        return time_comparison != 0 ? time_comparison : participant.compareTo(other.participant);
+        final int next_event_comparison = next_event.compareTo(other.next_event);
+        return next_event_comparison != 0 ? next_event_comparison : participant.compareTo(other.participant);
     }
 
     @Override
@@ -92,6 +100,12 @@ public class ParticipantEventIterator implements Iterator<Event>, Comparable<Par
         return hashcode;
     }
 
+    @Override
+    public String toString() {
+
+        return String.valueOf(participant.getId());
+    }
+
     private synchronized Event nextLookupEvent() {
 
         assert available;
@@ -107,7 +121,7 @@ public class ParticipantEventIterator implements Iterator<Event>, Comparable<Par
         }
         else {
             current_time_nanos.add(Math.max(0, session_end_time - current_time));
-            next_event = next();
+            next_event = updateNextEvent();
         }
         return next_event;
     }
@@ -120,8 +134,9 @@ public class ParticipantEventIterator implements Iterator<Event>, Comparable<Par
             available = false;
             return new LeaveEvent(participant, experiment_duration_nanos);
         }
-
-        throw new NoSuchElementException();
+        else {
+            return next_event;
+        }
     }
 
     private synchronized Event nextJoinLeaveEvent() {

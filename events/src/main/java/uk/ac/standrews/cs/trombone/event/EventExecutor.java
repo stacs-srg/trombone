@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.ExecutionException;
@@ -25,7 +24,6 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.apache.commons.codec.DecoderException;
 import org.apache.commons.io.FileUtils;
 import org.json.JSONObject;
 import org.mashti.gauge.Counter;
@@ -49,8 +47,6 @@ import uk.ac.standrews.cs.trombone.core.DisseminationStrategy;
 import uk.ac.standrews.cs.trombone.core.InternalPeerReference;
 import uk.ac.standrews.cs.trombone.core.Maintenance;
 import uk.ac.standrews.cs.trombone.core.Peer;
-import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
-import uk.ac.standrews.cs.trombone.core.PeerFactory;
 import uk.ac.standrews.cs.trombone.core.PeerMetric;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.PeerState;
@@ -88,8 +84,7 @@ public class EventExecutor {
     private final ExecutorService task_scheduler;
     private final ThreadPoolExecutor task_executor;
     private final Semaphore load_balancer;
-    private final Map<PeerReference, Peer> peers_map = new ConcurrentSkipListMap<PeerReference, Peer>();
-    private final EventReader event_reader;
+    private final EventQueue event_reader;
     private final Path observations_home;
     private final MetricRegistry metric_registry;
     private final CsvReporter csv_reporter;
@@ -123,7 +118,8 @@ public class EventExecutor {
         public Object get() {
 
             double number_of_reachable_state = 0;
-            for (Peer peer : peers_map.values()) {
+            for (Participant participant : event_reader.getParticipants()) {
+                Peer peer = participant.getPeer();
                 if (peer.isExposed()) {
                     final PeerState state = peer.getPeerState();
                     for (InternalPeerReference reference : state) {
@@ -144,7 +140,8 @@ public class EventExecutor {
         public Object get() {
 
             double number_of_unreachable_state = 0;
-            for (Peer peer : peers_map.values()) {
+            for (Participant participant : event_reader.getParticipants()) {
+                Peer peer = participant.getPeer();
                 if (peer.isExposed()) {
                     final PeerState state = peer.getPeerState();
                     for (InternalPeerReference reference : state) {
@@ -166,9 +163,50 @@ public class EventExecutor {
         protected Statistics get() {
 
             final HashMultiset<DisseminationStrategy> strategies = HashMultiset.create();
-            for (Peer peer : peers_map.values()) {
+            for (Participant participant : event_reader.getParticipants()) {
+                Peer peer = participant.getPeer();
                 if (peer.isExposed()) {
                     strategies.add(peer.getDisseminationStrategy());
+                }
+            }
+            final Statistics statistics = new Statistics();
+            for (Multiset.Entry<DisseminationStrategy> entry : strategies.entrySet()) {
+                statistics.addSample(entry.getCount());
+            }
+            return statistics;
+        }
+
+        @Override
+        public Statistics getAndReset() {
+
+            return get();
+        }
+
+        @Override
+        public void update(final double sample) {
+
+            LOGGER.warn("update is unsupported by this sampler");
+        }
+    };
+
+    private final Sampler generated_strategy_uniformity_sampler = new Sampler() {
+
+        @Override
+        protected Statistics get() {
+
+            final HashMultiset<DisseminationStrategy> strategies = HashMultiset.create();
+            for (Participant participant : event_reader.getParticipants()) {
+                Peer peer = participant.getPeer();
+                if (peer.isExposed()) {
+
+                    final Maintenance.PeerMaintainer maintainer = peer.getPeerMaintainer();
+                    if (maintainer instanceof EvolutionaryMaintenance.EvolutionaryPeerMaintainer) {
+                        EvolutionaryMaintenance.EvolutionaryPeerMaintainer evolutionary_maintainer = (EvolutionaryMaintenance.EvolutionaryPeerMaintainer) maintainer;
+
+                        for (EvaluatedDisseminationStrategy evaluated_strategy : evolutionary_maintainer.getEvaluatedStrategies()) {
+                            strategies.add(evaluated_strategy.getStrategy());
+                        }
+                    }
                 }
             }
             final Statistics statistics = new Statistics();
@@ -205,17 +243,7 @@ public class EventExecutor {
     private Future<Void> task_scheduler_future;
     private long start_time;
 
-    public EventExecutor(final Path events_home, int host_index, Path observations_home) throws IOException, DecoderException, ClassNotFoundException {
-
-        this(events_home, host_index, observations_home, null);
-    }
-
-    public EventExecutor(final Path events_home, int host_index, Path observations_home, final HashMap<Integer, String> host_indices) throws IOException, DecoderException, ClassNotFoundException {
-
-        this(new CsvEventReader(events_home, host_index, host_indices), observations_home);
-    }
-
-    public EventExecutor(final EventReader reader, Path observations_home) {
+    public EventExecutor(final EventQueue reader, Path observations_home) {
 
         event_reader = reader;
         this.observations_home = observations_home;
@@ -270,6 +298,7 @@ public class EventExecutor {
         metric_registry.register("reconfiguration_rate", Maintenance.RECONFIGURATION_RATE);
         metric_registry.register("strategy_action_size_sampler", EvolutionaryMaintenance.STRATEGY_ACTION_SIZE_SAMPLER);
         metric_registry.register("strategy_uniformity_sampler", strategy_uniformity_sampler);
+        metric_registry.register("generated_strategy_uniformity_sampler", generated_strategy_uniformity_sampler);
 
         csv_reporter = new CsvReporter(metric_registry, observations_home);
         task_populator_future = startTaskQueuePopulator();
@@ -306,13 +335,11 @@ public class EventExecutor {
                 @Override
                 public Void call() throws Exception {
 
-                    awaitInitialEventLoading();
                     LOGGER.info("starting event execution...");
                     start_time = System.nanoTime();
 
                     final Duration observation_interval = getObservationInterval();
                     csv_reporter.start(observation_interval.getLength(), observation_interval.getTimeUnit());
-
                     try {
                         while (!Thread.currentThread().isInterrupted() && !task_populator_future.isDone() || !runnable_events.isEmpty()) {
                             final RunnableExperimentEvent runnable = runnable_events.take();
@@ -347,12 +374,12 @@ public class EventExecutor {
 
         Map<String, List<EvaluatedDisseminationStrategy>> node_strategies = new HashMap<>();
 
-        for (Peer peer : peers_map.values()) {
-
+        for (Participant participant : event_reader.getParticipants()) {
+            final Peer peer = participant.getPeer();
             final Maintenance.PeerMaintainer peerMaintainer = peer.getPeerMaintainer();
             if (peerMaintainer instanceof EvolutionaryMaintenance.EvolutionaryPeerMaintainer) {
                 EvolutionaryMaintenance.EvolutionaryPeerMaintainer evolutionary_maintainer = (EvolutionaryMaintenance.EvolutionaryPeerMaintainer) peerMaintainer;
-                node_strategies.put(peer.getKey().toString(), evolutionary_maintainer.getEvaluated_strategies());
+                node_strategies.put(peer.getKey().toString(), evolutionary_maintainer.getEvaluatedStrategies());
             }
 
             try {
@@ -432,27 +459,6 @@ public class EventExecutor {
         runnable_events.add(new RunnableLookupAsynchEvent(peer, event));
     }
 
-    synchronized Peer getPeerByReference(PeerReference reference, PeerConfiguration configurator) {
-
-        final Peer peer;
-        if (!peers_map.containsKey(reference)) {
-            peer = PeerFactory.createPeer(reference, configurator);
-            peers_map.put(reference, peer);
-        }
-        else {
-            peer = peers_map.get(reference);
-        }
-        return peer;
-    }
-
-    private void awaitInitialEventLoading() throws InterruptedException {
-
-        LOGGER.info("awaiting initial event population...");
-        while (load_balancer.availablePermits() != 0 && !task_populator_future.isDone()) {
-            Thread.sleep(1000);
-        }
-    }
-
     private Future<Void> startTaskQueuePopulator() {
 
         return task_populator.submit(new Callable<Void>() {
@@ -481,21 +487,8 @@ public class EventExecutor {
     private void queueNextEvent() throws IOException {
 
         final Event event = event_reader.next();
-        final PeerReference event_source;
-
-        final PeerConfiguration configuration;
-
         final Participant participant = event.getParticipant();
-        if (participant != null) {
-            configuration = participant.getPeerConfiguration();
-            event_source = participant.getReference();
-        }
-        else {
-            event_source = event.getSource();
-            configuration = event_reader.getConfiguration(event_source);
-        }
-
-        final Peer peer = getPeerByReference(event_source, configuration);
+        final Peer peer = participant.getPeer();
         queue(peer, event);
     }
 

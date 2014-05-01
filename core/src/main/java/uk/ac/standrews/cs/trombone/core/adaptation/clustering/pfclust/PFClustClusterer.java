@@ -9,6 +9,7 @@ import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.ml.clustering.CentroidCluster;
 import org.apache.commons.math3.ml.clustering.Clusterable;
 import org.apache.commons.math3.ml.clustering.Clusterer;
+import org.uncommons.maths.random.MersenneTwisterRNG;
 import uk.ac.standrews.cs.trombone.core.util.CosineSimilarity;
 
 /**
@@ -17,11 +18,11 @@ import uk.ac.standrews.cs.trombone.core.util.CosineSimilarity;
 public class PFClustClusterer<Point extends Clusterable> extends Clusterer<Point> {
 
     private static final CosineSimilarity COSINE_SIMILARITY = new CosineSimilarity();
+    
     /** The number of iterations of the main loop. */
     public static final int DEFAULT_MAIN_LOOP = 2;
-    /**
-     * Represents the number of iterations of the randomization loop
-     */
+    
+    /** Represents the number of iterations of the randomization loop.*/
     static int RANDOMIZATION_LOOP = 200;
     /**
      * The cut-off percentage of the selected threshold
@@ -35,17 +36,17 @@ public class PFClustClusterer<Point extends Clusterable> extends Clusterer<Point
     public static int maxIteration = 3;
     private final Random random;
 
-    public PFClustClusterer() {
+    public PFClustClusterer(byte[] seed) {
 
         super(COSINE_SIMILARITY);
-        random = new Random();
+        random = new MersenneTwisterRNG(seed);
     }
 
     @Override
     public List<CentroidCluster<Point>> cluster(final Collection<Point> point) {
 
         final List<Point> points = new ArrayList<>(point);
-        final Array2DRowRealMatrix similarity_matrix = getSimilarityMatrix(points);
+        final RealMatrix similarity_matrix = getSimilarityMatrix(points);
         final Clustering clustering = process(similarity_matrix);
         final List<CentroidCluster<Point>> clusters = toCentroidClusters(points, clustering);
         return clusters;
@@ -70,19 +71,22 @@ public class PFClustClusterer<Point extends Clusterable> extends Clusterer<Point
         return centroid_cluster;
     }
 
-    private Array2DRowRealMatrix getSimilarityMatrix(final List<Point> points) {
+    private RealMatrix getSimilarityMatrix(final List<Point> points) {
 
-        final Array2DRowRealMatrix similarity_matrix = new Array2DRowRealMatrix(points.size(), points.size());
-        int row = 0;
-        int column = 0;
-        for (Point one : points) {
-            for (Point other : points) {
-                similarity_matrix.setEntry(row, column, distance(one, other));
-                column++;
+        final int points_count = points.size();
+        final RealMatrix similarity_matrix = new Array2DRowRealMatrix(points_count, points_count);
+        
+        for (int row = 0; row < points_count; row++) {
+            for (int column = 0; column < points_count; column++) {
+                
+                final Point one = points.get(row);
+                final Point other = points.get(column);
+                final double cosine_similarity = distance(one, other);   
+                
+                similarity_matrix.setEntry(row, column, cosine_similarity);
             }
-            row++;
-            column = 0;
         }
+        
         return similarity_matrix;
     }
 

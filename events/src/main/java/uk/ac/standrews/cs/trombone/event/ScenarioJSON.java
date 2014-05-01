@@ -11,6 +11,4 @@ public class ScenarioJSON {
 
         return new JSONObject(scenario);
     }
-
-    
 }

@@ -5,6 +5,7 @@ import java.io.Serializable;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class PeerConfiguration implements Serializable {
 
+    private static final long serialVersionUID = -6034624232106255574L;
     private final Maintenance maintenance;
     private final SyntheticDelay synthetic_delay;
 

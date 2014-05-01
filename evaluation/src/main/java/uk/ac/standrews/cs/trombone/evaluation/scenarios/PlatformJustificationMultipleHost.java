@@ -1,7 +1,7 @@
 package uk.ac.standrews.cs.trombone.evaluation.scenarios;
 
-import uk.ac.standrews.cs.trombone.event.churn.Churn;
-import uk.ac.standrews.cs.trombone.event.churn.Workload;
+import uk.ac.standrews.cs.trombone.event.environment.Churn;
+import uk.ac.standrews.cs.trombone.event.environment.Workload;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)

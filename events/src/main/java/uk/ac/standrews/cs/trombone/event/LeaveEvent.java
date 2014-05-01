@@ -1,7 +1,6 @@
 package uk.ac.standrews.cs.trombone.event;
 
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import uk.ac.standrews.cs.trombone.core.PeerReference;
 
 /**
  * Presents the change of a peer's availability at {@code t} nanoseconds through an experiment.
@@ -26,11 +25,6 @@ public class LeaveEvent extends Event {
         super(source, time_nanos);
     }
 
-    LeaveEvent(final PeerReference source, Integer source_id, long time_nanos) {
-
-        super(source, source_id, time_nanos);
-    }
-
     @Override
     public int hashCode() {
 
@@ -53,17 +47,5 @@ public class LeaveEvent extends Event {
         sb.append(", peer=").append(getSource());
         sb.append('}');
         return sb.toString();
-    }
-
-    @Override
-    int getCode() {
-
-        return LEAVE_EVENT_CODE;
-    }
-
-    @Override
-    String getParameters() {
-
-        return NONE;
     }
 }
