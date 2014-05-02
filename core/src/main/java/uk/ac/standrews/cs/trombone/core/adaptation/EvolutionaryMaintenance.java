@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.TreeMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.math3.ml.clustering.Cluster;
@@ -131,7 +132,7 @@ public class EvolutionaryMaintenance extends Maintenance {
 
         public List<EvaluatedDisseminationStrategy> getEvaluatedStrategies() {
 
-            return Collections.unmodifiableList(evaluated_strategies);
+            return new CopyOnWriteArrayList<>(evaluated_strategies);
         }
 
         @Override
@@ -214,7 +215,7 @@ public class EvolutionaryMaintenance extends Maintenance {
                     next_strategy = generateNextStrategy(current_cluster);
                 }
 
-                if (evaluated_strategies.size() < population_size) {
+                if (evaluated_strategies.size() > population_size) {
                     removeLeastFitFromCurrentCluster(current_cluster_points);
                 }
             }
