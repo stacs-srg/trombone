@@ -27,7 +27,7 @@ import uk.ac.standrews.cs.trombone.core.key.Key;
 public class EventQueue implements Iterator<Event> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EventQueue.class);
-    private static final int BUFFERED_EVENTS = 1;
+    private static final int BUFFERED_EVENTS = 1000;
     private final LinkedBlockingQueue<Event> events;
     private final Scenario scenario;
     private final int host_index;

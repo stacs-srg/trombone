@@ -17,8 +17,8 @@
     <logger name="net.schmizz" level="ERROR"/>
     <logger name="io.netty" level="ERROR"/>
 
-    <root level="info">
+    <root level="warn">
         <appender-ref ref="FILE"/>
-        <appender-ref ref="STDOUT"/>
+        <!--<appender-ref ref="STDOUT"/>-->
     </root>
 </configuration>

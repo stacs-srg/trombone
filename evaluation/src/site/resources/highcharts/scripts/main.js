@@ -11,9 +11,10 @@ require.config(
             mark: 'lib/markup-1.5.18',
             json: 'lib/json',
             bootstrap: 'lib/bootstrap-3.1.1',
-            highcharts: 'lib/highcharts-3.0.10',
-            highcharts_more: 'lib/highcharts-more-3.0.10',
-            highcharts_exporting: 'lib/highcharts-exporting-3.0.10',
+            highcharts: 'lib/highcharts-4.0.1/highcharts',
+            highcharts_more: 'lib/highcharts-4.0.1/highcharts-more',
+            highcharts_exporting: 'lib/highcharts-4.0.1/modules/exporting',
+            highcharts_3d: 'lib/highcharts-4.0.1/highcharts-3d',
             jstat: 'lib/jstat',
 
             observations: 'config/observations'
@@ -37,6 +38,9 @@ require.config(
             },
             highcharts_exporting: {
                 deps: ['jquery', 'highcharts']
+            },
+            highcharts_3d: {
+                deps: ['jquery', 'highcharts']
             }
         }
     }
@@ -56,7 +60,8 @@ require(
         'bootstrap',
         'highcharts' ,
         'highcharts_more',
-        'highcharts_exporting'
+        'highcharts_exporting',
+        'highcharts_3d'
     ],
     function ($, observations, util, query, action, series, theme, chart, data) {
 

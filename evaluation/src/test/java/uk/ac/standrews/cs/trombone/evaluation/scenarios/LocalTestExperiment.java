@@ -19,7 +19,7 @@ public class LocalTestExperiment {
     @Test
     public void testExecution() throws Exception {
 
-        final Scenario scenario = ScenarioBatches.BATCH_1_SCENARIOS.get(185);
+        final Scenario scenario = ScenarioBatches.STATIC_AND_ADAPTIVE_4H_SCENARIOS.get(185);
         System.out.println(scenario.toJson());
         testExecution(scenario);
     }

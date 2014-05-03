@@ -306,6 +306,13 @@ define(['jquery', 'jquery_ui', 'util', 'mark', 'config/theme', 'data', 'series/d
             }
         },
         {
+            title: "Evolutionary Maintenance: Generated Strategy Uniformity",
+            series_provider: double("generated_strategy_uniformity_sampler.csv"),
+            yAxis: {
+                title: {text: "Mean Number of identical generated strategies across peers"}
+            }
+        },
+        {
             title: "Evolutionary Maintenance: Fitness",
             series_provider: double("evolutionary_maintenance_fitness_sampler.csv"),
             yAxis: {

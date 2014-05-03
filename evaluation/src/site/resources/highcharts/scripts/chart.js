@@ -1,4 +1,4 @@
-define(['jquery', 'config/theme', 'highcharts' , 'highcharts_more', 'highcharts_exporting'], function ($, theme) {
+define(['jquery', 'config/theme', 'highcharts'], function ($, theme) {
 
     var container = $('#chart');
     container.highcharts(theme);
