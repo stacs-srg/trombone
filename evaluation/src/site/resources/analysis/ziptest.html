@@ -1,0 +1,74 @@
+<html>
+<head>
+    <script src="scripts/lib/jszip.min.js"></script>
+    <script src="scripts/lib/jszip-utils.min.js"></script>
+    <script src="scripts/lib/jquery-1.11.0.js"></script>
+    <script src="scripts/lib/jquerycsv-0.71.js"></script>
+</head>
+<body>
+<script>
+
+    var s = {
+        scenario_1: {
+            repetitions: [
+
+            ]
+        }
+    }
+
+    JSZipUtils.getBinaryContent('../../../../results/scenario_1/repetitions/2014-05-03_03-00-31-410.zip', function (err, data) {
+        if (err) {
+            throw err; // or handle err
+        }
+
+        var zip = new JSZip(data);
+        var aa = zip.filter(function (relativePath, file) {
+
+            return relativePath.match("^[1-9]/.+sampler\\.csv$");
+        })
+
+        aa.forEach(function (a) {
+            var toArrays = $.csv.toObjects(a.asBinary());
+            console.log(toArrays)
+            if (typeof(Storage) != "undefined") {
+                localStorage.setItem(a.name, toArrays);
+            }
+            else {
+                console.log("Sorry, your browser does not support Web Storage...")
+            }
+        })
+    });
+
+    var combineSampler = function (samplers, scenario) {
+
+        var samplers_length = samplers.length;
+        
+        if (samplers_length < 1) {
+            throw "at least one sampler must be specified";
+        }
+        
+        if (samplers_length == 1) {
+            return samplers[0];
+        }
+        
+        scenario.observation_interval = 10;
+
+        
+        var combined_sampler = [];
+        
+        for(var i in 1000){
+            
+            var record ={}; 
+            
+            samplers.forEach(function(sampler){
+                record['min'] = sampler['min']   
+            })
+            
+            
+        }
+
+    }
+
+</script>
+</body>
+</html>
