@@ -64,13 +64,13 @@ public final class Constants {
     public static final EvolutionaryMaintenance EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_6_HOURS = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
     public static final EvolutionaryMaintenance EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_4_HOURS = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
     public static final EvolutionaryMaintenance EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_2_HOURS = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
-    
+
     public static final RandomMaintenance RANDOM_MAINTENANCE_10 = new RandomMaintenance(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
     public static final RandomMaintenance RANDOM_MAINTENANCE_10_STOP_AFTER_10_HOURS = new RandomMaintenance(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
-    public static final RandomMaintenance RANDOM_MAINTENANCE_10_STOP_AFTER_8_HOURS  = new RandomMaintenance(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
-    public static final RandomMaintenance RANDOM_MAINTENANCE_10_STOP_AFTER_6_HOURS  = new RandomMaintenance(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
-    public static final RandomMaintenance RANDOM_MAINTENANCE_10_STOP_AFTER_4_HOURS  = new RandomMaintenance(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
-    public static final RandomMaintenance RANDOM_MAINTENANCE_10_STOP_AFTER_2_HOURS  = new RandomMaintenance(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
+    public static final RandomMaintenance RANDOM_MAINTENANCE_10_STOP_AFTER_8_HOURS = new RandomMaintenance(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
+    public static final RandomMaintenance RANDOM_MAINTENANCE_10_STOP_AFTER_6_HOURS = new RandomMaintenance(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
+    public static final RandomMaintenance RANDOM_MAINTENANCE_10_STOP_AFTER_4_HOURS = new RandomMaintenance(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
+    public static final RandomMaintenance RANDOM_MAINTENANCE_10_STOP_AFTER_2_HOURS = new RandomMaintenance(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
 
     static {
         EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_10_HOURS.setTerminationCondition(TERMINATION_CONDITION_10);
@@ -108,16 +108,20 @@ public final class Constants {
     public static final Duration DURATION_10_S = new Duration(10, TimeUnit.SECONDS);
     public static final Duration DURATION_30_S = new Duration(30, TimeUnit.SECONDS);
     public static final Duration DURATION_1_MIN = new Duration(1, TimeUnit.MINUTES);
-    public static final Duration DURATION_10_MIN = new Duration(10, TimeUnit.MINUTES);    
+    public static final Duration DURATION_10_MIN = new Duration(10, TimeUnit.MINUTES);
+    public static final Duration DURATION_15_MIN = new Duration(15, TimeUnit.MINUTES);
     public static final Duration DURATION_30_MIN = new Duration(30, TimeUnit.MINUTES);
-    public static final Duration DURATION_2_HOUR = new Duration(2, TimeUnit.HOURS);   
+    public static final Duration DURATION_1_HOUR = new Duration(1, TimeUnit.HOURS);
+    public static final Duration DURATION_2_HOUR = new Duration(2, TimeUnit.HOURS);
 
     // Distributions
     public static final IntervalGenerator FIXED_EXP_1_S = new FixedExponentialInterval(DURATION_1_S, SEED);
     public static final IntervalGenerator FIXED_EXP_10_S = new FixedExponentialInterval(DURATION_10_S, SEED);
     public static final IntervalGenerator FIXED_EXP_30_S = new FixedExponentialInterval(DURATION_30_S, SEED);
     public static final IntervalGenerator FIXED_EXP_10_MIN = new FixedExponentialInterval(DURATION_10_MIN, SEED);
+    public static final IntervalGenerator FIXED_EXP_15_MIN = new FixedExponentialInterval(DURATION_15_MIN, SEED);
     public static final IntervalGenerator FIXED_EXP_30_MIN = new FixedExponentialInterval(DURATION_30_MIN, SEED);
+    public static final IntervalGenerator FIXED_EXP_1_HOUR = new FixedExponentialInterval(DURATION_1_HOUR, SEED);
     public static final IntervalGenerator OSCILLATING_EXP_10_S_TO_1_S = new OscillatingExponentialInterval(DURATION_10_S, DURATION_1_S, DURATION_30_MIN, SEED);
     public static final IntervalGenerator OSCILLATING_EXP_10_MIN_TO_1_MIN = new OscillatingExponentialInterval(DURATION_10_MIN, DURATION_1_MIN, DURATION_2_HOUR, SEED);
     public static final IntervalGenerator OSCILLATING_EXP_1_MIN_TO_10_MIN = new OscillatingExponentialInterval(DURATION_1_MIN, DURATION_10_MIN, DURATION_2_HOUR, SEED);
@@ -130,6 +134,8 @@ public final class Constants {
     public static final Churn CHURN_1 = new Churn(FIXED_EXP_30_MIN, FIXED_EXP_10_MIN);
     public static final Churn CHURN_2 = new Churn(FIXED_EXP_10_MIN, FIXED_EXP_30_MIN);
     public static final Churn CHURN_4 = new Churn(FIXED_EXP_30_MIN, FIXED_EXP_30_MIN);
+    public static final Churn CHURN_4_15_MIN = new Churn(FIXED_EXP_15_MIN, FIXED_EXP_15_MIN);
+    public static final Churn CHURN_4_1_HOUR = new Churn(FIXED_EXP_1_HOUR, FIXED_EXP_1_HOUR);
     public static final Churn CHURN_5 = new Churn(OSCILLATING_EXP_10_MIN_TO_1_MIN, OSCILLATING_EXP_10_MIN_TO_1_MIN);
     public static final Churn CHURN_6 = new Churn(OSCILLATING_EXP_10_MIN_TO_1_MIN, OSCILLATING_EXP_1_MIN_TO_10_MIN);
 

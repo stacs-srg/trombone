@@ -359,7 +359,7 @@ final class AnalyticsUtil {
         }
     }
 
-    public static void unshard(List<Path> raw_zip_files) throws IOException {
+    public static void unshard(List<Path> raw_zip_files, boolean skip_if_exists) throws IOException {
 
         JsonNode scenario_json = null;
         for (Path raw_zip_file : raw_zip_files) {
@@ -369,11 +369,15 @@ final class AnalyticsUtil {
                 final List<Path> csv_list = FileSystemUtils.getMatchingFiles(host_1, fileSystem.getPathMatcher("glob:/1/*.csv"));
 
                 for (Path path : csv_list) {
+
+                    if (skip_if_exists && Files.exists(fileSystem.getPath("/" + path.getFileName().toString()))) {
+                        continue;
+                    }
                     final Path csv_file = path.getFileName();
                     final List<Path> all_csvs = FileSystemUtils.getMatchingFiles(fileSystem.getPath(fileSystem.getSeparator()), fileSystem.getPathMatcher("glob:/[0-9]*/" + csv_file));
 
                     final String csv_file_name = path.toString();
-                    
+
                     LOGGER.trace("unsharding {}!{}", raw_zip_file, csv_file_name);
                     if (csv_file_name.contains("_counter.") || csv_file_name.contains("_gauge.") || csv_file_name.contains("_size.")) {
 
@@ -405,7 +409,8 @@ final class AnalyticsUtil {
                 for (Path scenario : scenarios) {
 
                     if (!scenario_json.equals(getJsonObject(scenario))) {
-                        throw new RuntimeException("mismatching scenario across hosts in " + raw_zip_file);
+                        LOGGER.error("mismatching scenario across hosts in {}", raw_zip_file);
+
                     }
                 }
             }

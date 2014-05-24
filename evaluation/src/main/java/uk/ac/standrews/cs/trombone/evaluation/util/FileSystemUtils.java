@@ -70,6 +70,45 @@ public final class FileSystemUtils {
         return matched_files;
     }
 
+    public static List<Path> getMatchingDirectories(final Path path, final PathMatcher matcher) throws IOException {
+
+        if (!Files.exists(path)) {
+            return Collections.emptyList();
+        }
+
+        final List<Path> matched_dirs = new ArrayList<>();
+        Files.walkFileTree(path, new FileVisitor<Path>() {
+
+            @Override
+            public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) {
+
+                if (matcher.matches(dir)) {
+                    matched_dirs.add(dir);
+                }
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) {
+
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFileFailed(final Path file, final IOException exc) throws IOException {
+
+                throw exc;
+            }
+
+            @Override
+            public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) {
+
+                return FileVisitResult.CONTINUE;
+            }
+        });
+        return matched_dirs;
+    }
+
     public static FileSystem newZipFileSystem(File zip_file, boolean create) throws IOException {
 
         return newZipFileSystem(zip_file.getAbsolutePath(), create);

@@ -18,7 +18,7 @@ public class Parallelized extends Parameterized {
     public Parallelized(final Class<?> test_class) throws Throwable {
 
         super(test_class);
-        final ExecutorService executor = Executors.newFixedThreadPool(200);
+        final ExecutorService executor = Executors.newFixedThreadPool(500);
         setScheduler(new RunnerScheduler() {
 
             @Override

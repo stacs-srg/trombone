@@ -14,17 +14,22 @@ define(['data', 'config/theme'], function (data, theme) {
         }
 
         return {
-            get: function (match, index) {
-                return [
-                    {
-                        id: match.name,
-                        name: match.name,
-                        data: values(match),
-                        zIndex: 1,
-                        lineWidth: 1,
-                        color: theme.colours[index]
-                    }
-                ]
+            get: function (matches) {
+
+                var series = []
+                matches.forEach(function (match, index) {
+                    series.push(
+                        {
+                            id: match.name,
+                            name: match.name,
+                            data: values(match),
+                            zIndex: 1,
+                            lineWidth: 1,
+                            color: theme.colours[index]
+                        }
+                    );
+                }, this)
+                return series;
             }
         }
     }

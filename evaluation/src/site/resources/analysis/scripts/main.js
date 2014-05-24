@@ -3,7 +3,6 @@ require.config(
         baseUrl: 'scripts',
         paths: {
             jquery: 'lib/jquery-1.11.0',
-            jquery_ui: 'lib/jquery-ui-1.10.4.min',
             mustache: 'lib/mustache',
             filesaver: 'lib/filesaver',
             jstat: 'lib/jstat',
@@ -15,15 +14,14 @@ require.config(
             highcharts_more: 'lib/highcharts-4.0.1/highcharts-more',
             highcharts_exporting: 'lib/highcharts-4.0.1/modules/exporting',
             highcharts_3d: 'lib/highcharts-4.0.1/highcharts-3d',
+            highcharts_csv: 'lib/highcharts-4.0.1/modules/export-csv',
+            highcharts_draggable_legend: 'lib/highcharts-4.0.1/modules/draggable-legend-box',
             jstat: 'lib/jstat',
-
+            jszip: 'lib/jszip.min',
+            jszip_utils: 'lib/jszip-utils.min',
             observations: 'config/observations'
-
         },
         shim: {
-            jquery_ui: {
-                deps: ['jquery']
-            },
             bootstrap: {
                 deps: ['jquery']
             },
@@ -41,6 +39,12 @@ require.config(
             },
             highcharts_3d: {
                 deps: ['jquery', 'highcharts']
+            },
+            highcharts_csv: {
+                deps: ['jquery', 'highcharts']
+            },
+            highcharts_draggable_legend: {
+                deps: ['jquery', 'highcharts']
             }
         }
     }
@@ -56,17 +60,26 @@ require(
         'config/theme',
         'chart',
         'data',
+        'scope',
+        'scenario',
         'mark',
         'bootstrap',
         'highcharts' ,
         'highcharts_more',
         'highcharts_exporting',
-        'highcharts_3d'
+        'highcharts_3d',
+        'highcharts_csv',
+        'highcharts_draggable_legend',
+        'jszip',
+        'jszip_utils'
+
     ],
-    function ($, observations, util, query, action, series, theme, chart, data) {
+    function ($, observations, util, query, action, series, theme, chart, data, scope, scenario) {
 
         observations.makeMenu();
         query.init();
+
+//        scenario('scenario_1').data();
 
         $(window).bind('resize', function (e) {
             window.resizeEvt;

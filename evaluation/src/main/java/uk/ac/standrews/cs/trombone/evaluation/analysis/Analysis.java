@@ -3,16 +3,22 @@ package uk.ac.standrews.cs.trombone.evaluation.analysis;
 import com.google.visualization.datasource.base.TypeMismatchException;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.PathMatcher;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 import org.apache.commons.io.FilenameUtils;
+import org.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.standrews.cs.trombone.evaluation.util.FileSystemUtils;
 import uk.ac.standrews.cs.trombone.evaluation.util.ScenarioUtils;
 
 /**
@@ -25,12 +31,14 @@ public final class Analysis {
 
     public static void main(String[] args) throws IOException, TypeMismatchException {
 
+        final PathMatcher matcher = FileSystems.getDefault().getPathMatcher("regex:results/((evolutionary|random)_(p_)?[0-9]+h|scenario)_[0-9]+");
+        final List<Path> matching_paths = FileSystemUtils.getMatchingDirectories(ScenarioUtils.getResultsHome(), matcher);
         final List<ScenarioAnalyzer> scenarioAnalyzers = new ArrayList<>();
-        for (int i = 1; i <= 216; i++) {
-            String scenario_name = "scenario_" + i;
-            if (Files.exists(ScenarioUtils.getScenarioHome(scenario_name))) {
-                scenarioAnalyzers.add(new ScenarioAnalyzer(scenario_name));
-            }
+        for (Path path : matching_paths) {
+            updateRepetitionsList(path);
+            final String scenario_name = path.getFileName().toString();
+            final ScenarioAnalyzer analyzer = new ScenarioAnalyzer(scenario_name);
+            scenarioAnalyzers.add(analyzer);
         }
 
         Set<String> unique_file_names = null;
@@ -38,7 +46,6 @@ public final class Analysis {
             try (ScenarioAnalyzer scenario_analyzer = scenarioAnalyzer) {
 
                 final File destination_directory = scenario_analyzer.getAnalysisDirectory().toFile();
-
                 if (unique_file_names == null) {
                     unique_file_names = new HashSet<>();
                     final List<Path> csvs = scenario_analyzer.getCsvsByName("/*.csv");
@@ -46,6 +53,7 @@ public final class Analysis {
                         unique_file_names.add(csv.getFileName().toString());
                     }
                 }
+
                 for (String file_name : unique_file_names) {
 
                     XYCsvAnalyzer analyser = null;
@@ -77,5 +85,16 @@ public final class Analysis {
                 }
             }
         }
+    }
+
+    private static void updateRepetitionsList(final Path path) throws IOException {
+
+        final JSONArray repetitions_path = new JSONArray();
+        final List<Path> repetitions = FileSystemUtils.getMatchingFiles(path, path.getFileSystem().getPathMatcher("glob:**/repetitions/*.zip"));
+        for (Path repetition : repetitions) {
+            repetitions_path.put(repetition.getFileName().toString());
+        }
+
+        Files.write(path.resolve("repetitions/repetitions.json"), repetitions_path.toString(4).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
     }
 }

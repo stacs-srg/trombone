@@ -1,24 +1,26 @@
-define(['jquery', 'config/theme', 'highcharts'], function ($, theme) {
+define(['jquery', 'config/theme', 'highcharts'], function ($, theme, query, observations) {
 
     var container = $('#chart');
     container.highcharts(theme);
     return{
+        
         current: null,
-         renderer: function(query, observation){
-             
-             observation = theme.extend(observation)
+        renderer: function () {
 
-             if (!observation.chart.onePerMatch) {
+            var observation = observations.observations[query.metric]
+            observation = theme.extend(observation)
 
-                 if (observation.series_provider !== undefined) {
-                     observation.populateSeries(query.matches())
-                 }
+            if (!observation.chart.onePerMatch) {
 
-             } else {
-                 alert("not implemented yet");
-             }
-             container.highcharts(observation)
-             this.current = container.highcharts();
-         }
+                if (observation.series_provider !== undefined) {
+                    observation.populateSeries(query.matches())
+                }
+
+            } else {
+                alert("not implemented yet");
+            }
+            container.highcharts(observation)
+            this.current = container.highcharts();
+        }
     };
 })

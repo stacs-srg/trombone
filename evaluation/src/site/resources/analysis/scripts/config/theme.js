@@ -1,4 +1,4 @@
-define(['jquery', 'series'], function ($, series) {
+define(['jquery', 'series', 'scope'], function ($, series,scope) {
 
     return {
         colours: [
@@ -11,11 +11,47 @@ define(['jquery', 'series'], function ($, series) {
         chart: {
             type: 'line',
             zoomType: 'xy',
-            onePerMatch: false
+            onePerMatch: false,
+            plotBorderWidth: 1,
+            plotBorderColor: 'black'
+
         },
         title: {
             text: null
         },
+        exporting: {
+            chartOptions: {
+                title: {
+                    text: null
+                },
+                chart: {
+                    style: {
+//                        fontFamily: 'Times New Roman'
+                    }
+                }
+            },
+            sourceWidth: 500,
+            sourceHeight: 350
+        },
+        legend: {
+            itemStyle: {
+                color: 'black',
+                fontWeight: 'normal',
+                fontSize: '9pt'
+            }
+//            ,
+//            align: 'right',
+//            verticalAlign: 'top',
+//            layout: 'vertical',
+//            backgroundColor: 'white',
+//            borderWidth: 1,
+//            floating: true,
+//            draggable: true,
+//            zIndex: 20,
+//            x: -20,
+//            y: 20
+        },
+
         plotOptions: {
             line: {
                 marker: {
@@ -36,15 +72,41 @@ define(['jquery', 'series'], function ($, series) {
         },
 
         xAxis: {
-            startOnTick: true,
-            endOnTick: true,
+            lineColor: 'black',
+            tickWidth: 0,
             title: {
-                text: 'Time Through Experiment (Hours)'
+                text: 'Time Through Experiment (Hours)',
+                style: {
+                    color: 'black',
+                    fontWeight: 'normal',
+                    fontSize: '9pt'
+                }
+            },
+            labels: {
+                style: {
+                    color: 'black',
+                    fontWeight: 'normal',
+                    fontSize: '9pt'
+                }
             },
             min: 0
         },
         yAxis: {
-            min: 0
+            min: 0,
+            title: {
+                style: {
+                    color: 'black',
+                    fontWeight: 'normal',
+                    fontSize: '9pt'
+                }
+            },
+            labels: {
+                style: {
+                    color: 'black',
+                    fontWeight: 'normal',
+                    fontSize: '9pt'
+                }
+            },
         },
         series: [],
         credits: {
@@ -56,12 +118,18 @@ define(['jquery', 'series'], function ($, series) {
             return clone;
         },
         populateSeries: function (matches) {
-            this.series = []
-            matches.forEach(function (match, index) {
 
-                var series = this.series_provider.get(match, index);
-                this.series = this.series.concat(series)
-            }, this);
+            var data = this.series_provider.get(matches);
+            if (data.done !== undefined && this.series.length == 0) {
+                data.done(function (dd) {
+                    this.series = dd;
+                    scope.observation.series = dd;
+                    scope.refresh();
+                });
+            } else {
+
+                this.series = data;
+            }
         }
     }
 });

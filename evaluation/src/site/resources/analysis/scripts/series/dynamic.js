@@ -7,24 +7,30 @@ define(['data', 'config/theme'], function (data, theme) {
         }
 
         return {
-            get: function (match, index) {
+            get: function (matches) {
 
-                var x = one.columnAverage(match.name)[0];
-                var y = other.columnAverage(match.name)[0];
 
-                return [
-                    {
-                        id: match.name,
-                        name: match.name,
-                        data: [
-                            [x, y]
-                        ],
-                        color: theme.colours[index],
-                        update: function (value) {
-                            data[1] = x * value;
+                var series = []
+                matches.forEach(function (match, index) {
+
+                    var x = one.columnAverage(match.name)[0];
+                    var y = other.columnAverage(match.name)[0];
+
+                    series.push(
+                        {
+                            id: match.name,
+                            name: match.name,
+                            data: [
+                                [x, y]
+                            ],
+                            color: theme.colours[index],
+                            update: function (value) {
+                                data[1] = x * value;
+                            }
                         }
-                    }
-                ]
+                    );
+                }, this)
+                return series;
             }
         }
     }

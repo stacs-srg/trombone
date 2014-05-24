@@ -1,4 +1,4 @@
-define(['jquery', 'observations', 'config/scenarios', 'chart', 'series', 'config/theme', 'util'], function ($, observations, scenarios, chart, series, theme, util) {
+define(['jquery', 'observations', 'config/scenarios', 'scope', 'series', 'config/theme', 'util'], function ($, observations, scenarios, scope, series, theme, util) {
 
     var encodeArray = function (array) {
         var encoded = "";
@@ -33,7 +33,6 @@ define(['jquery', 'observations', 'config/scenarios', 'chart', 'series', 'config
             encoded += encodeArray(this.experiment_duration);
             return encoded;
         },
-        
         decode: function (encoded) {
 
             if (encoded === undefined || encoded.trim() == '') {
@@ -94,15 +93,19 @@ define(['jquery', 'observations', 'config/scenarios', 'chart', 'series', 'config
                 $("#experiment_duration_" + selection).prop('checked', true);
             })
 
-            chart.renderer(this, observations.observations[this.metric]);
-
-
+            var matches = this.matches();
+            var observation = observations.observations[this.metric]
+            scope.matches = matches;
+            scope.observation = theme.extend(observation)
+            scope.renderer()
+            
             var matches_nav = $('#matches_nav');
             var matches_content = $('#matches_content');
             matches_nav.empty();
             matches_content.empty();
 
-            this.matches().forEach(function (match, index) {
+            
+            matches.forEach(function (match, index) {
 
                 matches_nav.append('<li><a href="#' +
                     match.name +
