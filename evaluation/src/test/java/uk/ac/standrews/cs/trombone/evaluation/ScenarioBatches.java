@@ -20,7 +20,7 @@ public final class ScenarioBatches {
             Constants.CHURN_5, Constants.CHURN_6
     };
     private static final Object[] CHURN_RATE_MODELS = {
-            Constants.CHURN_4_15_MIN, Constants.CHURN_4_1_HOUR
+            Constants.CHURN_4, Constants.CHURN_4_15_MIN, Constants.CHURN_4_1_HOUR
     };
     private static final Object[] ALL_WORKLOAD_MODELS = {
             Constants.NO_WORKLOAD, Constants.WORKLOAD_1, Constants.WORKLOAD_2, Constants.WORKLOAD_3
@@ -43,6 +43,23 @@ public final class ScenarioBatches {
                     Constants.EVOLUTIONARY_MAINTENANCE_PER_POINT_CLUSTER_10,
                     Constants.EVOLUTIONARY_MAINTENANCE_KMEAN_PLUS_PLUS_10,
                     Constants.RANDOM_MAINTENANCE_10
+            },
+            //@formatter:on
+
+            SYNTHETIC_DELAYS
+    ).toArray();
+    
+    private static final Object[] EVOLUTIONARY_RANDOM_TRIAL_TIME = generate(
+            //@formatter:off
+            new Maintenance[] {
+                    Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_30_SEC ,
+                    Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_1_MIN ,
+                    Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_4_MIN ,
+                    Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_8_MIN, 
+                    Constants.RANDOM_MAINTENANCE_10_30_SEC ,
+                    Constants.RANDOM_MAINTENANCE_10_1_MIN ,
+                    Constants.RANDOM_MAINTENANCE_10_4_MIN ,
+                    Constants.RANDOM_MAINTENANCE_10_8_MIN 
             },
             //@formatter:on
 
@@ -126,6 +143,11 @@ public final class ScenarioBatches {
             {Constants.EXPERIMENT_DURATION_4}
     };
 
+    private static final Object[][] TRIAL_TIME = {
+            CHURN_RATE_MODELS, {Constants.WORKLOAD_2}, EVOLUTIONARY_RANDOM_TRIAL_TIME,
+            {Constants.EXPERIMENT_DURATION_4}
+    };
+
     public static final List<Scenario> STATIC_AND_ADAPTIVE_4H_SCENARIOS = BaseScenario.generateAll("scenario_", STATIC_AND_ADAPTIVE_4H);
     public static final List<Scenario> EVOLUTIONARY_POPULATIONS_20_TO_50_SCENARIOS = BaseScenario.generateAll("evolutionary_p_4h_", EVOLUTIONARY_POPULATIONS_20_TO_50);
 
@@ -145,6 +167,7 @@ public final class ScenarioBatches {
     public static final List<Scenario> RANDOM_4H_SCENARIOS = BaseScenario.generateAll("random_4h_", RANDOM_4H);
     
     public static final List<Scenario> CHURN_RATE_SCENARIOS = BaseScenario.generateAll("churn_4h_", CHURN_RATE);
+    public static final List<Scenario> TRIAL_TIME_SCENARIOS = BaseScenario.generateAll("trial_time_4h_", TRIAL_TIME);
 
     static {
 
