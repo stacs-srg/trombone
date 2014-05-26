@@ -20,7 +20,7 @@ public final class ScenarioBatches {
             Constants.CHURN_5, Constants.CHURN_6
     };
     private static final Object[] CHURN_RATE_MODELS = {
-            Constants.CHURN_4, Constants.CHURN_4_15_MIN, Constants.CHURN_4_1_HOUR
+            Constants.CHURN_4_15_MIN, Constants.CHURN_4_1_HOUR
     };
     private static final Object[] ALL_WORKLOAD_MODELS = {
             Constants.NO_WORKLOAD, Constants.WORKLOAD_1, Constants.WORKLOAD_2, Constants.WORKLOAD_3
@@ -173,7 +173,7 @@ public final class ScenarioBatches {
     public static final List<Scenario> CHURN_RATE_SCENARIOS = BaseScenario.generateAll("churn_4h_", CHURN_RATE);
     public static final List<Scenario> TRIAL_TIME_SCENARIOS = BaseScenario.generateAll("trial_time_4h_", TRIAL_TIME);
     
-    public static final List<Scenario> CHURN_POPULATION_SIZE_SCENARIOS = BaseScenario.generateAll("trial_time_4h_", churn_population_size);
+    public static final List<Scenario> CHURN_POPULATION_SIZE_SCENARIOS = BaseScenario.generateAll("churn_population_size_4h_", churn_population_size);
 
     static {
 
