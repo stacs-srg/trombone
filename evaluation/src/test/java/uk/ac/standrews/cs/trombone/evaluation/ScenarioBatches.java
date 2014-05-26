@@ -147,6 +147,10 @@ public final class ScenarioBatches {
             CHURN_RATE_MODELS, {Constants.WORKLOAD_2}, EVOLUTIONARY_RANDOM_TRIAL_TIME,
             {Constants.EXPERIMENT_DURATION_4}
     };
+    private static final Object[][] churn_population_size = {
+            CHURN_RATE_MODELS, {Constants.WORKLOAD_2}, EVOLUTIONARY_POPULATIONS_20_TO_50,
+            {Constants.EXPERIMENT_DURATION_4}
+    };
 
     public static final List<Scenario> STATIC_AND_ADAPTIVE_4H_SCENARIOS = BaseScenario.generateAll("scenario_", STATIC_AND_ADAPTIVE_4H);
     public static final List<Scenario> EVOLUTIONARY_POPULATIONS_20_TO_50_SCENARIOS = BaseScenario.generateAll("evolutionary_p_4h_", EVOLUTIONARY_POPULATIONS_20_TO_50);
@@ -168,6 +172,8 @@ public final class ScenarioBatches {
     
     public static final List<Scenario> CHURN_RATE_SCENARIOS = BaseScenario.generateAll("churn_4h_", CHURN_RATE);
     public static final List<Scenario> TRIAL_TIME_SCENARIOS = BaseScenario.generateAll("trial_time_4h_", TRIAL_TIME);
+    
+    public static final List<Scenario> CHURN_POPULATION_SIZE_SCENARIOS = BaseScenario.generateAll("trial_time_4h_", churn_population_size);
 
     static {
 
