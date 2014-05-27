@@ -22,6 +22,9 @@ public final class ScenarioBatches {
     private static final Object[] CHURN_RATE_MODELS = {
             Constants.CHURN_4_15_MIN, Constants.CHURN_4_1_HOUR
     };
+    private static final Object[] CHURN_RATE_MODELS_WITH_OSCI = {
+            Constants.CHURN_4, Constants.CHURN_4_15_MIN, Constants.CHURN_4_1_HOUR, Constants.CHURN_5
+    };
     private static final Object[] ALL_WORKLOAD_MODELS = {
             Constants.NO_WORKLOAD, Constants.WORKLOAD_1, Constants.WORKLOAD_2, Constants.WORKLOAD_3
     };
@@ -78,8 +81,14 @@ public final class ScenarioBatches {
                     Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_50
             }, SYNTHETIC_DELAYS
     ).toArray();
+    public static final Object[] EVOLUTIONARY_RANDOM_48_H = generate(new Maintenance[] {
+                    Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_48_HOURS,
+                    Constants.RANDOM_MAINTENANCE_10_STOP_AFTER_48_HOURS
+            }, SYNTHETIC_DELAYS
+    ).toArray();
     private static final Object[][] EVOLUTIONARY_POPULATION_SIZES = {
-            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, EVOLUTIONARY_POPULATION_20_50, {Constants.EXPERIMENT_DURATION_4}
+            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, EVOLUTIONARY_POPULATION_20_50,
+            {Constants.EXPERIMENT_DURATION_4}
     };
 
     private static final Object[][] EVOLUTIONARY_14H = {
@@ -148,9 +157,13 @@ public final class ScenarioBatches {
             CHURN_RATE_MODELS, {Constants.WORKLOAD_2}, EVOLUTIONARY_RANDOM_TRIAL_TIME,
             {Constants.EXPERIMENT_DURATION_4}
     };
-    private static final Object[][] churn_population_size = {
+    private static final Object[][] CHURN_POPULATION_SIZE = {
             CHURN_RATE_MODELS, {Constants.WORKLOAD_2}, EVOLUTIONARY_POPULATION_20_50,
             {Constants.EXPERIMENT_DURATION_4}
+    };
+    private static final Object[][] EVOLUTIONARY_RANDOM_52_H = {
+            CHURN_RATE_MODELS_WITH_OSCI, {Constants.WORKLOAD_2}, EVOLUTIONARY_RANDOM_48_H,
+            {Constants.EXPERIMENT_DURATION_52}
     };
 
     public static final List<Scenario> STATIC_AND_ADAPTIVE_4H_SCENARIOS = BaseScenario.generateAll("scenario_", STATIC_AND_ADAPTIVE_4H);
@@ -174,7 +187,8 @@ public final class ScenarioBatches {
     public static final List<Scenario> CHURN_RATE_SCENARIOS = BaseScenario.generateAll("churn_4h_", CHURN_RATE);
     public static final List<Scenario> TRIAL_TIME_SCENARIOS = BaseScenario.generateAll("trial_time_4h_", TRIAL_TIME);
 
-    public static final List<Scenario> CHURN_POPULATION_SIZE_SCENARIOS = BaseScenario.generateAll("churn_population_size_4h_", churn_population_size);
+    public static final List<Scenario> CHURN_POPULATION_SIZE_SCENARIOS = BaseScenario.generateAll("churn_population_size_4h_", CHURN_POPULATION_SIZE);
+    public static final List<Scenario> EVOLUTIONARY_RANDOM_52_H_SCENARIOS = BaseScenario.generateAll("evolutionary_random_52h_", EVOLUTIONARY_RANDOM_52_H);
 
     static {
 
@@ -191,5 +205,4 @@ public final class ScenarioBatches {
         RANDOM_4H_PLUS_SCENARIOS.addAll(RANDOM_6H_SCENARIOS);
         RANDOM_4H_PLUS_SCENARIOS.addAll(RANDOM_4H_SCENARIOS);
     }
-
 }

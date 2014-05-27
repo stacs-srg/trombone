@@ -38,6 +38,7 @@ public final class Constants {
     public static final int NETWORK_SIZE = 1_000;
     public static final PFClustClusterer<EvaluatedDisseminationStrategy> PF_CLUST_CLUSTERER = new PFClustClusterer<>(SCENARIO_MASTER_SEED);
 
+    public static final Duration EXPERIMENT_DURATION_52 = new Duration(52, TimeUnit.HOURS);
     public static final Duration EXPERIMENT_DURATION_14 = new Duration(14, TimeUnit.HOURS);
     public static final Duration EXPERIMENT_DURATION_12 = new Duration(12, TimeUnit.HOURS);
     public static final Duration EXPERIMENT_DURATION_10 = new Duration(10, TimeUnit.HOURS);
@@ -52,6 +53,7 @@ public final class Constants {
     public static final Maintenance RANDOM_SELECTOR_MAINTENANCE_3 = new Maintenance(new RandomSelectorMaintenance(3, 3));
     public static final Maintenance MOST_RECENTLY_SEEN_3 = new Maintenance(new MostRecentlySeenMaintenance(3, 3));
 
+    public static final EvolutionaryMaintenance.ElapsedTimeTerminationCondition TERMINATION_CONDITION_48 = new EvolutionaryMaintenance.ElapsedTimeTerminationCondition(48, TimeUnit.HOURS);
     public static final EvolutionaryMaintenance.ElapsedTimeTerminationCondition TERMINATION_CONDITION_10 = new EvolutionaryMaintenance.ElapsedTimeTerminationCondition(10, TimeUnit.HOURS);
     public static final EvolutionaryMaintenance.ElapsedTimeTerminationCondition TERMINATION_CONDITION_8 = new EvolutionaryMaintenance.ElapsedTimeTerminationCondition(8, TimeUnit.HOURS);
     public static final EvolutionaryMaintenance.ElapsedTimeTerminationCondition TERMINATION_CONDITION_6 = new EvolutionaryMaintenance.ElapsedTimeTerminationCondition(6, TimeUnit.HOURS);
@@ -63,6 +65,7 @@ public final class Constants {
     public static final EvolutionaryMaintenance EVOLUTIONARY_MAINTENANCE_PFCLUST_10_4_MIN = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 4, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
     public static final EvolutionaryMaintenance EVOLUTIONARY_MAINTENANCE_PFCLUST_10_8_MIN = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 8, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
     public static final EvolutionaryMaintenance EVOLUTIONARY_MAINTENANCE_PFCLUST_10 = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
+    public static final EvolutionaryMaintenance EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_48_HOURS = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
     public static final EvolutionaryMaintenance EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_10_HOURS = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
     public static final EvolutionaryMaintenance EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_8_HOURS = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
     public static final EvolutionaryMaintenance EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_6_HOURS = new EvolutionaryMaintenance(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
@@ -74,6 +77,7 @@ public final class Constants {
     public static final RandomMaintenance RANDOM_MAINTENANCE_10_4_MIN  = new RandomMaintenance(10, 4, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
     public static final RandomMaintenance RANDOM_MAINTENANCE_10_8_MIN  = new RandomMaintenance(10, 8, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
     public static final RandomMaintenance RANDOM_MAINTENANCE_10 = new RandomMaintenance(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
+    public static final RandomMaintenance RANDOM_MAINTENANCE_10_STOP_AFTER_48_HOURS = new RandomMaintenance(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
     public static final RandomMaintenance RANDOM_MAINTENANCE_10_STOP_AFTER_10_HOURS = new RandomMaintenance(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
     public static final RandomMaintenance RANDOM_MAINTENANCE_10_STOP_AFTER_8_HOURS = new RandomMaintenance(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
     public static final RandomMaintenance RANDOM_MAINTENANCE_10_STOP_AFTER_6_HOURS = new RandomMaintenance(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
@@ -81,12 +85,14 @@ public final class Constants {
     public static final RandomMaintenance RANDOM_MAINTENANCE_10_STOP_AFTER_2_HOURS = new RandomMaintenance(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER);
 
     static {
+        EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_48_HOURS.setTerminationCondition(TERMINATION_CONDITION_48);
         EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_10_HOURS.setTerminationCondition(TERMINATION_CONDITION_10);
         EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_8_HOURS.setTerminationCondition(TERMINATION_CONDITION_8);
         EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_6_HOURS.setTerminationCondition(TERMINATION_CONDITION_6);
         EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_4_HOURS.setTerminationCondition(TERMINATION_CONDITION_4);
         EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_2_HOURS.setTerminationCondition(TERMINATION_CONDITION_2);
 
+        RANDOM_MAINTENANCE_10_STOP_AFTER_48_HOURS.setTerminationCondition(TERMINATION_CONDITION_48);
         RANDOM_MAINTENANCE_10_STOP_AFTER_10_HOURS.setTerminationCondition(TERMINATION_CONDITION_10);
         RANDOM_MAINTENANCE_10_STOP_AFTER_8_HOURS.setTerminationCondition(TERMINATION_CONDITION_8);
         RANDOM_MAINTENANCE_10_STOP_AFTER_6_HOURS.setTerminationCondition(TERMINATION_CONDITION_6);
