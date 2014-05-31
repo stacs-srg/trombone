@@ -189,6 +189,7 @@ public class EvolutionaryMaintenance extends Maintenance {
             EvaluatedDisseminationStrategy last_evaluated_strategy = null;
             if (previous_strategy != null && (!termination_condition_met || evaluated_strategies.size() < population_size)) {
                 last_evaluated_strategy = addToEvaluatedStrategies(environment_snapshot, previous_strategy);
+                FITNESS_SAMPLER.update(last_evaluated_strategy.getFitness());
             }
 
             final int evaluated_strategies_size = evaluated_strategies.size();
@@ -250,7 +251,6 @@ public class EvolutionaryMaintenance extends Maintenance {
                 total_weighted_fitness += weighted_fitness;
                 evaluated_strategy.setWeightedFitness(weighted_fitness);
 
-                FITNESS_SAMPLER.update(evaluated_strategy.getFitness());
                 NORMALIZED_FITNESS_SAMPLER.update(normalized_fitness);
                 WEIGHTED_FITNESS_SAMPLER.update(weighted_fitness);
                 index++;

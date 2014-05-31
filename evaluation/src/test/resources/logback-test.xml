@@ -16,9 +16,10 @@
     <!--SSHJ error logs only-->
     <logger name="net.schmizz" level="ERROR"/>
     <logger name="io.netty" level="ERROR"/>
+    <logger name="uk.ac.standrews.cs.trombone.evaluation" level="INFO"/>
 
     <root level="warn">
         <appender-ref ref="FILE"/>
-        <!--<appender-ref ref="STDOUT"/>-->
+        <appender-ref ref="STDOUT"/>
     </root>
 </configuration>

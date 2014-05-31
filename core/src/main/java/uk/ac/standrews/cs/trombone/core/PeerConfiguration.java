@@ -8,6 +8,7 @@ public class PeerConfiguration implements Serializable {
     private static final long serialVersionUID = -6034624232106255574L;
     private final Maintenance maintenance;
     private final SyntheticDelay synthetic_delay;
+    private boolean application_feedback_enabled;
 
     public PeerConfiguration(Maintenance maintenance, SyntheticDelay synthetic_delay) {
 
@@ -23,5 +24,15 @@ public class PeerConfiguration implements Serializable {
     public SyntheticDelay getSyntheticDelay() {
 
         return synthetic_delay;
+    }
+
+    public boolean isApplicationFeedbackEnabled() {
+
+        return application_feedback_enabled;
+    }
+
+    public void setApplicationFeedbackEnabled(final boolean application_feedback_enabled) {
+
+        this.application_feedback_enabled = application_feedback_enabled;
     }
 }

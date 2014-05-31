@@ -11,7 +11,7 @@ public class EnvironmentSnapshot implements Clusterable {
 
     private static final long MAX_LOOKUP_DELAY_MILLIS = TimeUnit.MILLISECONDS.convert(10, TimeUnit.SECONDS);
     private static final double MAX_SENT_BYTES_PER_SECOND = 100 * 5;
-    private static final double MAX_LOOKUP_RATE_PER_SECOND = 1000;
+    private static final double MAX_LOOKUP_RATE_PER_SECOND = 1;
     private static final double MAX_LOOKUP_FAILURE_RATE_PER_SECOND = MAX_LOOKUP_RATE_PER_SECOND;
     private final double lookup_failure_rate;
     private final long mean_lookup_success_delay_millis;

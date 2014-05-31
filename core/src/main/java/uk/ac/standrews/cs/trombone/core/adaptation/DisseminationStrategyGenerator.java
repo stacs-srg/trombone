@@ -12,12 +12,14 @@ import uk.ac.standrews.cs.trombone.core.selector.Selector;
  */
 public class DisseminationStrategyGenerator {
 
-    private static final int NUMBER_OF_ACTION_FIELDS = 4;
+    private static final int NUMBER_OF_ACTION_FIELDS = 4; // pull/push active/passive and 2 selectors 
     private final int max_action;
 
     public DisseminationStrategyGenerator(int max_action) {
 
-        if (max_action < 1) { throw new IllegalArgumentException("maximum number of actions must be at least 1"); }
+        if (max_action < 1) {
+            throw new IllegalArgumentException("maximum number of actions must be at least 1");
+        }
         this.max_action = max_action;
     }
 

@@ -712,7 +712,7 @@ public class EventExecutor {
 
             final LookupEvent event = (LookupEvent) getEvent();
 
-            Futures.addCallback(peer.lookupAsynch(event.getTarget(), lookup_retry_count), new FutureCallback<PeerMetric.LookupMeasurement>() {
+            Futures.addCallback(peer.lookupAsynch(event.getTarget(), lookup_retry_count, event.getExpectedResult()), new FutureCallback<PeerMetric.LookupMeasurement>() {
 
                 @Override
                 public void onSuccess(final PeerMetric.LookupMeasurement measurement) {

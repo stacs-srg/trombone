@@ -23,8 +23,11 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
     private final Rate lookup_counter;
     private final Rate served_next_hop_counter;
     private final Rate rpc_error_rate;
+    private final boolean application_feedback_enabled;
 
-    public PeerMetric() {
+    public PeerMetric(final boolean application_feedback_enabled) {
+
+        this.application_feedback_enabled = application_feedback_enabled;
 
         sent_bytes_rate = new Rate();
         lookup_success_delay_timer = new Timer();
@@ -57,6 +60,11 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
     public LookupMeasurement newLookupMeasurement(final int retry_count) {
 
         return new LookupMeasurement(retry_count);
+    }
+
+    public LookupMeasurement newLookupMeasurement(final int retry_count, PeerReference expected_result) {
+
+        return new LookupMeasurement(retry_count, expected_result);
     }
 
     public long getMeanLookupSuccessDelay(TimeUnit unit) {
@@ -114,6 +122,7 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
     public final class LookupMeasurement {
 
         private final int retry_threshold;
+        private final PeerReference expected_result;
         private final Timer.Time time;
         private final AtomicBoolean done;
         private final AtomicInteger retry_count = new AtomicInteger();
@@ -124,9 +133,16 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
 
         private LookupMeasurement(int retry_threshold) {
 
+            this(retry_threshold, null);
+        }
+
+        public LookupMeasurement(final int retry_threshold, final PeerReference expected_result) {
+
             this.retry_threshold = retry_threshold;
+            this.expected_result = expected_result;
             time = lookup_success_delay_timer.time();
             done = new AtomicBoolean();
+
         }
 
         public synchronized void incrementRetryCount() {
@@ -160,6 +176,10 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
             if (doneIfUndone()) {
                 this.result = result;
                 duration_in_nanos = time.stop();
+
+                if (application_feedback_enabled && expected_result != null && !expected_result.equals(result)) {
+                    lookup_failure_rate.mark();
+                }
                 lookup_counter.mark();
             }
         }

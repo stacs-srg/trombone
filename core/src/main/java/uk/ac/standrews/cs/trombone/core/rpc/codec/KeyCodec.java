@@ -10,8 +10,6 @@ import uk.ac.standrews.cs.trombone.core.key.Key;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class KeyCodec implements Codec {
 
-    public static final int MAX_KEY_VALUE_LENGTH = 256;
-
     @Override
     public boolean isSupported(final Type type) {
 

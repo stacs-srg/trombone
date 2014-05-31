@@ -53,7 +53,7 @@ public class Peer implements PeerRemote {
         this.key = key;
         random = new MersenneTwisterRNG(DigestUtils.md5(key.getValue()));
         property_change_support = new PropertyChangeSupport(this);
-        metric = new PeerMetric();
+        metric = new PeerMetric(configuration.isApplicationFeedbackEnabled());
         state = new PeerState(key, metric);
         maintainer = configuration.getMaintenance().maintain(this);
         server = SERVER_FACTORY.createServer(this);
@@ -323,9 +323,9 @@ public class Peer implements PeerRemote {
         return measurement;
     }
 
-    public ListenableFuture<PeerMetric.LookupMeasurement> lookupAsynch(final Key target, int retry_count) {
+    public ListenableFuture<PeerMetric.LookupMeasurement> lookupAsynch(final Key target, int retry_count, final PeerReference expectedResult) {
 
-        final PeerMetric.LookupMeasurement measurement = metric.newLookupMeasurement(retry_count);
+        final PeerMetric.LookupMeasurement measurement = metric.newLookupMeasurement(retry_count,expectedResult);
         final SettableFuture<PeerMetric.LookupMeasurement> future = SettableFuture.create();
         lookupAsynch(future, measurement, target);
         return future;
