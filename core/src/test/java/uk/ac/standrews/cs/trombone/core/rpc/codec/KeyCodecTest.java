@@ -2,6 +2,9 @@ package uk.ac.standrews.cs.trombone.core.rpc.codec;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,8 +41,21 @@ public class KeyCodecTest {
     @Test
     public void testCodec() throws Exception {
 
-        final Key[] keys = {null, Key.valueOf(Long.MAX_VALUE), Key.valueOf(Long.MIN_VALUE), Key.valueOf(Integer.MAX_VALUE), Key.valueOf(Integer.MIN_VALUE), Key.valueOf(random.nextInt()), Key.valueOf(random.nextLong())};
+        final List<Key> keys = new ArrayList<>();
 
+        for (int i = 0; i < 1000; i++) {
+            keys.add(Key.valueOf(new BigInteger(random.nextInt(255) + 1, random)));
+            keys.add(Key.valueOf(random.nextLong()));
+        }
+
+        keys.add(null);
+        keys.add(Key.valueOf(Long.MAX_VALUE));
+        keys.add(Key.valueOf(Long.MIN_VALUE));
+        keys.add(Key.valueOf(Integer.MAX_VALUE));
+        keys.add(Key.valueOf(Integer.MIN_VALUE));
+        keys.add(Key.valueOf(random.nextInt()));
+        keys.add(Key.valueOf(random.nextLong()));
+        
         for (Key key : keys) {
             codec.encode(key, buffer, PeerCodecs.INSTANCE, Key.class);
             assertEquals(key, codec.decode(buffer, PeerCodecs.INSTANCE, Key.class));

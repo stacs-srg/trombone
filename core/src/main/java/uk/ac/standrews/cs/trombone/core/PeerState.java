@@ -1,13 +1,11 @@
 package uk.ac.standrews.cs.trombone.core;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import uk.ac.standrews.cs.trombone.core.key.Key;
-import uk.ac.standrews.cs.trombone.core.util.InternalReferenceLastSeenComparator;
 import uk.ac.standrews.cs.trombone.core.util.RelativeRingDistanceComparator;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
@@ -43,10 +41,12 @@ public class PeerState implements Iterable<InternalPeerReference> {
         final InternalPeerReference internal_reference = toInternalPeerReference(reference);
         final InternalPeerReference existing_reference = state.putIfAbsent(key, internal_reference);
 
-        if (existing_reference != null) {
+        final boolean already_existed = existing_reference != null;
+        if (already_existed) {
             existing_reference.setReachable(reference.isReachable());
         }
-        return existing_reference == null;
+
+        return !already_existed;
     }
 
     public PeerReference remove(PeerReference reference) {
@@ -64,51 +64,6 @@ public class PeerState implements Iterable<InternalPeerReference> {
 
         final Map.Entry<Key, InternalPeerReference> higher_entry = state.higherEntry(target);
         return getEntryValue(higher_entry);
-    }
-
-    public List<PeerReference> mostRecentlySeen(final int size) {
-
-        return (List<PeerReference>) (List) InternalReferenceLastSeenComparator.getInstance().greatestOf(state.values(), size);
-
-    }
-
-    public List<PeerReference> firstReachable(final int size) {
-
-        final List<PeerReference> references = new ArrayList<>(size);
-        final Iterator<InternalPeerReference> iterator = state.values().iterator();
-        while (iterator.hasNext() && references.size() < size) {
-            final InternalPeerReference next = iterator.next();
-            if (next.isReachable()) {
-                references.add(next);
-            }
-        }
-        return references;
-    }
-
-    public List<PeerReference> firstUnreachable(final int size) {
-
-        final List<PeerReference> references = new ArrayList<>(size);
-        final Iterator<InternalPeerReference> iterator = state.values().iterator();
-        while (iterator.hasNext() && references.size() < size) {
-            final InternalPeerReference next = iterator.next();
-            if (!next.isReachable()) {
-                references.add(next);
-            }
-        }
-        return references;
-    }
-
-    public List<PeerReference> lastReachable(final int size) {
-
-        final List<PeerReference> references = new ArrayList<>(size);
-        final Iterator<Key> iterator = state.descendingKeySet().iterator();
-        while (iterator.hasNext() && references.size() < size) {
-            final InternalPeerReference next = state.get(iterator.next());
-            if (next.isReachable()) {
-                references.add(next);
-            }
-        }
-        return references;
     }
 
     public PeerReference ceilingReachable(final Key target) {
@@ -129,26 +84,6 @@ public class PeerState implements Iterable<InternalPeerReference> {
     public PeerReference first() {
 
         return getEntryValue(state.firstEntry());
-    }
-
-    public List<PeerReference> first(int count) {
-
-        final List<PeerReference> references = new ArrayList<>(count);
-        final Iterator<InternalPeerReference> iterator = state.values().iterator();
-        while (iterator.hasNext() && references.size() < count) {
-            references.add(iterator.next());
-        }
-        return references;
-    }
-
-    public List<PeerReference> last(int count) {
-
-        final List<PeerReference> references = new ArrayList<>(count);
-        final Iterator<InternalPeerReference> iterator = state.descendingMap().values().iterator();
-        while (iterator.hasNext() && references.size() < count) {
-            references.add(iterator.next());
-        }
-        return references;
     }
 
     public PeerReference firstReachable() {
@@ -191,18 +126,15 @@ public class PeerState implements Iterable<InternalPeerReference> {
 
         return state.values().iterator();
     }
+    
+    public Iterator<InternalPeerReference> descendingIterator() {
 
-    public List<PeerReference> lastUnreachable(final int size) {
+        return state.descendingMap().values().iterator();
+    }
 
-        final List<PeerReference> references = new ArrayList<>(size);
-        final Iterator<Key> iterator = state.descendingKeySet().iterator();
-        while (iterator.hasNext() && references.size() < size) {
-            final InternalPeerReference next = state.get(iterator.next());
-            if (!next.isReachable()) {
-                references.add(next);
-            }
-        }
-        return references;
+    public List<InternalPeerReference> getInternalReferences() {
+
+        return new CopyOnWriteArrayList<>(state.values());
     }
 
     private static InternalPeerReference toInternalPeerReference(final PeerReference reference) {

@@ -12,18 +12,30 @@ import uk.ac.standrews.cs.trombone.core.SyntheticDelay;
  */
 public final class PeerConfigurationGenerator {
 
+    private static final Boolean[] DEFAULT_APPLICATION_FEEDBACK = {Boolean.FALSE};
+
     private PeerConfigurationGenerator() {
 
     }
 
     public static List<PeerConfiguration> generate(Maintenance[] maintenance_factories, SyntheticDelay[] delays) {
 
+        return generate(maintenance_factories, delays, DEFAULT_APPLICATION_FEEDBACK);
+    }
+
+    public static List<PeerConfiguration> generate(Maintenance[] maintenance_factories, SyntheticDelay[] delays, Boolean[] application_feedbacks) {
+
         List<PeerConfiguration> configurations = new ArrayList<>();
-        final List<Object[]> args = Combinations.generateArgumentCombinations(new Object[][] {maintenance_factories, delays});
+        final List<Object[]> args = Combinations.generateArgumentCombinations(new Object[][] {
+                maintenance_factories, delays, application_feedbacks
+        });
         for (Object[] arg : args) {
             final Maintenance maintenance_factory = (Maintenance) arg[0];
             final SyntheticDelay delay = (SyntheticDelay) arg[1];
-            configurations.add(new PeerConfiguration(maintenance_factory, delay));
+            final Boolean application_feedback = (Boolean) arg[2];
+            final PeerConfiguration configuration = new PeerConfiguration(maintenance_factory, delay);
+            configuration.setApplicationFeedbackEnabled(application_feedback);
+            configurations.add(configuration);
         }
         return configurations;
     }

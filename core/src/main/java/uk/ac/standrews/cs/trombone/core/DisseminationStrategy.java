@@ -148,7 +148,7 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
 
             if (!opportunistic) {
 
-                final List<PeerReference> recipients = getRecipients(local);
+                final List<? extends PeerReference> recipients = getRecipients(local);
                 if (recipients != null && !recipients.isEmpty()) {
                     if (push) {
                         final List<PeerReference> data_to_push = getPushData(local);
@@ -250,7 +250,7 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
             return new Object[] {push ? getPushData(local) : data_selector};
         }
 
-        List<PeerReference> getRecipients(final Peer local) throws RPCException {
+        List<? extends PeerReference> getRecipients(final Peer local) throws RPCException {
 
             return recipient_selector.select(local);
         }

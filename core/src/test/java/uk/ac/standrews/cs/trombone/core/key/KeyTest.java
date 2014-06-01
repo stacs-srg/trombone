@@ -1,7 +1,6 @@
 package uk.ac.standrews.cs.trombone.core.key;
 
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -11,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.core.util.RelativeRingDistanceComparator;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
@@ -27,33 +25,6 @@ public class KeyTest {
     private static final double DELTA = 1e-15;
     private static final Random random = new Random(894156);
 
-    @Test
-    public void testGetValue() throws Exception {
-
-        assertEquals(Integer.SIZE / Byte.SIZE, _5.getValue().length);
-        assertArrayEquals(ByteBuffer.allocate(Integer.SIZE / Byte.SIZE).putInt(5).array(), _5.getValue());
-        assertArrayEquals(ByteBuffer.allocate(Long.SIZE / Byte.SIZE).putLong(Long.MAX_VALUE).array(), Key.valueOf(Long.MAX_VALUE).getValue());
-    }
-
-    @Test
-    public void testGetLength() throws Exception {
-
-        assertEquals(Short.SIZE, Key.valueOf((short) 56).getLength());
-        assertEquals(Integer.SIZE, Key.valueOf(Integer.valueOf(56)).getLength());
-        assertEquals(Long.SIZE, Key.valueOf(Long.valueOf(56)).getLength());
-        assertEquals(160, newRandomKeyOfLengthInBits(160 / Byte.SIZE).getLength());
-        assertEquals(8, newRandomKeyOfLengthInBits(8 / Byte.SIZE).getLength());
-        assertEquals(320, newRandomKeyOfLengthInBits(320 / Byte.SIZE).getLength());
-        assertEquals(1024, newRandomKeyOfLengthInBits(1024 / Byte.SIZE).getLength());
-        assertEquals(65536, newRandomKeyOfLengthInBits(65536 / Byte.SIZE).getLength());
-    }
-
-    @Test
-    public void testGetKeySpaceSize() throws Exception {
-
-        assertEquals((long) Math.pow(2, Short.SIZE), Key.getKeySpaceSize(Key.valueOf((short) 56)).longValue());
-        assertEquals((long) Math.pow(2, Integer.SIZE), Key.getKeySpaceSize(Key.valueOf(Integer.valueOf(56))).longValue());
-    }
 
     @Test
     public void testCompareRingDistance() throws Exception {
@@ -122,23 +93,6 @@ public class KeyTest {
     }
 
     @Test
-    public void testDoubleValue() throws Exception {
-
-        for (int i = 0; i < 1000; i++) {
-            final Double value = random.nextDouble();
-            assertEquals(value, Key.valueOf(value).doubleValue(), DELTA);
-        }
-    }
-
-    @Test
-    public void testFloatValue() throws Exception {
-
-        for (int i = 0; i < 1000; i++) {
-            final float value = random.nextFloat();
-            assertEquals(value, Key.valueOf(value).floatValue(), DELTA);
-        }
-    }
-    @Test
     public void testShortValue() throws Exception {
 
         for (int i = 0; i < 1000; i++) {
@@ -150,28 +104,38 @@ public class KeyTest {
     @Test
     public void testByteValue() throws Exception {
 
-        System.out.println(Key.valueOf(1.0d).floatValue());
-        System.out.println(Key.valueOf(1.0f));
-        System.out.println(Key.valueOf(1));
-        System.out.println(Key.valueOf(Long.valueOf(1)));
-        
         for (int i = 0; i < 1000; i++) {
-            final int length = random.nextInt(99) + 1;
+            final int length = random.nextInt(3) + 1;
             final byte[] value = new byte[length];
             random.nextBytes(value);
-
+            
             final Key key = Key.valueOf(value);
             final BigInteger big_integer = new BigInteger(value);
+            final int length2 = random.nextInt(3) + 1;
+            final byte[] value2 = new byte[length2];
+            random.nextBytes(value2);
+
+            final Key key2 = Key.valueOf(value2);
+            final BigInteger big_integer2 = new BigInteger(value2);
+
+            long now = System.nanoTime();
+            final int expected = key.compareTo(key2);
+            System.out.println("1took " + (System.nanoTime() - now));
+            now = System.nanoTime();
+            final int actual = big_integer.compareTo(big_integer2);
+            System.out.println("2took " + (System.nanoTime() - now));
 
             LOGGER.info("key: {}, key_length: {}, big_int: {}", key, length, big_integer);
-
-            assertEquals(value[length - 1], key.byteValue());
-//            assertEquals(big_integer.byteValue(), key.byteValue());
-//            assertEquals(big_integer.shortValue(), key.shortValue());
-//            assertEquals(big_integer.intValue(), key.intValue());
-//            assertEquals(big_integer.longValue(), key.longValue());
-//            assertEquals(big_integer.floatValue(), key.floatValue(), DELTA);
-//            assertEquals(big_integer.doubleValue(), key.doubleValue(), DELTA);
+            LOGGER.info("key: {}, key_length: {}, big_int: {}", key2, length2, big_integer2);
+            System.out.println();
+            assertEquals(expected, actual);
+            //            assertEquals(value[length - 1], key.byteValue());
+            //            assertEquals(big_integer.byteValue(), key.byteValue());
+            //            assertEquals(big_integer.shortValue(), key.shortValue());
+            //            assertEquals(big_integer.intValue(), key.intValue());
+            //            assertEquals(big_integer.longValue(), key.longValue());
+            //            assertEquals(big_integer.floatValue(), key.floatValue(), DELTA);
+            //            assertEquals(big_integer.doubleValue(), key.doubleValue(), DELTA);
         }
     }
 

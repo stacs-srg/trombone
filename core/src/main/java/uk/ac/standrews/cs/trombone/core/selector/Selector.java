@@ -72,7 +72,7 @@ public abstract class Selector implements Serializable, Copyable, Named {
         return REACHABILITY_CRITERIA[random.nextInt(REACHABILITY_CRITERIA_LENGTH)];
     }
 
-    public abstract List<PeerReference> select(Peer peer);
+    public abstract List<? extends PeerReference> select(Peer peer);
 
     public static Selector mutate(Selector selector, Random random) {
 

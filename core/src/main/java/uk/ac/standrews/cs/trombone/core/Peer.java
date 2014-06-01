@@ -51,7 +51,7 @@ public class Peer implements PeerRemote {
     Peer(final InetSocketAddress address, final Key key, PeerConfiguration configuration) {
 
         this.key = key;
-        random = new MersenneTwisterRNG(DigestUtils.md5(key.getValue()));
+        random = new MersenneTwisterRNG(DigestUtils.md5(key.toByteArray()));
         property_change_support = new PropertyChangeSupport(this);
         metric = new PeerMetric(configuration.isApplicationFeedbackEnabled());
         state = new PeerState(key, metric);
@@ -124,7 +124,7 @@ public class Peer implements PeerRemote {
     @Override
     public List<PeerReference> pull(final Selector selector) {
 
-        return selector.select(this);
+        return (List<PeerReference>) selector.select(this);
     }
 
     @Override

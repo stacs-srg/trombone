@@ -1,8 +1,11 @@
 package uk.ac.standrews.cs.trombone.core.selector;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.standrews.cs.trombone.core.InternalPeerReference;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.PeerState;
@@ -22,28 +25,58 @@ public class Last extends Selector {
     public List<PeerReference> select(final Peer peer) {
 
         final PeerState state = peer.getPeerState();
-        final List<PeerReference> selection;
         switch (reachability_criteria) {
             case REACHABLE:
-                selection = state.lastReachable(size);
-                break;
+                return lastReachable(size, state);
             case UNREACHABLE:
-                selection = state.lastUnreachable(size);
-                break;
+                return lastUnreachable(size, state);
             case REACHABLE_OR_UNREACHABLE:
-                selection = state.last(size);
-                break;
+                return last(size, state);
             default:
-                selection = null;
                 LOGGER.warn("unknown reachability criteria {}", reachability_criteria);
+                return null;
         }
-
-        return selection;
     }
 
     @Override
     public Selector copy() {
 
         return new Last(size, reachability_criteria);
+    }
+
+    public List<PeerReference> last(int count, final PeerState state) {
+
+        final List<PeerReference> results = new ArrayList<>(count);
+        final Iterator<InternalPeerReference> descending_state_iterator = state.descendingIterator();
+        while (descending_state_iterator.hasNext() && results.size() < count) {
+            results.add(descending_state_iterator.next());
+        }
+        return results;
+    }
+
+    public List<PeerReference> lastReachable(final int size, final PeerState state) {
+
+        final List<PeerReference> result = new ArrayList<>(size);
+        final Iterator<InternalPeerReference> descending_state_iterator = state.descendingIterator();
+        while (descending_state_iterator.hasNext() && result.size() < size) {
+            final InternalPeerReference next = descending_state_iterator.next();
+            if (next.isReachable()) {
+                result.add(next);
+            }
+        }
+        return result;
+    }
+
+    public List<PeerReference> lastUnreachable(final int size, final PeerState state) {
+
+        final List<PeerReference> result = new ArrayList<>(size);
+        final Iterator<InternalPeerReference> descending_state_iterator = state.descendingIterator();
+        while (descending_state_iterator.hasNext() && result.size() < size) {
+            final InternalPeerReference next = descending_state_iterator.next();
+            if (!next.isReachable()) {
+                result.add(next);
+            }
+        }
+        return result;
     }
 }

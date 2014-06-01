@@ -49,8 +49,7 @@ public final class ScenarioBatches {
             },
             //@formatter:on
 
-            SYNTHETIC_DELAYS
-    ).toArray();
+            SYNTHETIC_DELAYS).toArray();
 
     private static final Object[] EVOLUTIONARY_RANDOM_TRIAL_TIME = generate(
             //@formatter:off
@@ -66,8 +65,7 @@ public final class ScenarioBatches {
             },
             //@formatter:on
 
-            SYNTHETIC_DELAYS
-    ).toArray();
+            SYNTHETIC_DELAYS).toArray();
 
     private static final Object[][] STATIC_AND_ADAPTIVE_4H = {
             ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, CONFIGURATION_STATIC_AND_ADAPTIVE,
@@ -79,13 +77,21 @@ public final class ScenarioBatches {
                     Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_30,
                     Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_40,
                     Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_50
-            }, SYNTHETIC_DELAYS
-    ).toArray();
+            }, SYNTHETIC_DELAYS).toArray();
     public static final Object[] EVOLUTIONARY_RANDOM_48_H = generate(new Maintenance[] {
                     Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_48_HOURS,
                     Constants.RANDOM_MAINTENANCE_10_STOP_AFTER_48_HOURS
-            }, SYNTHETIC_DELAYS
-    ).toArray();
+            }, SYNTHETIC_DELAYS).toArray();
+
+    public static final Object[] EVOLUTIONARY_POPULATION_10_50_FEEDBACK = generate(new Maintenance[] {
+
+                    Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10,
+                    Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_20,
+                    Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_30,
+                    Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_40,
+                    Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_50
+            }, SYNTHETIC_DELAYS, new Boolean[] {Boolean.TRUE}).toArray();
+
     private static final Object[][] EVOLUTIONARY_POPULATION_SIZES = {
             ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, EVOLUTIONARY_POPULATION_20_50,
             {Constants.EXPERIMENT_DURATION_4}
@@ -166,6 +172,11 @@ public final class ScenarioBatches {
             {Constants.EXPERIMENT_DURATION_52}
     };
 
+    private static final Object[][] EVOLUTIONARY_APP_FEEDBACK_4_H = {
+            CHURN_RATE_MODELS_WITH_OSCI, {Constants.WORKLOAD_1, Constants.WORKLOAD_2},
+            EVOLUTIONARY_POPULATION_10_50_FEEDBACK, {Constants.EXPERIMENT_DURATION_4}
+    };
+
     public static final List<Scenario> STATIC_AND_ADAPTIVE_4H_SCENARIOS = BaseScenario.generateAll("scenario_", STATIC_AND_ADAPTIVE_4H);
     public static final List<Scenario> EVOLUTIONARY_POPULATIONS_20_TO_50_SCENARIOS = BaseScenario.generateAll("evolutionary_p_4h_", EVOLUTIONARY_POPULATION_SIZES);
 
@@ -189,6 +200,7 @@ public final class ScenarioBatches {
 
     public static final List<Scenario> CHURN_POPULATION_SIZE_SCENARIOS = BaseScenario.generateAll("churn_population_size_4h_", CHURN_POPULATION_SIZE);
     public static final List<Scenario> EVOLUTIONARY_RANDOM_52_H_SCENARIOS = BaseScenario.generateAll("evolutionary_random_52h_", EVOLUTIONARY_RANDOM_52_H);
+    public static final List<Scenario> EVOLUTIONARY_APPLICATION_FEEDBACK_SCENARIOS = BaseScenario.generateAll("evolutionary_app_feedback_4h_", EVOLUTIONARY_APP_FEEDBACK_4_H);
 
     static {
 
