@@ -37,28 +37,18 @@ public class EvolutionaryMaintenance extends Maintenance {
     public static final Sampler STRATEGY_ACTION_SIZE_SAMPLER = new Sampler();
 
     private static final long serialVersionUID = -3613808902480933796L;
-    private static final int DISSEMINATION_STRATEGY_LIST_SIZE = 5;
-    protected static final DisseminationStrategyGenerator STRATEGY_GENERATOR = new DisseminationStrategyGenerator(DISSEMINATION_STRATEGY_LIST_SIZE);
     private static final Ordering<EvaluatedDisseminationStrategy> EVALUATED_DISSEMINATION_STRATEGY_ORDERING = Ordering.natural();
     private static final Logger LOGGER = LoggerFactory.getLogger(EvolutionaryMaintenance.class);
 
     protected final int population_size;
+    protected final Clusterer<EvaluatedDisseminationStrategy> clusterer;
     private final int elite_count;
     private final Probability mutation_probability;
     private final long evolution_cycle_length;
     private final TimeUnit evolution_cycle_unit;
-    protected final Clusterer<EvaluatedDisseminationStrategy> clusterer;
+    protected final DisseminationStrategyGenerator strategy_generator;
     private TerminationCondition termination_condition;
-
-    @Override
-    protected PeerMaintainer maintain(Peer peer) {
-
-        final PeerMaintainer listener = new EvolutionaryPeerMaintainer(peer);
-        peer.addExposureChangeListener(listener);
-        return listener;
-    }
-
-    public EvolutionaryMaintenance(int population_size, int elite_count, Probability mutation_probability, long evolution_cycle_length, TimeUnit evolution_cycle_unit, Clusterer<EvaluatedDisseminationStrategy> clusterer) {
+    public EvolutionaryMaintenance(int population_size, int elite_count, Probability mutation_probability, long evolution_cycle_length, TimeUnit evolution_cycle_unit, Clusterer<EvaluatedDisseminationStrategy> clusterer, int max_action_size, int max_selection_size) {
 
         this.population_size = population_size;
         this.elite_count = elite_count;
@@ -66,6 +56,12 @@ public class EvolutionaryMaintenance extends Maintenance {
         this.evolution_cycle_length = evolution_cycle_length;
         this.evolution_cycle_unit = evolution_cycle_unit;
         this.clusterer = clusterer;
+        strategy_generator = new DisseminationStrategyGenerator(max_action_size, max_selection_size);
+    }
+
+    public DisseminationStrategyGenerator getDisseminationStrategyGenerator() {
+
+        return strategy_generator;
     }
 
     public int getPopulationSize() {
@@ -111,6 +107,56 @@ public class EvolutionaryMaintenance extends Maintenance {
     public void setTerminationCondition(final TerminationCondition termination_condition) {
 
         this.termination_condition = termination_condition;
+    }
+
+    @Override
+    protected PeerMaintainer maintain(Peer peer) {
+
+        final PeerMaintainer listener = new EvolutionaryPeerMaintainer(peer);
+        peer.addExposureChangeListener(listener);
+        return listener;
+    }
+
+    public interface TerminationCondition {
+
+        boolean terminate(EvolutionaryPeerMaintainer maintainer);
+    }
+
+    public static class ElapsedTimeTerminationCondition implements TerminationCondition, Named {
+
+        private final long elapsed_time_millis;
+        private final long duration;
+        private final TimeUnit duration_unit;
+
+        public ElapsedTimeTerminationCondition(long duration, TimeUnit duration_unit) {
+
+            this.duration = duration;
+            this.duration_unit = duration_unit;
+
+            elapsed_time_millis = TimeUnit.MILLISECONDS.convert(duration, duration_unit);
+        }
+
+        @Override
+        public boolean terminate(final EvolutionaryPeerMaintainer maintainer) {
+
+            return maintainer.getElapsedMillisecondsSinceFirstStart() >= elapsed_time_millis;
+        }
+
+        @Override
+        public String getName() {
+
+            return NamingUtils.name(this);
+        }
+
+        public long getDuration() {
+
+            return duration;
+        }
+
+        public TimeUnit getDurationUnit() {
+
+            return duration_unit;
+        }
     }
 
     public class EvolutionaryPeerMaintainer extends PeerMaintainer {
@@ -166,19 +212,14 @@ public class EvolutionaryMaintenance extends Maintenance {
             }
         }
 
-        protected long getElapsedMillisecondsSinceFirstStart() {
+        private boolean hasStartedBefore() {
 
-            return hasStartedBefore() ? System.currentTimeMillis() - first_start_millis : 0;
+            return first_start_millis > 0;
         }
 
         private void updateFirstStartTime() {
 
             first_start_millis = System.currentTimeMillis();
-        }
-
-        private boolean hasStartedBefore() {
-
-            return first_start_millis > 0;
         }
 
         private synchronized DisseminationStrategy getNextStrategy(final EnvironmentSnapshot environment_snapshot, final DisseminationStrategy previous_strategy) {
@@ -197,7 +238,7 @@ public class EvolutionaryMaintenance extends Maintenance {
                 if (termination_condition_met) {
                     LOGGER.warn("termination condition has been met but there are not enough evaluated strategies, population size: {}, evaluated size: {}", population_size, evaluated_strategies_size);
                 }
-                next_strategy = STRATEGY_GENERATOR.generate(random);
+                next_strategy = strategy_generator.generate(random);
             }
             else if (last_evaluated_strategy == null) {
                 Collections.sort(evaluated_strategies, EVALUATED_DISSEMINATION_STRATEGY_ORDERING);
@@ -226,6 +267,36 @@ public class EvolutionaryMaintenance extends Maintenance {
         private boolean isTerminationConditionMet() {
 
             return termination_condition != null ? termination_condition.terminate(this) : false;
+        }
+
+        protected EvaluatedDisseminationStrategy addToEvaluatedStrategies(final EnvironmentSnapshot environment_snapshot, final DisseminationStrategy previous_strategy) {
+
+            final EvaluatedDisseminationStrategy evaluated_strategy = new EvaluatedDisseminationStrategy(previous_strategy, environment_snapshot);
+            evaluated_strategies.add(evaluated_strategy);
+            total_fitness.addAndGet(evaluated_strategy.getFitness());
+            return evaluated_strategy;
+        }
+
+        protected Cluster<EvaluatedDisseminationStrategy> getCurrentEnvironmentCluster(final EvaluatedDisseminationStrategy last_evaluated_strategy) {
+
+            final List<? extends Cluster<EvaluatedDisseminationStrategy>> clustering = clusterer.cluster(evaluated_strategies);
+            CLUSTER_COUNT_SAMPLER.update(clustering.size());
+            Cluster<EvaluatedDisseminationStrategy> current_cluster = null;
+            for (Cluster<EvaluatedDisseminationStrategy> cluster : clustering) {
+                final List<EvaluatedDisseminationStrategy> cluster_points = cluster.getPoints();
+                CLUSTER_SIZE_SAMPLER.update(cluster_points.size());
+
+                if (current_cluster == null && cluster_points.contains(last_evaluated_strategy)) {
+                    current_cluster = cluster;
+                }
+            }
+            assert current_cluster != null;
+            return current_cluster;
+        }
+
+        protected EvaluatedDisseminationStrategy mostFit(final List<EvaluatedDisseminationStrategy> current_cluster_points) {
+
+            return current_cluster_points.isEmpty() ? null : EVALUATED_DISSEMINATION_STRATEGY_ORDERING.leastOf(current_cluster_points, 1).get(0);
         }
 
         protected DisseminationStrategy generateNextStrategy(final Cluster<EvaluatedDisseminationStrategy> current_cluster) {
@@ -259,45 +330,45 @@ public class EvolutionaryMaintenance extends Maintenance {
             final TreeMap<Double, EvaluatedDisseminationStrategy> cumulative_evaluated_strategies = getCumulativeWeightedFitness(total_weighted_fitness);
             final DisseminationStrategy one = select(cumulative_evaluated_strategies);
             final DisseminationStrategy other = select(cumulative_evaluated_strategies);
-            final DisseminationStrategy offspring = STRATEGY_GENERATOR.mate(one, other, random);
+            final DisseminationStrategy offspring = strategy_generator.mate(one, other, random);
 
-            STRATEGY_GENERATOR.mutate(offspring, random, mutation_probability);
+            strategy_generator.mutate(offspring, random, mutation_probability);
             return offspring;
         }
 
-        protected Cluster<EvaluatedDisseminationStrategy> getCurrentEnvironmentCluster(final EvaluatedDisseminationStrategy last_evaluated_strategy) {
+        protected void removeLeastFitFromCurrentCluster(final List<EvaluatedDisseminationStrategy> current_cluster_points) {
 
-            final List<? extends Cluster<EvaluatedDisseminationStrategy>> clustering = clusterer.cluster(evaluated_strategies);
-            CLUSTER_COUNT_SAMPLER.update(clustering.size());
-            Cluster<EvaluatedDisseminationStrategy> current_cluster = null;
-            for (Cluster<EvaluatedDisseminationStrategy> cluster : clustering) {
-                final List<EvaluatedDisseminationStrategy> cluster_points = cluster.getPoints();
-                CLUSTER_SIZE_SAMPLER.update(cluster_points.size());
-
-                if (current_cluster == null && cluster_points.contains(last_evaluated_strategy)) {
-                    current_cluster = cluster;
-                }
+            final int evaluated_strategies_size = evaluated_strategies.size();
+            if (evaluated_strategies_size > population_size) {
+                final EvaluatedDisseminationStrategy least_fit = leastFit(current_cluster_points);
+                removeFromEvaluatedStrategies(least_fit);
             }
-            assert current_cluster != null;
-            return current_cluster;
+        }
+
+        private TreeMap<Double, EvaluatedDisseminationStrategy> getCumulativeWeightedFitness(final double total_weighted_fitness) {
+
+            final TreeMap<Double, EvaluatedDisseminationStrategy> cumulative_weighted_fitness = new TreeMap<>();
+            double cumulative_normalized_fitness = 0;
+            for (final EvaluatedDisseminationStrategy evaluated_strategy : evaluated_strategies) {
+                final double weighted_fitness = evaluated_strategy.getWeightedFitness();
+                final double normalized_fitness = weighted_fitness / total_weighted_fitness;
+                cumulative_normalized_fitness += normalized_fitness;
+                cumulative_weighted_fitness.put(cumulative_normalized_fitness, evaluated_strategy);
+            }
+            return cumulative_weighted_fitness;
+        }
+
+        private DisseminationStrategy select(final TreeMap<Double, EvaluatedDisseminationStrategy> normalized_evaluated_strategies) {
+
+            final double dice = random.nextDouble();
+            final EvaluatedDisseminationStrategy selected = normalized_evaluated_strategies.ceilingEntry(dice).getValue();
+            assert selected != null;
+            return selected.getStrategy();
         }
 
         protected EvaluatedDisseminationStrategy leastFit(final List<EvaluatedDisseminationStrategy> current_cluster_points) {
 
             return current_cluster_points.isEmpty() ? null : EVALUATED_DISSEMINATION_STRATEGY_ORDERING.greatestOf(current_cluster_points, 1).get(0);
-        }
-
-        protected EvaluatedDisseminationStrategy mostFit(final List<EvaluatedDisseminationStrategy> current_cluster_points) {
-
-            return current_cluster_points.isEmpty() ? null : EVALUATED_DISSEMINATION_STRATEGY_ORDERING.leastOf(current_cluster_points, 1).get(0);
-        }
-
-        protected EvaluatedDisseminationStrategy addToEvaluatedStrategies(final EnvironmentSnapshot environment_snapshot, final DisseminationStrategy previous_strategy) {
-
-            final EvaluatedDisseminationStrategy evaluated_strategy = new EvaluatedDisseminationStrategy(previous_strategy, environment_snapshot);
-            evaluated_strategies.add(evaluated_strategy);
-            total_fitness.addAndGet(evaluated_strategy.getFitness());
-            return evaluated_strategy;
         }
 
         protected boolean removeFromEvaluatedStrategies(final EvaluatedDisseminationStrategy evaluated_strategy) {
@@ -322,76 +393,9 @@ public class EvolutionaryMaintenance extends Maintenance {
             }
         }
 
-        protected void removeLeastFitFromCurrentCluster(final List<EvaluatedDisseminationStrategy> current_cluster_points) {
+        protected long getElapsedMillisecondsSinceFirstStart() {
 
-            final int evaluated_strategies_size = evaluated_strategies.size();
-            if (evaluated_strategies_size > population_size) {
-                final EvaluatedDisseminationStrategy least_fit = leastFit(current_cluster_points);
-                removeFromEvaluatedStrategies(least_fit);
-            }
-        }
-
-        private DisseminationStrategy select(final TreeMap<Double, EvaluatedDisseminationStrategy> normalized_evaluated_strategies) {
-
-            final double dice = random.nextDouble();
-            final EvaluatedDisseminationStrategy selected = normalized_evaluated_strategies.ceilingEntry(dice).getValue();
-            assert selected != null;
-            return selected.getStrategy();
-        }
-
-        private TreeMap<Double, EvaluatedDisseminationStrategy> getCumulativeWeightedFitness(final double total_weighted_fitness) {
-
-            final TreeMap<Double, EvaluatedDisseminationStrategy> cumulative_weighted_fitness = new TreeMap<>();
-            double cumulative_normalized_fitness = 0;
-            for (final EvaluatedDisseminationStrategy evaluated_strategy : evaluated_strategies) {
-                final double weighted_fitness = evaluated_strategy.getWeightedFitness();
-                final double normalized_fitness = weighted_fitness / total_weighted_fitness;
-                cumulative_normalized_fitness += normalized_fitness;
-                cumulative_weighted_fitness.put(cumulative_normalized_fitness, evaluated_strategy);
-            }
-            return cumulative_weighted_fitness;
-        }
-    }
-
-    public interface TerminationCondition {
-
-        boolean terminate(EvolutionaryPeerMaintainer maintainer);
-    }
-
-    public static class ElapsedTimeTerminationCondition implements TerminationCondition, Named {
-
-        private final long elapsed_time_millis;
-        private final long duration;
-        private final TimeUnit duration_unit;
-
-        public ElapsedTimeTerminationCondition(long duration, TimeUnit duration_unit) {
-
-            this.duration = duration;
-            this.duration_unit = duration_unit;
-
-            elapsed_time_millis = TimeUnit.MILLISECONDS.convert(duration, duration_unit);
-        }
-
-        @Override
-        public boolean terminate(final EvolutionaryPeerMaintainer maintainer) {
-
-            return maintainer.getElapsedMillisecondsSinceFirstStart() >= elapsed_time_millis;
-        }
-
-        @Override
-        public String getName() {
-
-            return NamingUtils.name(this);
-        }
-
-        public long getDuration() {
-
-            return duration;
-        }
-
-        public TimeUnit getDurationUnit() {
-
-            return duration_unit;
+            return hasStartedBefore() ? System.currentTimeMillis() - first_start_millis : 0;
         }
     }
 }

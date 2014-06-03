@@ -325,7 +325,7 @@ public class Peer implements PeerRemote {
 
     public ListenableFuture<PeerMetric.LookupMeasurement> lookupAsynch(final Key target, int retry_count, final PeerReference expectedResult) {
 
-        final PeerMetric.LookupMeasurement measurement = metric.newLookupMeasurement(retry_count,expectedResult);
+        final PeerMetric.LookupMeasurement measurement = metric.newLookupMeasurement(retry_count, expectedResult);
         final SettableFuture<PeerMetric.LookupMeasurement> future = SettableFuture.create();
         lookupAsynch(future, measurement, target);
         return future;

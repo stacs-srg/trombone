@@ -13,8 +13,7 @@ define(['jquery', 'series', 'scope'], function ($, series,scope) {
             zoomType: 'xy',
             onePerMatch: false,
             plotBorderWidth: 1,
-            plotBorderColor: 'black'
-
+            plotBorderColor: 'black',
         },
         title: {
             text: null
@@ -26,7 +25,7 @@ define(['jquery', 'series', 'scope'], function ($, series,scope) {
                 },
                 chart: {
                     style: {
-//                        fontFamily: 'Times New Roman'
+                        fontFamily: 'AndaleMono'
                     }
                 }
             },
@@ -37,7 +36,7 @@ define(['jquery', 'series', 'scope'], function ($, series,scope) {
             itemStyle: {
                 color: 'black',
                 fontWeight: 'normal',
-                fontSize: '9pt'
+                fontSize: '10pt'
             }
 //            ,
 //            align: 'right',
@@ -79,14 +78,14 @@ define(['jquery', 'series', 'scope'], function ($, series,scope) {
                 style: {
                     color: 'black',
                     fontWeight: 'normal',
-                    fontSize: '9pt'
+                    fontSize: '10pt'
                 }
             },
             labels: {
                 style: {
                     color: 'black',
                     fontWeight: 'normal',
-                    fontSize: '9pt'
+                    fontSize: '10pt'
                 }
             },
             min: 0
@@ -97,14 +96,14 @@ define(['jquery', 'series', 'scope'], function ($, series,scope) {
                 style: {
                     color: 'black',
                     fontWeight: 'normal',
-                    fontSize: '9pt'
+                    fontSize: '10pt'
                 }
             },
             labels: {
                 style: {
                     color: 'black',
                     fontWeight: 'normal',
-                    fontSize: '9pt'
+                    fontSize: '10pt'
                 }
             },
         },

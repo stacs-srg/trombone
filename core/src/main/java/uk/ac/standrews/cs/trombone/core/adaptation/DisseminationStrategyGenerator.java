@@ -5,22 +5,54 @@ import java.util.List;
 import java.util.Random;
 import org.uncommons.maths.random.Probability;
 import uk.ac.standrews.cs.trombone.core.DisseminationStrategy;
+import uk.ac.standrews.cs.trombone.core.selector.EmptySelector;
+import uk.ac.standrews.cs.trombone.core.selector.First;
+import uk.ac.standrews.cs.trombone.core.selector.Last;
+import uk.ac.standrews.cs.trombone.core.selector.MostRecentlySeen;
+import uk.ac.standrews.cs.trombone.core.selector.RandomSelector;
 import uk.ac.standrews.cs.trombone.core.selector.Selector;
+import uk.ac.standrews.cs.trombone.core.selector.SelectorFactory;
+import uk.ac.standrews.cs.trombone.core.selector.Self;
+import uk.ac.standrews.cs.trombone.core.util.Named;
+import uk.ac.standrews.cs.trombone.core.util.NamingUtils;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class DisseminationStrategyGenerator {
+public class DisseminationStrategyGenerator implements Named {
 
     private static final int NUMBER_OF_ACTION_FIELDS = 4; // pull/push active/passive and 2 selectors 
-    private final int max_action;
+    private static final List<Selector> SELECTORS = new ArrayList<>();
 
-    public DisseminationStrategyGenerator(int max_action) {
+    static {
 
-        if (max_action < 1) {
-            throw new IllegalArgumentException("maximum number of actions must be at least 1");
+        SELECTORS.add(EmptySelector.INSTANCE);
+        SELECTORS.add(new First(1, Selector.ReachabilityCriteria.REACHABLE_OR_UNREACHABLE));
+        SELECTORS.add(new Last(1, Selector.ReachabilityCriteria.REACHABLE_OR_UNREACHABLE));
+        SELECTORS.add(new MostRecentlySeen(1, Selector.ReachabilityCriteria.REACHABLE_OR_UNREACHABLE));
+        SELECTORS.add(new RandomSelector(1, Selector.ReachabilityCriteria.REACHABLE_OR_UNREACHABLE));
+        SELECTORS.add(Self.INSTANCE);
+    }
+    private final int max_action_size;
+    private final SelectorFactory selector_factory;
+
+    public DisseminationStrategyGenerator(int max_action_size, int max_selection) {
+
+        if (max_action_size < 1 || max_selection < 1) {
+            throw new IllegalArgumentException("maximum number of actions and selection size must be at least 1");
         }
-        this.max_action = max_action;
+        this.max_action_size = max_action_size;
+        selector_factory = new SelectorFactory(SELECTORS, max_selection);
+    }
+
+    public SelectorFactory getSelectorFactory() {
+
+        return selector_factory;
+    }
+
+    public int getMaxActionSize() {
+
+        return max_action_size;
     }
 
     public List<DisseminationStrategy> generate(int count, final Random random) {
@@ -34,13 +66,29 @@ public class DisseminationStrategyGenerator {
 
     public DisseminationStrategy generate(final Random random) {
 
-        final int actions_size = random.nextInt(max_action + 1);
+        final int actions_size = random.nextInt(max_action_size + 1);
         final DisseminationStrategy strategy = new DisseminationStrategy();
         for (int i = 0; i < actions_size; i++) {
             strategy.addAction(generateAction(random));
         }
 
         return strategy;
+    }
+
+    DisseminationStrategy.Action generateAction(final Random random) {
+
+        final boolean opportunistic = random.nextBoolean();
+        final boolean push = random.nextBoolean();
+        final Selector data_selector = selector_factory.generate(random);
+        final Selector recipient_selector = selector_factory.generate(random);
+
+        return new DisseminationStrategy.Action(opportunistic, push, data_selector, recipient_selector);
+    }
+
+    @Override
+    public String getName() {
+
+        return NamingUtils.name(this);
     }
 
     public void mutate(DisseminationStrategy strategy, Random random, Probability mutation_probability) {
@@ -62,7 +110,7 @@ public class DisseminationStrategyGenerator {
         }
     }
 
-    private static void mutate(final DisseminationStrategy.Action action, final Random random, Probability mutation_probability) {
+    private void mutate(final DisseminationStrategy.Action action, final Random random, Probability mutation_probability) {
 
         if (mutation_probability.nextEvent(random)) {
             action.setPush(!action.isPush());
@@ -72,11 +120,11 @@ public class DisseminationStrategyGenerator {
         }
         if (mutation_probability.nextEvent(random)) {
             Selector recipient_selector = action.getRecipientSelector();
-            action.setRecipientSelector(Selector.mutate(recipient_selector, random));
+            action.setRecipientSelector(selector_factory.mutate(recipient_selector, random));
         }
         if (mutation_probability.nextEvent(random)) {
             Selector data_selector = action.getDataSelector();
-            action.setDataSelector(Selector.mutate(data_selector, random));
+            action.setDataSelector(selector_factory.mutate(data_selector, random));
         }
     }
 
@@ -108,15 +156,5 @@ public class DisseminationStrategyGenerator {
         offspring.addActions(second_parent.subActionList(crossover_point, second_parent_size));
 
         return offspring;
-    }
-
-    DisseminationStrategy.Action generateAction(final Random random) {
-
-        final boolean opportunistic = random.nextBoolean();
-        final boolean push = random.nextBoolean();
-        final Selector data_selector = Selector.generate(random);
-        final Selector recipient_selector = Selector.generate(random);
-
-        return new DisseminationStrategy.Action(opportunistic, push, data_selector, recipient_selector);
     }
 }

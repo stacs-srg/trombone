@@ -73,24 +73,36 @@ public final class ScenarioBatches {
     };
 
     public static final Object[] EVOLUTIONARY_POPULATION_20_50 = generate(new Maintenance[] {
-                    Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_20,
-                    Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_30,
-                    Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_40,
-                    Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_50
-            }, SYNTHETIC_DELAYS).toArray();
+            Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_20,
+            Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_30,
+            Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_40,
+            Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_50
+    }, SYNTHETIC_DELAYS).toArray();
     public static final Object[] EVOLUTIONARY_RANDOM_48_H = generate(new Maintenance[] {
-                    Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_48_HOURS,
-                    Constants.RANDOM_MAINTENANCE_10_STOP_AFTER_48_HOURS
-            }, SYNTHETIC_DELAYS).toArray();
+            Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_48_HOURS,
+            Constants.RANDOM_MAINTENANCE_10_STOP_AFTER_48_HOURS
+    }, SYNTHETIC_DELAYS).toArray();
+
+    public static final Object[] EVOLUTIONARY_RANDOM_CONFIG_SPACE_SIZE = generate(new Maintenance[] {
+            Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_7_5,
+            Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_9_7,
+            Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_11_9,
+            Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_13_11,
+            Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_15_13,
+            Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_17_15, Constants.RANDOM_MAINTENANCE_10_7_5,
+            Constants.RANDOM_MAINTENANCE_10_9_7, Constants.RANDOM_MAINTENANCE_10_11_9,
+            Constants.RANDOM_MAINTENANCE_10_13_11, Constants.RANDOM_MAINTENANCE_10_15_13,
+            Constants.RANDOM_MAINTENANCE_10_17_15
+    }, SYNTHETIC_DELAYS).toArray();
 
     public static final Object[] EVOLUTIONARY_POPULATION_10_50_FEEDBACK = generate(new Maintenance[] {
 
-                    Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10,
-                    Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_20,
-                    Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_30,
-                    Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_40,
-                    Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_50
-            }, SYNTHETIC_DELAYS, new Boolean[] {Boolean.TRUE}).toArray();
+            Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10,
+            Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_20,
+            Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_30,
+            Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_40,
+            Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_50
+    }, SYNTHETIC_DELAYS, new Boolean[] {Boolean.TRUE}).toArray();
 
     private static final Object[][] EVOLUTIONARY_POPULATION_SIZES = {
             ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, EVOLUTIONARY_POPULATION_20_50,
@@ -176,6 +188,10 @@ public final class ScenarioBatches {
             CHURN_RATE_MODELS_WITH_OSCI, {Constants.WORKLOAD_1, Constants.WORKLOAD_2},
             EVOLUTIONARY_POPULATION_10_50_FEEDBACK, {Constants.EXPERIMENT_DURATION_4}
     };
+    private static final Object[][] CONFIG_SPACE_SIZE = {
+            CHURN_RATE_MODELS_WITH_OSCI, {Constants.WORKLOAD_2}, EVOLUTIONARY_RANDOM_CONFIG_SPACE_SIZE,
+            {Constants.EXPERIMENT_DURATION_4}
+    };
 
     public static final List<Scenario> STATIC_AND_ADAPTIVE_4H_SCENARIOS = BaseScenario.generateAll("scenario_", STATIC_AND_ADAPTIVE_4H);
     public static final List<Scenario> EVOLUTIONARY_POPULATIONS_20_TO_50_SCENARIOS = BaseScenario.generateAll("evolutionary_p_4h_", EVOLUTIONARY_POPULATION_SIZES);
@@ -201,6 +217,7 @@ public final class ScenarioBatches {
     public static final List<Scenario> CHURN_POPULATION_SIZE_SCENARIOS = BaseScenario.generateAll("churn_population_size_4h_", CHURN_POPULATION_SIZE);
     public static final List<Scenario> EVOLUTIONARY_RANDOM_52_H_SCENARIOS = BaseScenario.generateAll("evolutionary_random_52h_", EVOLUTIONARY_RANDOM_52_H);
     public static final List<Scenario> EVOLUTIONARY_APPLICATION_FEEDBACK_SCENARIOS = BaseScenario.generateAll("evolutionary_app_feedback_4h_", EVOLUTIONARY_APP_FEEDBACK_4_H);
+    public static final List<Scenario> GA_RANDOM_CONFIG_SPACE_SIZE = BaseScenario.generateAll("config_space_size_4h_", CONFIG_SPACE_SIZE);
 
     static {
 

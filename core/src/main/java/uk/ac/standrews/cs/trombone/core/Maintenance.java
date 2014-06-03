@@ -22,11 +22,12 @@ import uk.ac.standrews.cs.trombone.core.util.NamingUtils;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class Maintenance implements Serializable, Named {
 
-    public static final Rate RECONFIGURATION_RATE = new Rate();
-    //FIXME think of how not to use this fixed size pool; needs to be reconfigured based on the size of the network
-    public static final ListeningScheduledExecutorService SCHEDULER = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(300, new NamedThreadFactory("maintenance_", true)));
-    private final Logger logger = LoggerFactory.getLogger(Maintenance.class);
     private static final long serialVersionUID = -15296211081078575L;
+    
+    public static final Rate RECONFIGURATION_RATE = new Rate();
+    public static final ListeningScheduledExecutorService SCHEDULER = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(300, new NamedThreadFactory("maintenance_", true)));
+    
+    private final Logger logger = LoggerFactory.getLogger(Maintenance.class);
     private final DisseminationStrategy strategy;
 
     public Maintenance() {

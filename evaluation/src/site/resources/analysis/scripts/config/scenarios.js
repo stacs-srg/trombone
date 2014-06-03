@@ -158,7 +158,19 @@ define(['util', 'mark'], function (util, mark) {
         'trial_time_4h_11', 'trial_time_4h_12', 'trial_time_4h_13', 'trial_time_4h_14',
         'trial_time_4h_15', 'trial_time_4h_16', 'trial_time_4h_17', 'trial_time_4h_18',
         'trial_time_4h_19', 'trial_time_4h_20', 'trial_time_4h_21', 'trial_time_4h_22',
-        'trial_time_4h_23', 'trial_time_4h_24'
+        'trial_time_4h_23', 'trial_time_4h_24',
+        'evolutionary_app_feedback_4h_1', 'evolutionary_app_feedback_4h_2', 'evolutionary_app_feedback_4h_3', 'evolutionary_app_feedback_4h_4',
+        'evolutionary_app_feedback_4h_5', 'evolutionary_app_feedback_4h_6', 'evolutionary_app_feedback_4h_7', 'evolutionary_app_feedback_4h_8',
+        'evolutionary_app_feedback_4h_9', 'evolutionary_app_feedback_4h_10', 'evolutionary_app_feedback_4h_11', 'evolutionary_app_feedback_4h_12',
+        'evolutionary_app_feedback_4h_13', 'evolutionary_app_feedback_4h_14', 'evolutionary_app_feedback_4h_15', 'evolutionary_app_feedback_4h_16',
+        'evolutionary_app_feedback_4h_17', 'evolutionary_app_feedback_4h_18', 'evolutionary_app_feedback_4h_19', 'evolutionary_app_feedback_4h_20',
+        'evolutionary_app_feedback_4h_21', 'evolutionary_app_feedback_4h_22', 'evolutionary_app_feedback_4h_23', 'evolutionary_app_feedback_4h_24',
+        'evolutionary_app_feedback_4h_25', 'evolutionary_app_feedback_4h_26', 'evolutionary_app_feedback_4h_27', 'evolutionary_app_feedback_4h_28',
+        'evolutionary_app_feedback_4h_29', 'evolutionary_app_feedback_4h_30', 'evolutionary_app_feedback_4h_31', 'evolutionary_app_feedback_4h_32',
+        'evolutionary_app_feedback_4h_33', 'evolutionary_app_feedback_4h_34', 'evolutionary_app_feedback_4h_35', 'evolutionary_app_feedback_4h_36',
+        'evolutionary_app_feedback_4h_37', 'evolutionary_app_feedback_4h_38', 'evolutionary_app_feedback_4h_39', 'evolutionary_app_feedback_4h_40',
+        'evolutionary_random_52h_1', 'evolutionary_random_52h_2', 'evolutionary_random_52h_3', 'evolutionary_random_52h_4', 'evolutionary_random_52h_5',
+        'evolutionary_random_52h_6', 'evolutionary_random_52h_7', 'evolutionary_random_52h_8',
     ];
     var scenarios = new Array();
     var tidied_scenarios = new Array();

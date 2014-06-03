@@ -84,10 +84,7 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
     @Override
     public String toString() {
 
-        final StringBuilder sb = new StringBuilder("DisseminationStrategy{");
-        sb.append("actions=").append(actions);
-        sb.append('}');
-        return sb.toString();
+        return "DisseminationStrategy{" + "actions=" + actions + '}';
     }
 
     @Override

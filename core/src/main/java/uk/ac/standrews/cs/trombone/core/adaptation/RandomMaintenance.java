@@ -22,9 +22,9 @@ public class RandomMaintenance extends EvolutionaryMaintenance {
         return listener;
     }
 
-    public RandomMaintenance(int population_size, long cycle_length, TimeUnit cycle_unit, Clusterer<EvaluatedDisseminationStrategy> clusterer) {
+    public RandomMaintenance(int population_size, long cycle_length, TimeUnit cycle_unit, Clusterer<EvaluatedDisseminationStrategy> clusterer, int max_action_size, int max_selection_size) {
 
-        super(population_size, 0, Probability.ZERO, cycle_length, cycle_unit, clusterer);
+        super(population_size, 0, Probability.ZERO, cycle_length, cycle_unit, clusterer, max_action_size, max_selection_size);
     }
 
     class RandomPeerMaintainer extends EvolutionaryPeerMaintainer {
@@ -37,7 +37,7 @@ public class RandomMaintenance extends EvolutionaryMaintenance {
         @Override
         protected DisseminationStrategy generateNextStrategy(final Cluster<EvaluatedDisseminationStrategy> current_cluster) {
 
-            return STRATEGY_GENERATOR.generate(random);
+            return strategy_generator.generate(random);
         }
     }
 }
