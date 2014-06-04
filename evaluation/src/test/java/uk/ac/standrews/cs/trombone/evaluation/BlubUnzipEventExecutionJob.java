@@ -127,7 +127,7 @@ public class BlubUnzipEventExecutionJob implements Job<String> {
 
     private static Scenario getScenarioByName(final String scenario_name) {
 
-        for (Scenario scenario : ScenarioBatches.EVOLUTIONARY_APPLICATION_FEEDBACK_SCENARIOS) {
+        for (Scenario scenario : ScenarioBatches.PLATFORM_JUSTIFICATION) {
             if (scenario.getName().equals(scenario_name)) {
                 return scenario;
             }

@@ -86,7 +86,7 @@ public class BlubUnzippedExperiment {
 
         final List<Scenario> scenarios_with_repetitions = new ArrayList<>();
 
-        for (Scenario scenario : ScenarioBatches.EVOLUTIONARY_APPLICATION_FEEDBACK_SCENARIOS) {
+        for (Scenario scenario : ScenarioBatches.PLATFORM_JUSTIFICATION) {
             final String scenario_name = scenario.getName();
             final Path repetitionsHome = ScenarioUtils.getScenarioRepetitionsHome(scenario_name);
             int existing_repetitions = Files.exists(repetitionsHome) ? FileSystemUtils.getMatchingFiles(repetitionsHome, repetitionsHome.getFileSystem().getPathMatcher("glob:**/*.zip")).size() : 0;
