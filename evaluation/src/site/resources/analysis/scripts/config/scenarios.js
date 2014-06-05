@@ -171,6 +171,16 @@ define(['util', 'mark'], function (util, mark) {
         'evolutionary_app_feedback_4h_37', 'evolutionary_app_feedback_4h_38', 'evolutionary_app_feedback_4h_39', 'evolutionary_app_feedback_4h_40',
         'evolutionary_random_52h_1', 'evolutionary_random_52h_2', 'evolutionary_random_52h_3', 'evolutionary_random_52h_4', 'evolutionary_random_52h_5',
         'evolutionary_random_52h_6', 'evolutionary_random_52h_7', 'evolutionary_random_52h_8',
+        'config_space_size_4h_1', 'config_space_size_4h_2', 'config_space_size_4h_3', 'config_space_size_4h_4', 'config_space_size_4h_5', 
+        'config_space_size_4h_6', 'config_space_size_4h_7', 'config_space_size_4h_8', 'config_space_size_4h_9', 'config_space_size_4h_10', 
+        'config_space_size_4h_11', 'config_space_size_4h_12', 'config_space_size_4h_13', 'config_space_size_4h_14', 'config_space_size_4h_15', 
+        'config_space_size_4h_16', 'config_space_size_4h_17', 'config_space_size_4h_18', 'config_space_size_4h_19', 'config_space_size_4h_20', 
+        'config_space_size_4h_21', 'config_space_size_4h_22', 'config_space_size_4h_23', 'config_space_size_4h_24', 'config_space_size_4h_25', 
+        'config_space_size_4h_26', 'config_space_size_4h_27', 'config_space_size_4h_28', 'config_space_size_4h_29', 'config_space_size_4h_30', 
+        'config_space_size_4h_31', 'config_space_size_4h_32', 'config_space_size_4h_33', 'config_space_size_4h_34', 'config_space_size_4h_35', 
+        'config_space_size_4h_36', 'config_space_size_4h_37', 'config_space_size_4h_38', 'config_space_size_4h_39', 'config_space_size_4h_40', 
+        'config_space_size_4h_41', 'config_space_size_4h_42', 'config_space_size_4h_43', 'config_space_size_4h_44', 'config_space_size_4h_45', 
+        'config_space_size_4h_46', 'config_space_size_4h_47', 'config_space_size_4h_48'
     ];
     var scenarios = new Array();
     var tidied_scenarios = new Array();

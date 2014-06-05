@@ -1,4 +1,4 @@
-define(['jquery', 'series', 'scope'], function ($, series,scope) {
+define(['jquery', 'series', 'scope'], function ($, series, scope) {
 
     return {
         colours: [
@@ -25,7 +25,7 @@ define(['jquery', 'series', 'scope'], function ($, series,scope) {
                 },
                 chart: {
                     style: {
-                        fontFamily: 'AndaleMono'
+                        fontFamily: 'FrutigerLTStd-LightCn'
                     }
                 }
             },
