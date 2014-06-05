@@ -51,12 +51,12 @@ public class EventQueue implements Iterator<Event> {
         this.scenario.substituteHostNames(substitute_host_indices);
         events = new LinkedBlockingQueue<>(BUFFERED_EVENTS);
 
-        random = new MersenneTwisterRNG(scenario.getMasterSeed());
+        random = new MersenneTwisterRNG(this.scenario.getMasterSeed());
         event_generators = new PriorityQueue<>();
         alive_peers = new ConcurrentSkipListMap<Key, Participant>();
-        participants = scenario.getParticipants();
+        participants = this.scenario.getParticipants();
 
-        init(scenario);
+        init(this.scenario);
 
         generator_task = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().build()).submit(new Callable<Void>() {
 

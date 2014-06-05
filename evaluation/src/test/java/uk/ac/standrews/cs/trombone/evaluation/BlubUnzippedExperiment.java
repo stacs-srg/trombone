@@ -71,7 +71,7 @@ public class BlubUnzippedExperiment {
     private static final Logger LOGGER = LoggerFactory.getLogger(BlubUnzippedExperiment.class);
     private final String scenario_name;
     private static final ReentrantLock lock = new ReentrantLock(true);
-    private static final Semaphore semaphore = new Semaphore(48, true);
+    private static final Semaphore semaphore = new Semaphore(AVAILABLE_HOSTS.size());
 
     private final List<ApplicationDescriptor> workers = new ArrayList<>();
     private final WorkerManager manager;
@@ -80,6 +80,7 @@ public class BlubUnzippedExperiment {
 
     @Rule
     public ExperimentWatcher watcher = new ExperimentWatcher();
+    private int required_host_count;
 
     @Parameterized.Parameters(name = "{index} scenario: {0}")
     public static Collection<Object[]> data() throws IOException {
@@ -131,20 +132,16 @@ public class BlubUnzippedExperiment {
     @Before
     public void setup() throws Exception {
 
-        semaphore.acquire();
+        retrieveHostIndices();
+        required_host_count = host_indices.size();
 
-        lock.lock();
-        try {
-            LOGGER.info("Setting up to execute events of scenario {}", scenario_name);
-            retrieveHostIndices();
-            adjustHostNamesByAvailability();
-        }
-        finally {
-            lock.unlock();
-        }
+        semaphore.acquire(required_host_count);
+
+        LOGGER.info("Setting up to execute events of scenario {}", scenario_name);
+        adjustHostNamesByAvailability();
 
         LOGGER.info("preparing to execute scenario {}", scenario_name);
-        LOGGER.info("constructing workers across {} hosts", host_indices.size());
+        LOGGER.info("constructing workers across {} hosts", required_host_count);
 
         for (String host_name : host_indices.values()) {
             final Host host = new SSHHost(host_name, BlubCluster.getAuthMethod());
@@ -240,7 +237,7 @@ public class BlubUnzippedExperiment {
         finally {
 
             returnHosts();
-            semaphore.release();
+            semaphore.release(required_host_count);
         }
     }
 
@@ -303,7 +300,7 @@ public class BlubUnzippedExperiment {
 
     private void adjustHostNamesByAvailability() throws InterruptedException {
 
-        LOGGER.info("require {} available hosts to proceed", host_indices.size());
+        LOGGER.info("require {} available hosts to proceed", required_host_count);
 
         for (final Map.Entry<Integer, String> entry : host_indices.entrySet()) {
             final String available_host_name = AVAILABLE_HOSTS.take();

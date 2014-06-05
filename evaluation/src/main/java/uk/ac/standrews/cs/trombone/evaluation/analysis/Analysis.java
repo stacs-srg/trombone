@@ -31,7 +31,7 @@ public final class Analysis {
 
     public static void main(String[] args) throws IOException, TypeMismatchException {
 
-        final PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:results/evolutionary_random_52h_*"); 
+        final PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:results/*"); 
         final List<Path> matching_paths = FileSystemUtils.getMatchingDirectories(ScenarioUtils.getResultsHome(), matcher);
         final List<ScenarioAnalyzer> scenarioAnalyzers = new ArrayList<>();
         for (Path path : matching_paths) {
