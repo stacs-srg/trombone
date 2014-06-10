@@ -1,4 +1,4 @@
-define(['jquery', 'util', 'mark', 'config/theme', 'data', 'series/double', 'series/verses', 'series/single', 'jstat'], function ($, util, mark, theme, data, double, verses, single, jstat) {
+define(['lib/jquery-1.11.0', 'util', 'mark', 'config/theme', 'data', 'series/double', 'series/verses', 'series/single', 'jstat', 'scenario'], function ($, util, mark, theme, data, double, verses, single, jstat, scenario) {
 
     function unsuccessfulLookupPercentage(filter) {
 
@@ -134,7 +134,47 @@ define(['jquery', 'util', 'mark', 'config/theme', 'data', 'series/double', 'seri
         },
         {
             title: "Network Size",
-            series_provider: double("available_peer_counter.csv"),
+//            series_provider: double("available_peer_counter.csv"),
+            series_provider: {
+                get: function (matches) {
+
+                    var future = $.Deferred();
+                    var s = scenario(matches[0].name);
+                    s.csv("available_peer_counter.csv").acrossRepetitions().done(function (d) {
+                        var series = [];
+                        var data1 = [];
+                        var data2 = [];
+                        d.forEach(function (match, index) {
+
+                            data1[index] = {x: match[0], y: match[1]}
+                            data2[index] = {x: match[0], low: match[2], high: match[3]}
+                        }, this)
+
+                        series.push(
+                            {
+                                id: matches[0].name,
+                                name: matches[0].name,
+                                data: data1,
+                                zIndex: 1,
+                                lineWidth: 1,
+                            },
+                            {
+                                name: matches[0].name + " Confidence Interval",
+                                type: 'arearange',
+                                data: data2,
+                                fillOpacity: 0.3,
+                                zIndex: 0,
+                                lineWidth: 0,
+                                linkedTo: matches[0].name,
+                            }
+                        );
+
+                        future.resolve(series);
+                    });
+
+                    return future;
+                }
+            },
             yAxis: {
                 title: {text: "Number of Available Peers "}
             }
@@ -198,7 +238,59 @@ define(['jquery', 'util', 'mark', 'config/theme', 'data', 'series/double', 'seri
         },
         {
             title: "Lookup Correctness Rate",
-            series_provider: double("lookup_correctness_rate.csv"),
+//            series_provider: double("lookup_correctness_rate.csv"),
+            series_provider: {
+                get: function (matches) {
+
+                    var future = $.Deferred();
+                    var series = [];
+
+                    matches.forEach(function (match, index) {
+
+
+                        var s = scenario(match.name);
+                        s.csv("lookup_correctness_rate.csv").acrossRepetitions().done(function (d) {
+                            var data1 = [];
+                            var data2 = [];
+                            d.forEach(function (m, i) {
+
+                                var x = util.convert.secondToHour(m[0]);
+                                data1[i] = {x: x, y: m[1]}
+                                data2[i] = {x: x, low: m[2], high: m[3]}
+
+                            }, this)
+
+                            series.push(
+                                {
+                                    id: match.name,
+                                    name: match.name,
+                                    data: data1,
+                                    zIndex: 1,
+                                    lineWidth: 1,
+                                    color: theme.colours[index]
+                                },
+                                {
+                                    name: match.name + " Confidence Interval",
+                                    type: 'arearange',
+                                    data: data2,
+                                    fillOpacity: 0.3,
+                                    zIndex: 0,
+                                    lineWidth: 0,
+                                    linkedTo: match.name,
+                                    color: theme.colours[index]
+                                }
+                            );
+
+                            if (series.length == matches.length * 2) {
+                                future.resolve(series);
+                            }
+
+                        });
+                    })
+
+                    return future;
+                }
+            },
             chart: {type: "line"},
             yAxis: {
                 title: {text: "Number of Correct Lookups Per Second"}
@@ -1001,7 +1093,7 @@ define(['jquery', 'util', 'mark', 'config/theme', 'data', 'series/double', 'seri
             exporting: {
                 filename: 'by_strategy_bw'
             },
-            legend:{
+            legend: {
                 enabled: false
             },
             series_provider: {
@@ -1068,8 +1160,8 @@ define(['jquery', 'util', 'mark', 'config/theme', 'data', 'series/double', 'seri
             exporting: {
                 filename: 'by_strategy_lookup_failure'
             },
-            legend:{
-              enabled: false  
+            legend: {
+                enabled: false
             },
             series_provider: {
                 get: function (matches) {
@@ -1133,7 +1225,7 @@ define(['jquery', 'util', 'mark', 'config/theme', 'data', 'series/double', 'seri
             exporting: {
                 filename: 'by_strategy_successful_lookup'
             },
-            legend:{
+            legend: {
                 enabled: false
             },
             series_provider: {
@@ -1156,10 +1248,8 @@ define(['jquery', 'util', 'mark', 'config/theme', 'data', 'series/double', 'seri
                         var mean = jStat(yz).mean();
                         var interval = jStat.tci(mean, 0.05, yz);
 
-
                         series_data.push({y: mean, name: simple_group_name.shortName, order: simple_group_name.order, color: theme.colours[index]})
                         series_intervals.push({low: interval[0], high: interval[1], order: simple_group_name.order, color: 'black'})
-
                     });
 
 
@@ -1189,11 +1279,5 @@ define(['jquery', 'util', 'mark', 'config/theme', 'data', 'series/double', 'seri
     ].sortBy("title");
 
 
-    return {
-        observations: observations,
-        makeMenu: function () {
-
-            $("#chart_list").html(mark.up(util.read("templates/sidebar.html"), {observations: observations}));
-        }
-    };
+    return observations;
 })

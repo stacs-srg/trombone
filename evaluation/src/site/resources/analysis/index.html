@@ -11,11 +11,12 @@
 
     <script src="scripts/lib/jszip.min.js"></script>
     <script src="scripts/lib/jszip-utils.min.js"></script>
-    <script data-main="scripts/main" src="scripts/lib/require-2.1.11.js"></script>
+    <script data-main="scripts/main" src="https://requirejs.org/docs/release/2.1.14/minified/require.js"></script>
 
 </head>
 <body>
 <div class="container-fluid">
+    <div id="status" style="width: 100%;height: 30px;"></div>
     <div class="row">
         <div class="col-md-3 ">
             <div class="list-group small" id="chart_list" style="overflow: scroll; margin: 20px">
@@ -26,7 +27,8 @@
             <h1 class="page-header" id="main_title"></h1>
 
             <div id="chart2" style=" width: 100%; height: 500px;" class="ui-widget-content">
-                <div class="csspinner traditional" id="spinner" style="float:left; display: none; height: 100%; width: 100%"></div>
+                <div class="csspinner traditional" id="spinner"
+                     style="float:left; display: none; height: 100%; width: 100%"></div>
                 <div id="chart" style=" width: 100%; height: 100%;" class="ui-widget-content"></div>
             </div>
             <div id="extras"></div>
@@ -45,7 +47,8 @@
                                 <li class="active"><a href="#churn" data-toggle="tab">Churn</a></li>
                                 <li><a href="#workload" data-toggle="tab">Workload</a></li>
                                 <li><a href="#maintenance" data-toggle="tab">Maintenance</a></li>
-                                <li><a href="#experiment_duration" data-toggle="tab">Experiment Duration</a></li>
+                                <li><a href="#experiment_duration" data-toggle="tab">Experiment
+                                    Duration</a></li>
                             </ul>
                             <div class="tab-content">
                                 <div class="tab-pane active" id="churn">

@@ -378,22 +378,17 @@ define(
                 }
             },
             read: function (url) {
-                var error;
-                var csv = $.ajax({
-                    url: url,
-                    async: false,
-                    dataType: 'text',
-                    error: function (xhr, ajaxOptions, thrownError) {
-                        error = thrownError;
-                    }
-                }).responseText;
 
-                if (error != null) {
-                    alert(error);
-                    csv = "";
+                var request = new XMLHttpRequest();
+                request.open('GET', url, false);
+                request.send();
+
+                if (request.status == 200) {
+                    return request.responseText;
+                } else {
+                    console.log('failed to load ' + url);
+                    return '';
                 }
-
-                return csv;
             },
             readAsJSON: function (url) {
                 var content = this.read(url);

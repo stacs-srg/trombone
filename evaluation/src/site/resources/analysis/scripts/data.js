@@ -75,7 +75,8 @@ define(['jquery', 'util', 'cache', 'jstat', 'jszip', 'jszip_utils'], function ($
                             row.push(value[column]);
                         })
                         return row;
-                    }, this);
+                    }, this
+                );
             },
             columnAverage: function (scenario_name) {
                 return jStat(this.get(scenario_name)).mean();

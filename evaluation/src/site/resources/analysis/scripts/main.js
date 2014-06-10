@@ -19,7 +19,7 @@ require.config(
             jstat: 'lib/jstat',
             jszip: 'lib/jszip.min',
             jszip_utils: 'lib/jszip-utils.min',
-            observations: 'config/observations'
+            mt: 'lib/multithread'
         },
         shim: {
             bootstrap: {
@@ -54,6 +54,7 @@ require(
         'jquery',
         'observations',
         'util',
+        'scenario',
         'query',
         'action',
         'series',
@@ -61,7 +62,6 @@ require(
         'chart',
         'data',
         'scope',
-        'scenario',
         'mark',
         'bootstrap',
         'highcharts' ,
@@ -72,15 +72,10 @@ require(
         'highcharts_draggable_legend',
         'jszip',
         'jszip_utils'
-
     ],
-    function ($, observations, util, query, action, series, theme, chart, data, scope, scenario) {
-
-        observations.makeMenu();
-        query.init();
-
-//        scenario('scenario_1').data();
-
+    function ($, observations, util, scenario) {
+        console.log($);
+        $("#chart_list").html(Mark.up(util.read("templates/sidebar.html"), {observations: observations}));
         $(window).bind('resize', function (e) {
             window.resizeEvt;
             $(window).resize(function () {

@@ -65,10 +65,7 @@ define(
 
             getPerRepetitionData: function (scope, scenario_name, file_name) {
                 var results = scope.data;
-                console.log(scope.data);
                 console.log(results);
-
-
                 console.log(getMeanPerRepetition(getRepetitions('scenario_1'), 'available_peer_counter.csv'));
             }
         }

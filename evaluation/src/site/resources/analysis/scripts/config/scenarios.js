@@ -1,4 +1,4 @@
-define(['util', 'mark'], function (util, mark) {
+define(['util', 'mark', 'mt'], function (util, mark) {
 
     var scenario_names = [
         'churn_4h_1', 'churn_4h_2', 'churn_4h_3', 'churn_4h_4',
@@ -171,57 +171,84 @@ define(['util', 'mark'], function (util, mark) {
         'evolutionary_app_feedback_4h_37', 'evolutionary_app_feedback_4h_38', 'evolutionary_app_feedback_4h_39', 'evolutionary_app_feedback_4h_40',
         'evolutionary_random_52h_1', 'evolutionary_random_52h_2', 'evolutionary_random_52h_3', 'evolutionary_random_52h_4', 'evolutionary_random_52h_5',
         'evolutionary_random_52h_6', 'evolutionary_random_52h_7', 'evolutionary_random_52h_8',
-        'config_space_size_4h_1', 'config_space_size_4h_2', 'config_space_size_4h_3', 'config_space_size_4h_4', 'config_space_size_4h_5', 
-        'config_space_size_4h_6', 'config_space_size_4h_7', 'config_space_size_4h_8', 'config_space_size_4h_9', 'config_space_size_4h_10', 
-        'config_space_size_4h_11', 'config_space_size_4h_12', 'config_space_size_4h_13', 'config_space_size_4h_14', 'config_space_size_4h_15', 
-        'config_space_size_4h_16', 'config_space_size_4h_17', 'config_space_size_4h_18', 'config_space_size_4h_19', 'config_space_size_4h_20', 
-        'config_space_size_4h_21', 'config_space_size_4h_22', 'config_space_size_4h_23', 'config_space_size_4h_24', 'config_space_size_4h_25', 
-        'config_space_size_4h_26', 'config_space_size_4h_27', 'config_space_size_4h_28', 'config_space_size_4h_29', 'config_space_size_4h_30', 
-        'config_space_size_4h_31', 'config_space_size_4h_32', 'config_space_size_4h_33', 'config_space_size_4h_34', 'config_space_size_4h_35', 
-        'config_space_size_4h_36', 'config_space_size_4h_37', 'config_space_size_4h_38', 'config_space_size_4h_39', 'config_space_size_4h_40', 
-        'config_space_size_4h_41', 'config_space_size_4h_42', 'config_space_size_4h_43', 'config_space_size_4h_44', 'config_space_size_4h_45', 
+        'config_space_size_4h_1', 'config_space_size_4h_2', 'config_space_size_4h_3', 'config_space_size_4h_4', 'config_space_size_4h_5',
+        'config_space_size_4h_6', 'config_space_size_4h_7', 'config_space_size_4h_8', 'config_space_size_4h_9', 'config_space_size_4h_10',
+        'config_space_size_4h_11', 'config_space_size_4h_12', 'config_space_size_4h_13', 'config_space_size_4h_14', 'config_space_size_4h_15',
+        'config_space_size_4h_16', 'config_space_size_4h_17', 'config_space_size_4h_18', 'config_space_size_4h_19', 'config_space_size_4h_20',
+        'config_space_size_4h_21', 'config_space_size_4h_22', 'config_space_size_4h_23', 'config_space_size_4h_24', 'config_space_size_4h_25',
+        'config_space_size_4h_26', 'config_space_size_4h_27', 'config_space_size_4h_28', 'config_space_size_4h_29', 'config_space_size_4h_30',
+        'config_space_size_4h_31', 'config_space_size_4h_32', 'config_space_size_4h_33', 'config_space_size_4h_34', 'config_space_size_4h_35',
+        'config_space_size_4h_36', 'config_space_size_4h_37', 'config_space_size_4h_38', 'config_space_size_4h_39', 'config_space_size_4h_40',
+        'config_space_size_4h_41', 'config_space_size_4h_42', 'config_space_size_4h_43', 'config_space_size_4h_44', 'config_space_size_4h_45',
         'config_space_size_4h_46', 'config_space_size_4h_47', 'config_space_size_4h_48'
     ];
     var scenarios = new Array();
     var tidied_scenarios = new Array();
-    scenario_names.forEach(function (scenario_name) {
+    var by_churn;
+    var by_workload;
+    var by_maintenance;
+    var by_experiment_duration;
 
-        try {
-            var scenario = util.readAsJSON(util.scenarioJSONPath(scenario_name));
-            var host_scenario = scenario.hostScenarios[0];
-            var tidied_scenario = {
-                name: scenario.name,
-                network_size: scenario.maximumNetworkSize,
-                experiment_duration: util.convert.durationToString(scenario.experimentDuration),
-                workload: util.convert.workloadToString(host_scenario.workload),
-                churn: util.convert.churnToString(host_scenario.churn),
-                maintenance: util.convert.maintenanceToString(host_scenario.configuration.maintenance, scenario)
-            };
-            scenarios.push(scenario);
-            tidied_scenarios.push(tidied_scenario);
-        } catch (e) {
-            console.log("failed to load " + scenario_name + " : " + e);
+    var parallel = new Multithread(5);
+    var origin = window.location.origin + '/t3/evaluation';
+    var getAllScenarios = parallel.process(util.read, function (result) {
+
+        $('#status').text('processing ' + tidied_scenarios.length + ' of ' + scenario_names.length + ' scenarios');
+        var scenario = $.parseJSON(result);
+        var host_scenario = scenario.hostScenarios[0];
+
+        var tidied_scenario = {
+            name: scenario.name,
+            network_size: scenario.maximumNetworkSize,
+            experiment_duration: util.convert.durationToString(scenario.experimentDuration),
+            workload: util.convert.workloadToString(host_scenario.workload),
+            churn: util.convert.churnToString(host_scenario.churn),
+            maintenance: util.convert.maintenanceToString(host_scenario.configuration.maintenance, scenario)
+        };
+
+        scenarios.push(scenario);
+        tidied_scenarios.push(tidied_scenario);
+
+        if (tidied_scenarios.length == scenario_names.length) {
+            by_churn = tidied_scenarios.groupBy("churn");
+            by_workload = tidied_scenarios.groupBy("workload");
+            by_maintenance = tidied_scenarios.groupBy("maintenance");
+            by_experiment_duration = tidied_scenarios.groupBy("experiment_duration");
+
+            $("#churn_filters").html(mark.up(util.read("templates/filter.html"), {labels: Object.keys(by_churn), property_name: 'churn'}));
+            $("#workload_filters").html(mark.up(util.read("templates/filter.html"), {labels: Object.keys(by_workload), property_name: 'workload'}));
+            $("#maintenance_filters").html(mark.up(util.read("templates/filter.html"), {labels: Object.keys(by_maintenance), property_name: 'maintenance'}));
+            $("#experiment_duration_filters").html(mark.up(util.read("templates/filter.html"), {labels: Object.keys(by_experiment_duration), property_name: 'experiment_duration'}));
+            $('#status').text('');
         }
     });
 
-    var by_churn = tidied_scenarios.groupBy("churn");
-    var by_workload = tidied_scenarios.groupBy("workload");
-    var by_maintenance = tidied_scenarios.groupBy("maintenance");
-    var by_experiment_duration = tidied_scenarios.groupBy("experiment_duration");
 
+    scenario_names.forEach(function (scenario_name) {
 
-    $("#churn_filters").html(mark.up(util.read("templates/filter.html"), {labels: Object.keys(by_churn), property_name: 'churn'}));
-    $("#workload_filters").html(mark.up(util.read("templates/filter.html"), {labels: Object.keys(by_workload), property_name: 'workload'}));
-    $("#maintenance_filters").html(mark.up(util.read("templates/filter.html"), {labels: Object.keys(by_maintenance), property_name: 'maintenance'}));
-    $("#experiment_duration_filters").html(mark.up(util.read("templates/filter.html"), {labels: Object.keys(by_experiment_duration), property_name: 'experiment_duration'}));
+        getAllScenarios(origin + '/results/' + scenario_name + '/scenario.json');
+
+    });
 
     return {
         scenario_names: scenario_names,
-        scenarios: scenarios,
-        tidied_scenarios: tidied_scenarios,
-        by_churn: by_churn,
-        by_workload: by_workload,
-        by_maintenance: by_maintenance,
-        by_experiment_duration: by_experiment_duration
+        scenarios: function () {
+            return scenarios;
+        },
+        tidied_scenarios: function () {
+            return tidied_scenarios
+        },
+        by_churn: function () {
+            return by_churn
+        },
+        by_workload: function () {
+            return by_workload
+        },
+        by_maintenance: function () {
+            return by_maintenance
+        },
+        by_experiment_duration: function () {
+            return by_experiment_duration
+        }
     };
 });

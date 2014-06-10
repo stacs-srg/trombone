@@ -61,7 +61,8 @@ define(['jquery', 'series', 'scope'], function ($, series, scope) {
                 showInLegend: false
             },
             series: {
-                animation: false
+                animation: false,
+                turboThreshold: 0
             }
         },
         tooltip: {

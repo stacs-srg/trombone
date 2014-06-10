@@ -10,14 +10,9 @@ define(['jquery', 'util', 'highcharts'], function ($, util) {
         renderer: function () {
 
 
-            if (!this.observation.chart.onePerMatch) {
-
-                if (this.observation.series_provider !== undefined && this.observation.series.length == 0) {
-                    $('#extras').html('');
-                    this.observation.populateSeries(this.matches)
-                }
-            } else {
-                alert("not implemented yet");
+            if (this.observation.series_provider !== undefined && this.observation.series.length == 0) {
+                $('#extras').html('');
+                this.observation.populateSeries(this.matches)
             }
             this.refresh();
         },

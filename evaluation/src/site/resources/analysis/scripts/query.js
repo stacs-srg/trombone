@@ -76,7 +76,7 @@ define(['jquery', 'observations', 'config/scenarios', 'scope', 'series', 'config
         update: function () {
 
             window.location.hash = this.encode();
-            $("#main_title").text(observations.observations[this.metric].title);
+            $("#main_title").text(observations[this.metric].title);
             $("#chart_list .active").removeClass("active");
             $("#metric_" + this.metric).addClass("active");
 
@@ -94,7 +94,7 @@ define(['jquery', 'observations', 'config/scenarios', 'scope', 'series', 'config
             })
 
             var matches = this.matches();
-            var observation = observations.observations[this.metric]
+            var observation = observations[this.metric]
             scope.matches = matches;
             scope.observation = theme.extend(observation)
             scope.renderer()
@@ -144,13 +144,13 @@ define(['jquery', 'observations', 'config/scenarios', 'scope', 'series', 'config
         matches: function () {
 
             var matches = new Array();
-            var churn_keys = Object.keys(scenarios.by_churn);
-            var workload_keys = Object.keys(scenarios.by_workload);
-            var maintenance_keys = Object.keys(scenarios.by_maintenance);
-            var experiment_duration_keys = Object.keys(scenarios.by_experiment_duration);
+            var churn_keys = Object.keys(scenarios.by_churn());
+            var workload_keys = Object.keys(scenarios.by_workload());
+            var maintenance_keys = Object.keys(scenarios.by_maintenance());
+            var experiment_duration_keys = Object.keys(scenarios.by_experiment_duration());
             this.churn.forEach(function (selection) {
 
-                scenarios.by_churn[churn_keys[selection]].forEach(function (element) {
+                scenarios.by_churn()[churn_keys[selection]].forEach(function (element) {
                     matches.push(element);
                 });
             }, this)

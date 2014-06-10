@@ -3,11 +3,11 @@ define(['jquery', 'config/theme', 'highcharts'], function ($, theme, query, obse
     var container = $('#chart');
     container.highcharts(theme);
     return{
-        
+
         current: null,
         renderer: function () {
 
-            var observation = observations.observations[query.metric]
+            var observation = observations[query.metric]
             observation = theme.extend(observation)
 
             if (!observation.chart.onePerMatch) {
