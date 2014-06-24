@@ -7,7 +7,7 @@ import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class RandomSelector extends Selector{
+public class RandomSelector extends Selector {
 
     private static final long serialVersionUID = -2686666721712477700L;
 

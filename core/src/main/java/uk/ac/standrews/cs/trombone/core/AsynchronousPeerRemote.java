@@ -1,7 +1,7 @@
 package uk.ac.standrews.cs.trombone.core;
 
-import com.google.common.util.concurrent.ListenableFuture;
 import java.util.List;
+import java.util.concurrent.CompletionStage;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.core.selector.Selector;
 
@@ -12,17 +12,17 @@ import uk.ac.standrews.cs.trombone.core.selector.Selector;
  */
 public interface AsynchronousPeerRemote {
 
-    ListenableFuture<Key> getKey();
+    CompletionStage<Key> getKey();
 
-    ListenableFuture<Void> join(PeerReference member);
+    CompletionStage<Void> join(PeerReference member);
 
-    ListenableFuture<Void> push(List<PeerReference> references);
+    CompletionStage<Void> push(List<PeerReference> references);
 
-    ListenableFuture<Void> push(PeerReference reference);
+    CompletionStage<Void> push(PeerReference reference);
 
-    ListenableFuture<List<PeerReference>> pull(Selector selector);
+    CompletionStage<List<PeerReference>> pull(Selector selector);
 
-    ListenableFuture<PeerReference> lookup(Key target);
+    CompletionStage<PeerReference> lookup(Key target);
 
-    ListenableFuture<PeerReference> nextHop(Key target);
+    CompletionStage<PeerReference> nextHop(Key target);
 }

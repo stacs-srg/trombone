@@ -18,7 +18,7 @@ public final class Self extends Selector {
 
     @Override
     public List<PeerReference> select(final Peer peer) {
-
+        
         final PeerReference self_reference = peer.getSelfReference();
         final List<PeerReference> result = new ArrayList<>(1);
         result.add(self_reference);

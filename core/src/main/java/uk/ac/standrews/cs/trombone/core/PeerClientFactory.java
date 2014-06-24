@@ -1,7 +1,5 @@
 package uk.ac.standrews.cs.trombone.core;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
@@ -130,10 +128,32 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
         }
 
         @Override
-        public FutureResponse newFutureResponse(final Method method, final Object[] arguments) {
+        public FutureResponse<?> newFutureResponse(final Method method, final Object[] arguments) {
 
-            final FutureResponse future_response = super.newFutureResponse(method, arguments);
-            Futures.addCallback(future_response, new DefaultCallback(), Maintenance.SCHEDULER);
+            final FutureResponse<?> future_response = super.newFutureResponse(method, arguments);
+            future_response.whenCompleteAsync((Object result, Throwable error) -> {
+                if (!future_response.isCompletedExceptionally()) {
+                    reference.seen(true);
+
+                    if (result instanceof PeerReference) {
+                        peer.push((PeerReference) result);
+                    }
+
+                    if (result instanceof List) {
+                        List<?> list = (List<?>) result;
+                        list.stream().filter(element -> element instanceof PeerReference).forEach(element -> {
+                            PeerReference peerReference = (PeerReference) element;
+                            peer.push(peerReference);
+                        });
+                    }
+                }
+                else {
+                    reference.seen(false);
+                    peer_metric.notifyRPCError(error);
+                    LOGGER.debug("failure occurred on future", error);
+                }
+            });
+
             return future_response;
         }
 
@@ -150,37 +170,6 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
                 }
             }
             super.beforeFlush(channel, future_response);
-        }
-
-        private class DefaultCallback implements FutureCallback<Object> {
-
-            @Override
-            public void onSuccess(final Object result) {
-
-                reference.seen(true);
-
-                if (result instanceof PeerReference) {
-                    peer.push((PeerReference) result);
-                }
-
-                if (result instanceof List) {
-                    List list = (List) result;
-                    for (Object element : list) {
-                        if (element instanceof PeerReference) {
-                            PeerReference peerReference = (PeerReference) element;
-                            peer.push(peerReference);
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(final Throwable t) {
-
-                reference.seen(false);
-                peer_metric.notifyRPCError(t);
-                LOGGER.debug("failure occurred on future", t);
-            }
         }
     }
 }

@@ -53,4 +53,21 @@ public abstract class Selector implements Serializable, Copyable, Named {
 
         return reachability_criteria;
     }
+
+    @Override
+    public boolean equals(final Object other) {
+
+        if (this == other) { return true; }
+        if (!getClass().isInstance(other)) { return false; }
+
+        final Selector selector = (Selector) other;
+        return size == selector.size && reachability_criteria == selector.reachability_criteria;
+    }
+
+    @Override
+    public int hashCode() {
+
+        int result = size;
+        return  31 * result + reachability_criteria.hashCode();
+    }
 }

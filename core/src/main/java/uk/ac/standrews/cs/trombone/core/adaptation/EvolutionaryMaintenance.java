@@ -1,14 +1,14 @@
 package uk.ac.standrews.cs.trombone.core.adaptation;
 
-import com.google.common.collect.Ordering;
-import com.google.common.util.concurrent.AtomicDouble;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.DoubleAdder;
 import org.apache.commons.math3.ml.clustering.Cluster;
 import org.apache.commons.math3.ml.clustering.Clusterer;
 import org.mashti.gauge.Sampler;
@@ -37,7 +37,8 @@ public class EvolutionaryMaintenance extends Maintenance {
     public static final Sampler STRATEGY_ACTION_SIZE_SAMPLER = new Sampler();
 
     private static final long serialVersionUID = -3613808902480933796L;
-    private static final Ordering<EvaluatedDisseminationStrategy> EVALUATED_DISSEMINATION_STRATEGY_ORDERING = Ordering.natural();
+    /** The order of fitness ins unnatural: smaller fitness value implies a fitter strategy. Therefore, reverse order comparator is used. */
+    private static final Comparator<EvaluatedDisseminationStrategy> ASCENDING_FITNESS_COMPARATOR = Comparator.reverseOrder();
     private static final Logger LOGGER = LoggerFactory.getLogger(EvolutionaryMaintenance.class);
 
     protected final int population_size;
@@ -48,6 +49,7 @@ public class EvolutionaryMaintenance extends Maintenance {
     private final TimeUnit evolution_cycle_unit;
     protected final DisseminationStrategyGenerator strategy_generator;
     private TerminationCondition termination_condition;
+
     public EvolutionaryMaintenance(int population_size, int elite_count, Probability mutation_probability, long evolution_cycle_length, TimeUnit evolution_cycle_unit, Clusterer<EvaluatedDisseminationStrategy> clusterer, int max_action_size, int max_selection_size) {
 
         this.population_size = population_size;
@@ -164,7 +166,7 @@ public class EvolutionaryMaintenance extends Maintenance {
         protected final MersenneTwisterRNG random;
         protected final PeerMetric metric;
         protected final List<EvaluatedDisseminationStrategy> evaluated_strategies;
-        protected final AtomicDouble total_fitness = new AtomicDouble();
+        protected final DoubleAdder total_fitness = new DoubleAdder();
         private ScheduledFuture<?> evolution;
         private long first_start_millis;
 
@@ -241,12 +243,11 @@ public class EvolutionaryMaintenance extends Maintenance {
                 next_strategy = strategy_generator.generate(random);
             }
             else if (last_evaluated_strategy == null) {
-                Collections.sort(evaluated_strategies, EVALUATED_DISSEMINATION_STRATEGY_ORDERING);
-                next_strategy = evaluated_strategies.get(0).getStrategy();
+
+                next_strategy = mostFit(evaluated_strategies).getStrategy();
             }
             else {
                 assert last_evaluated_strategy != null;
-                Collections.sort(evaluated_strategies, EVALUATED_DISSEMINATION_STRATEGY_ORDERING);
 
                 final Cluster<EvaluatedDisseminationStrategy> current_cluster = getCurrentEnvironmentCluster(last_evaluated_strategy);
                 final List<EvaluatedDisseminationStrategy> current_cluster_points = current_cluster.getPoints();
@@ -273,7 +274,7 @@ public class EvolutionaryMaintenance extends Maintenance {
 
             final EvaluatedDisseminationStrategy evaluated_strategy = new EvaluatedDisseminationStrategy(previous_strategy, environment_snapshot);
             evaluated_strategies.add(evaluated_strategy);
-            total_fitness.addAndGet(evaluated_strategy.getFitness());
+            total_fitness.add(evaluated_strategy.getFitness());
             return evaluated_strategy;
         }
 
@@ -296,13 +297,14 @@ public class EvolutionaryMaintenance extends Maintenance {
 
         protected EvaluatedDisseminationStrategy mostFit(final List<EvaluatedDisseminationStrategy> current_cluster_points) {
 
-            return current_cluster_points.isEmpty() ? null : EVALUATED_DISSEMINATION_STRATEGY_ORDERING.leastOf(current_cluster_points, 1).get(0);
+            final Optional<EvaluatedDisseminationStrategy> max_fitness = current_cluster_points.stream().max(ASCENDING_FITNESS_COMPARATOR);
+            return !max_fitness.isPresent() ? null : max_fitness.get();
         }
 
         protected DisseminationStrategy generateNextStrategy(final Cluster<EvaluatedDisseminationStrategy> current_cluster) {
 
             final List<EvaluatedDisseminationStrategy> current_cluster_points = current_cluster.getPoints();
-            final double total_fitness = this.total_fitness.get();
+            final double total_fitness = this.total_fitness.sum();
             int index = 0;
             double total_weighted_fitness = 0;
 
@@ -368,14 +370,15 @@ public class EvolutionaryMaintenance extends Maintenance {
 
         protected EvaluatedDisseminationStrategy leastFit(final List<EvaluatedDisseminationStrategy> current_cluster_points) {
 
-            return current_cluster_points.isEmpty() ? null : EVALUATED_DISSEMINATION_STRATEGY_ORDERING.greatestOf(current_cluster_points, 1).get(0);
+            final Optional<EvaluatedDisseminationStrategy> min_fitness = current_cluster_points.stream().min(ASCENDING_FITNESS_COMPARATOR);
+            return !min_fitness.isPresent() ? null : min_fitness.get();
         }
 
         protected boolean removeFromEvaluatedStrategies(final EvaluatedDisseminationStrategy evaluated_strategy) {
 
             final boolean removed = evaluated_strategies.remove(evaluated_strategy);
             if (removed) {
-                total_fitness.addAndGet(-evaluated_strategy.getFitness());
+                total_fitness.add(-evaluated_strategy.getFitness());
             }
             return removed;
         }

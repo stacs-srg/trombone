@@ -1,14 +1,13 @@
 package uk.ac.standrews.cs.trombone.core.selector;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.core.InternalPeerReference;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
-import uk.ac.standrews.cs.trombone.core.PeerState;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class First extends Selector {
@@ -24,16 +23,15 @@ public class First extends Selector {
     @Override
     public List<PeerReference> select(final Peer peer) {
 
-        final PeerState state = peer.getPeerState();
-        final Iterator<InternalPeerReference> state_iterator = state.iterator();
+        final Stream<InternalPeerReference> state_stream = peer.getPeerState().stream();
         
         switch (reachability_criteria) {
             case REACHABLE:
-                return firstReachable(size, state_iterator);
+                return state_stream.filter(reference -> reference.isReachable()).limit(size).collect(Collectors.toList());
             case UNREACHABLE:
-                return firstUnreachable(size, state_iterator);
+                return state_stream.filter(reference -> !reference.isReachable()).limit(size).collect(Collectors.toList());
             case REACHABLE_OR_UNREACHABLE:
-                return first(size, state_iterator);
+                return state_stream.limit(size).collect(Collectors.toList());
             default:
                 LOGGER.warn("unknown reachability criteria {}", reachability_criteria);
                 return null;
@@ -45,37 +43,6 @@ public class First extends Selector {
 
         return new First(size, reachability_criteria);
     }
-
-    public List<PeerReference> first(int count, final Iterator<InternalPeerReference> references) {
-
-        final List<PeerReference> result = new ArrayList<>(count);
-        while (references.hasNext() && result.size() < count) {
-            result.add(references.next());
-        }
-        return result;
-    }
-
-    public List<PeerReference> firstReachable(final int size, final Iterator<InternalPeerReference> references) {
-
-        final List<PeerReference> result = new ArrayList<>(size);
-        while (references.hasNext() && result.size() < size) {
-            final InternalPeerReference next = references.next();
-            if (next.isReachable()) {
-                result.add(next);
-            }
-        }
-        return result;
-    }
-
-    public List<PeerReference> firstUnreachable(final int size, final Iterator<InternalPeerReference> references) {
-
-        final List<PeerReference> result = new ArrayList<>(size);
-        while (references.hasNext() && result.size() < size) {
-            final InternalPeerReference next = references.next();
-            if (!next.isReachable()) {
-                result.add(next);
-            }
-        }
-        return result;
-    }
+    
+    
 }

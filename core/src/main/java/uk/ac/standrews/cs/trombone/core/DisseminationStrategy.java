@@ -1,7 +1,5 @@
 package uk.ac.standrews.cs.trombone.core;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -95,7 +93,9 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
 
         final DisseminationStrategy that = (DisseminationStrategy) o;
 
-        if (non_opportunistic_interval_millis != that.non_opportunistic_interval_millis) { return false; }
+        if (non_opportunistic_interval_millis != that.non_opportunistic_interval_millis) {
+            return false;
+        }
         if (actions != null ? !actions.equals(that.actions) : that.actions != null) { return false; }
 
         return true;
@@ -150,31 +150,15 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
                     if (push) {
                         final List<PeerReference> data_to_push = getPushData(local);
                         if (data_to_push != null && !data_to_push.isEmpty()) {
-                            for (PeerReference recipient : recipients) {
-                                if (recipient != null) {
-                                    local.getAsynchronousRemote(recipient).push(data_to_push);
-                                }
-                            }
+                            recipients.stream().filter(recipient -> recipient != null).forEach(recipient -> {
+                                local.getAsynchronousRemote(recipient).push(data_to_push);
+                            });
                         }
                     }
                     else {
-                        for (final PeerReference recipient : recipients) {
-                            if (recipient != null) {
-                                Futures.addCallback(local.getAsynchronousRemote(recipient).pull(data_selector), new FutureCallback<List<PeerReference>>() {
-
-                                    @Override
-                                    public void onSuccess(final List<PeerReference> result) {
-
-                                        local.push(result);
-                                    }
-
-                                    @Override
-                                    public void onFailure(final Throwable t) {
-
-                                    }
-                                }, Maintenance.SCHEDULER);
-                            }
-                        }
+                        recipients.stream().filter(recipient -> recipient != null).forEach(recipient -> {
+                            local.getAsynchronousRemote(recipient).pull(data_selector).thenAcceptAsync(result -> local.push(result));
+                        });
                     }
                 }
             }
@@ -262,8 +246,12 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
 
             if (opportunistic != action.opportunistic) { return false; }
             if (push != action.push) { return false; }
-            if (data_selector != null ? !data_selector.equals(action.data_selector) : action.data_selector != null) { return false; }
-            if (recipient_selector != null ? !recipient_selector.equals(action.recipient_selector) : action.recipient_selector != null) { return false; }
+            if (data_selector != null ? !data_selector.equals(action.data_selector) : action.data_selector != null) {
+                return false;
+            }
+            if (recipient_selector != null ? !recipient_selector.equals(action.recipient_selector) : action.recipient_selector != null) {
+                return false;
+            }
 
             return true;
         }

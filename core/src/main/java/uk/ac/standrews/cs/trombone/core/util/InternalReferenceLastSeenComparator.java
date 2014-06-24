@@ -1,12 +1,12 @@
 package uk.ac.standrews.cs.trombone.core.util;
 
-import com.google.common.collect.Ordering;
+import java.util.Comparator;
 import uk.ac.standrews.cs.trombone.core.InternalPeerReference;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class InternalReferenceLastSeenComparator extends Ordering<InternalPeerReference> {
+public class InternalReferenceLastSeenComparator implements Comparator<InternalPeerReference> {
 
     private static final InternalReferenceLastSeenComparator RECENTLY_SEEN_INTERNAL_REFERENCE_COMPARATOR = new InternalReferenceLastSeenComparator();
 

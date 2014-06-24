@@ -1,10 +1,12 @@
 package uk.ac.standrews.cs.trombone.core;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Stream;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.core.util.RelativeRingDistanceComparator;
 
@@ -112,7 +114,7 @@ public class PeerState implements Iterable<InternalPeerReference> {
 
     public List<PeerReference> getReferences() {
 
-        return new CopyOnWriteArrayList<PeerReference>(state.values());
+        return new CopyOnWriteArrayList<PeerReference>(getValues());
     }
 
     public int size() {
@@ -121,12 +123,22 @@ public class PeerState implements Iterable<InternalPeerReference> {
         return state.size();
     }
 
+    public Stream<InternalPeerReference> stream() {
+
+        return state.values().stream();
+    }
+
     @Override
     public Iterator<InternalPeerReference> iterator() {
 
-        return state.values().iterator();
+        return getValues().iterator();
     }
-    
+
+    public Collection<InternalPeerReference> getValues() {
+
+        return state.values();
+    }
+
     public Iterator<InternalPeerReference> descendingIterator() {
 
         return state.descendingMap().values().iterator();
@@ -134,7 +146,7 @@ public class PeerState implements Iterable<InternalPeerReference> {
 
     public List<InternalPeerReference> getInternalReferences() {
 
-        return new CopyOnWriteArrayList<>(state.values());
+        return new CopyOnWriteArrayList<>(getValues());
     }
 
     private static InternalPeerReference toInternalPeerReference(final PeerReference reference) {

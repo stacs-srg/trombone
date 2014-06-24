@@ -2,8 +2,6 @@ package uk.ac.standrews.cs.trombone.event;
 
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -13,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.ExecutionException;
@@ -456,7 +455,7 @@ public class EventExecutor {
     void queue(Peer peer, final LookupEvent event) {
 
         //        runnable_events.add(new RunnableLookupEvent(peer, event));
-        runnable_events.add(new RunnableLookupAsynchEvent(peer, event));
+        runnable_events.add(new RunnableLookupAsyncEvent(peer, event));
     }
 
     private Future<Void> startTaskQueuePopulator() {
@@ -698,11 +697,11 @@ public class EventExecutor {
         }
     }
 
-    private class RunnableLookupAsynchEvent extends RunnableExperimentEvent {
+    private class RunnableLookupAsyncEvent extends RunnableExperimentEvent {
 
         private final Logger logger = LoggerFactory.getLogger(RunnableLookupEvent.class);
 
-        private RunnableLookupAsynchEvent(Peer peer, final LookupEvent event) {
+        private RunnableLookupAsyncEvent(Peer peer, final LookupEvent event) {
 
             super(peer, event);
         }
@@ -712,11 +711,12 @@ public class EventExecutor {
 
             final LookupEvent event = (LookupEvent) getEvent();
 
-            Futures.addCallback(peer.lookupAsynch(event.getTarget(), lookup_retry_count, event.getExpectedResult()), new FutureCallback<PeerMetric.LookupMeasurement>() {
+            final CompletionStage<PeerMetric.LookupMeasurement> async_lookup = peer.lookupAsync(event.getTarget(), lookup_retry_count, event.getExpectedResult());
 
-                @Override
-                public void onSuccess(final PeerMetric.LookupMeasurement measurement) {
+            async_lookup.whenCompleteAsync((measurement, error) -> {
 
+                final boolean looked_up = error == null;
+                if (looked_up) {
                     lookup_execution_rate.mark();
                     final PeerReference expected_result = event.getExpectedResult();
                     final long hop_count = measurement.getHopCount();
@@ -742,12 +742,8 @@ public class EventExecutor {
                         lookup_incorrectness_delay_timer.update(duration_in_nanos, TimeUnit.NANOSECONDS);
                     }
                 }
-
-                @Override
-                public void onFailure(final Throwable t) {
-
-                    lookup_execution_rate.mark();
-                    logger.error("failure occurred when executing lookup", t);
+                else {
+                    logger.error("failure occurred when executing lookup", error);
                 }
             }, task_executor);
         }

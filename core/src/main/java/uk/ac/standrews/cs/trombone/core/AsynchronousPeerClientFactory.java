@@ -1,6 +1,5 @@
 package uk.ac.standrews.cs.trombone.core;
 
-import com.google.common.util.concurrent.Futures;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -11,6 +10,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -19,6 +19,7 @@ import org.mashti.jetson.ChannelFuturePool;
 import org.mashti.jetson.Client;
 import org.mashti.jetson.ClientFactory;
 import org.mashti.jetson.FutureResponse;
+import org.mashti.jetson.exception.MethodNotFoundException;
 import org.mashti.jetson.exception.RPCException;
 import org.mashti.jetson.util.ReflectionUtil;
 import org.slf4j.Logger;
@@ -29,7 +30,13 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AsynchronousPeerClientFactory.class);
 
-    public static final Method[] SORTED_ASYNC_METHODS = ReflectionUtil.sort(AsynchronousPeerRemote.class.getMethods());
+    private static final Method[] SORTED_ASYNC_METHODS = ReflectionUtil.sort(AsynchronousPeerRemote.class.getMethods());
+    private static final CompletableFuture<?> FAILURE_UNEXPOSED_PEER = new CompletableFuture();
+
+    static {
+        FAILURE_UNEXPOSED_PEER.completeExceptionally(new MethodNotFoundException("peer is unexposed; cannot invoke remote procedure"));
+    }
+
     private final ConcurrentHashMap<InetSocketAddress, AsynchronousPeerRemote> asynchronous_cached_proxy_map = new ConcurrentHashMap<InetSocketAddress, AsynchronousPeerRemote>();
 
     static {
@@ -103,7 +110,9 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
 
     AsynchronousPeerRemote getAsynchronous(InetSocketAddress address) {
 
-        if (asynchronous_cached_proxy_map.containsKey(address)) { return asynchronous_cached_proxy_map.get(address); }
+        if (asynchronous_cached_proxy_map.containsKey(address)) {
+            return asynchronous_cached_proxy_map.get(address);
+        }
         final Client handler = createClient(address);
         final AsynchronousPeerRemote new_proxy = createAsynchronousProxy(handler);
         final AsynchronousPeerRemote existing_proxy = asynchronous_cached_proxy_map.putIfAbsent(address, new_proxy);
@@ -140,12 +149,16 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
 
                 if (!peer.isExposed()) {
                     LOGGER.debug("remote procedure {} was invoked while the peer is unexposed", method);
-                    return Futures.immediateFailedFuture(new RPCException("peer is unexposed; cannot invoke remote procedure"));
+                    return FAILURE_UNEXPOSED_PEER;
                 }
 
                 final Method matching_Method = MethodUtils.getMatchingAccessibleMethod(PeerRemote.class, method.getName(), method.getParameterTypes());
                 if (matching_Method == null) {
-                    LOGGER.error("NO MATCHING METHOD");
+
+                    final CompletableFuture<?> failed_method_not_found = new CompletableFuture();
+                    failed_method_not_found.completeExceptionally(new MethodNotFoundException(method.getName() + " is not found in the accessible methods of the remote interface"));
+                    LOGGER.error("unknown method: {} - args: {}", method, params);
+                    return failed_method_not_found;
                 }
 
                 return writeRequest(newFutureResponse(matching_Method, params));
@@ -172,11 +185,35 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
         }
 
         @Override
-        public FutureResponse newFutureResponse(final Method method, final Object[] arguments) {
+        public FutureResponse<?> newFutureResponse(final Method method, final Object[] arguments) {
 
-            final FutureResponse future_response = super.newFutureResponse(method, arguments);
+            final FutureResponse<?> future_response = super.newFutureResponse(method, arguments);
 
-            Futures.addCallback(future_response, new FutureCallback(), Maintenance.SCHEDULER);
+            future_response.whenCompleteAsync((Object result, Throwable error) -> {
+                if (reference != null) {
+                    if (!future_response.isCompletedExceptionally()) {
+
+                        reference.seen(true);
+
+                        if (result instanceof PeerReference) {
+                            peer.push((PeerReference) result);
+                        }
+                        if (result instanceof List) {
+                            List<?> list = (List<?>) result;
+                            list.stream().filter(element -> element instanceof PeerReference).forEach(element -> {
+                                PeerReference peerReference = (PeerReference) element;
+                                peer.push(peerReference);
+                            });
+                        }
+                    }
+                    else {
+                        peer_metric.notifyRPCError(error);
+                        LOGGER.debug("failure occurred on future ", error);
+                        reference.seen(false);
+                    }
+                }
+
+            });
             return future_response;
         }
 
@@ -193,40 +230,6 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
                 }
             }
             super.beforeFlush(channel, future_response);
-        }
-
-        private class FutureCallback implements com.google.common.util.concurrent.FutureCallback<Object> {
-
-            @Override
-            public void onSuccess(final Object result) {
-
-                if (reference != null) {
-                    reference.seen(true);
-
-                    if (result instanceof PeerReference) {
-                        peer.push((PeerReference) result);
-                    }
-                    if (result instanceof List) {
-                        List list = (List) result;
-                        for (Object element : list) {
-                            if (element instanceof PeerReference) {
-                                PeerReference peerReference = (PeerReference) element;
-                                peer.push(peerReference);
-                            }
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(final Throwable t) {
-
-                if (reference != null) {
-                    peer_metric.notifyRPCError(t);
-                    LOGGER.debug("failure occurred on future ", t);
-                    reference.seen(false);
-                }
-            }
         }
 
         private class RequestWriter implements Runnable {

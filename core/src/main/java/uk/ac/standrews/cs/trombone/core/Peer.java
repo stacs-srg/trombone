@@ -1,15 +1,12 @@
 package uk.ac.standrews.cs.trombone.core;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
-import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.mashti.jetson.Server;
 import org.mashti.jetson.ServerFactory;
@@ -115,9 +112,7 @@ public class Peer implements PeerRemote {
     public void push(final List<PeerReference> references) {
 
         if (references != null) {
-            for (PeerReference reference : references) {
-                push(reference);
-            }
+            references.forEach(this :: push);
         }
     }
 
@@ -189,97 +184,56 @@ public class Peer implements PeerRemote {
             return new AsynchronousPeerRemote() {
 
                 @Override
-                public ListenableFuture<Key> getKey() {
+                public CompletableFuture<Key> getKey() {
 
-                    return Maintenance.SCHEDULER.submit(new Callable<Key>() {
-
-                        @Override
-                        public Key call() throws Exception {
-
-                            return Peer.this.getKey();
-                        }
-                    });
+                    return CompletableFuture.supplyAsync(() -> Peer.this.getKey());
                 }
 
                 @Override
-                public ListenableFuture<Void> join(final PeerReference member) {
+                public CompletableFuture<Void> join(final PeerReference member) {
 
-                    return Maintenance.SCHEDULER.submit(new Callable<Void>() {
-
-                        @Override
-                        public Void call() throws Exception {
-
-                            Peer.this.join(member);
-                            return null; //void
-                        }
-                    });
+                    return CompletableFuture.runAsync(() -> Peer.this.join(member));
                 }
 
                 @Override
-                public ListenableFuture<Void> push(final List<PeerReference> references) {
+                public CompletableFuture<Void> push(final List<PeerReference> references) {
 
-                    return Maintenance.SCHEDULER.submit(new Callable<Void>() {
-
-                        @Override
-                        public Void call() throws Exception {
-
-                            Peer.this.push(references);
-                            return null; //void
-                        }
-                    });
+                    return CompletableFuture.runAsync(() -> Peer.this.push(references));
                 }
 
                 @Override
-                public ListenableFuture<Void> push(final PeerReference reference) {
+                public CompletableFuture<Void> push(final PeerReference reference) {
 
-                    return Maintenance.SCHEDULER.submit(new Callable<Void>() {
-
-                        @Override
-                        public Void call() throws Exception {
-
-                            Peer.this.push(reference);
-                            return null; //void
-                        }
-                    });
+                    return CompletableFuture.runAsync(() -> Peer.this.push(reference));
                 }
 
                 @Override
-                public ListenableFuture<List<PeerReference>> pull(final Selector selector) {
+                public CompletableFuture<List<PeerReference>> pull(final Selector selector) {
 
-                    return Maintenance.SCHEDULER.submit(new Callable<List<PeerReference>>() {
-
-                        @Override
-                        public List<PeerReference> call() throws Exception {
-
-                            return Peer.this.pull(selector);
-                        }
-                    });
+                    return CompletableFuture.supplyAsync(() -> Peer.this.pull(selector));
                 }
 
                 @Override
-                public ListenableFuture<PeerReference> lookup(final Key target) {
+                public CompletableFuture<PeerReference> lookup(final Key target) {
 
-                    return Maintenance.SCHEDULER.submit(new Callable<PeerReference>() {
+                    final CompletableFuture<PeerReference> lookup_future = new CompletableFuture<>();
 
-                        @Override
-                        public PeerReference call() throws Exception {
-
-                            return Peer.this.lookup(target);
+                    CompletableFuture.runAsync(() -> {
+                        try {
+                            lookup_future.complete(Peer.this.lookup(target));
+                        }
+                        catch (RPCException e) {
+                            lookup_future.completeExceptionally(e);
                         }
                     });
+
+                    return lookup_future;
                 }
 
                 @Override
-                public ListenableFuture<PeerReference> nextHop(final Key target) {
+                public CompletableFuture<PeerReference> nextHop(final Key target) {
 
-                    return Maintenance.SCHEDULER.submit(new Callable<PeerReference>() {
-
-                        @Override
-                        public PeerReference call() throws Exception {
-
-                            return Peer.this.nextHop(target);
-                        }
-                    });
+                    return CompletableFuture.supplyAsync(() -> Peer.this.nextHop(target));
                 }
             };
         }
@@ -323,41 +277,35 @@ public class Peer implements PeerRemote {
         return measurement;
     }
 
-    public ListenableFuture<PeerMetric.LookupMeasurement> lookupAsynch(final Key target, int retry_count, final PeerReference expectedResult) {
+    public CompletionStage<PeerMetric.LookupMeasurement> lookupAsync(final Key target, int retry_count, final PeerReference expectedResult) {
 
         final PeerMetric.LookupMeasurement measurement = metric.newLookupMeasurement(retry_count, expectedResult);
-        final SettableFuture<PeerMetric.LookupMeasurement> future = SettableFuture.create();
-        lookupAsynch(future, measurement, target);
+        final CompletableFuture<PeerMetric.LookupMeasurement> future = new CompletableFuture<>();
+        lookupAsync(future, measurement, target);
         return future;
     }
 
-    private void lookupAsynch(final SettableFuture<PeerMetric.LookupMeasurement> future, final PeerMetric.LookupMeasurement measurement, final Key target) {
+    private void lookupAsync(final CompletableFuture<PeerMetric.LookupMeasurement> future, final PeerMetric.LookupMeasurement measurement, final Key target) {
 
         if (measurement.isDone()) {
-            future.set(measurement);
+            future.complete(measurement);
         }
         else {
-            final ListenableFuture<PeerReference> ff = lookupAsynchronous(target, measurement);
-            Futures.addCallback(ff, new FutureCallback<PeerReference>() {
-
-                @Override
-                public void onSuccess(final PeerReference result) {
-
+            final CompletableFuture<PeerReference> ff = lookupAsynchronous(target, measurement);
+            ff.whenCompleteAsync((PeerReference result, Throwable error) -> {
+                if (!ff.isCompletedExceptionally()) {
                     measurement.stop(result);
                     measurement.incrementRetryCount();
-                    lookupAsynch(future, measurement, target);
+                    lookupAsync(future, measurement, target);
                 }
-
-                @Override
-                public void onFailure(final Throwable t) {
-
+                else {
                     if (measurement.hasRetryThresholdReached()) {
-                        measurement.stop(new RPCException(t));
+                        measurement.stop(new RPCException(error));
                     }
                     measurement.incrementRetryCount();
-                    lookupAsynch(future, measurement, target);
+                    lookupAsync(future, measurement, target);
                 }
-            }, Maintenance.SCHEDULER);
+            });
         }
     }
 
@@ -400,58 +348,57 @@ public class Peer implements PeerRemote {
         return next_hop;
     }
 
-    private ListenableFuture<PeerReference> lookupAsynchronous(final Key target, final PeerMetric.LookupMeasurement measurement) {
+    private CompletableFuture<PeerReference> lookupAsynchronous(final Key target, final PeerMetric.LookupMeasurement measurement) {
 
-        SettableFuture<PeerReference> asynchLookup = SettableFuture.create();
-        nextHopAsynch(asynchLookup, target, nextHop(target), self, measurement);
-        return asynchLookup;
+        final CompletableFuture<PeerReference> async_lookup = new CompletableFuture<>();
+
+        nextHopAsync(async_lookup, target, nextHop(target), self, measurement);
+        return async_lookup;
     }
 
-    private void nextHopAsynch(final SettableFuture<PeerReference> asynch_lookup, final Key target, final PeerReference next_hop, final PeerReference current_hop, final PeerMetric.LookupMeasurement measurement) {
+    private void nextHopAsync(final CompletableFuture<PeerReference> async_lookup, final Key target, final PeerReference next_hop, final PeerReference current_hop, final PeerMetric.LookupMeasurement measurement) {
 
         if (current_hop.equals(next_hop)) {
-            asynch_lookup.set(next_hop);
+            async_lookup.complete(next_hop);
         }
         else {
 
             if (measurement != null && measurement.getHopCount() > 100) {
-                asynch_lookup.set(nextHop(target));
+                async_lookup.complete(nextHop(target));
             }
             else if (!next_hop.equals(self)) {
                 final AsynchronousPeerRemote next_hop_asynch_remote = asynchronous_remote_factory.get(next_hop);
                 next_hop_asynch_remote.push(self);
 
-                final ListenableFuture future_next_hop = next_hop_asynch_remote.nextHop(target);
+                final CompletionStage<PeerReference> future_next_hop = next_hop_asynch_remote.nextHop(target);
                 if (measurement != null) {
                     measurement.incrementHopCount();
                 }
 
-                Futures.addCallback(future_next_hop, new FutureCallback<PeerReference>() {
+                future_next_hop.whenComplete((PeerReference result, Throwable error) -> {
 
-                    @Override
-                    public void onSuccess(final PeerReference result) {
+                    final boolean successful = error == null;
 
+                    if (successful) {
                         push(next_hop);
-                        nextHopAsynch(asynch_lookup, target, result, next_hop, measurement);
+                        nextHopAsync(async_lookup, target, result, next_hop, measurement);
                     }
-
-                    @Override
-                    public void onFailure(final Throwable t) {
-
-                        asynch_lookup.setException(t);
+                    else {
+                        async_lookup.completeExceptionally(error);
                         next_hop.setReachable(false);
                         push(next_hop);
                         if (!current_hop.equals(self)) {
                             asynchronous_remote_factory.get(current_hop).push(next_hop);
                         }
                     }
-                }, Maintenance.SCHEDULER);
+                });
+
             }
             else {
                 if (measurement != null) {
                     LOGGER.debug("traversed to itself after {} hops", measurement.getHopCount());
                 }
-                asynch_lookup.set(nextHop(target));
+                async_lookup.complete(nextHop(target));
             }
         }
     }

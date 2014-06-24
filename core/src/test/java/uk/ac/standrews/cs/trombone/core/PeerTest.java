@@ -60,7 +60,7 @@ public class PeerTest {
 
         assertEquals(peer_key, peer.getKey());
         assertEquals(peer_key, peer_reference.getKey());
-        assertEquals(peer_key, peer.getAsynchronousRemote(peer_reference).getKey().get());
+        assertEquals(peer_key, peer.getAsynchronousRemote(peer_reference).getKey().toCompletableFuture().get());
     }
 
     @Test

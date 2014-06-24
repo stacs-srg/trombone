@@ -1,8 +1,7 @@
 package uk.ac.standrews.cs.trombone.core.selector;
 
-import java.util.Iterator;
 import java.util.List;
-import uk.ac.standrews.cs.trombone.core.InternalPeerReference;
+import java.util.stream.Collectors;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.PeerState;
@@ -23,17 +22,12 @@ public class MostRecentlySeen extends Selector {
     public List<? extends PeerReference> select(final Peer peer) {
 
         final PeerState state = peer.getPeerState();
-        return mostRecentlySeen(size, state.iterator());
+        return state.getInternalReferences().stream().sorted(INTERNAL_REFERENCE_LAST_SEEN_COMPARATOR).limit(size).collect(Collectors.toList());
     }
 
     @Override
     public Selector copy() {
 
         return new MostRecentlySeen(size, reachability_criteria);
-    }
-
-    static List<InternalPeerReference> mostRecentlySeen(final int size, final Iterator<InternalPeerReference> references) {
-
-        return INTERNAL_REFERENCE_LAST_SEEN_COMPARATOR.greatestOf(references, size);
     }
 }

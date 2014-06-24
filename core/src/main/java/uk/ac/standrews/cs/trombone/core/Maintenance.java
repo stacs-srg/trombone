@@ -1,12 +1,11 @@
 package uk.ac.standrews.cs.trombone.core;
 
-import com.google.common.util.concurrent.ListeningScheduledExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -25,7 +24,7 @@ public class Maintenance implements Serializable, Named {
     private static final long serialVersionUID = -15296211081078575L;
     
     public static final Rate RECONFIGURATION_RATE = new Rate();
-    public static final ListeningScheduledExecutorService SCHEDULER = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(300, new NamedThreadFactory("maintenance_", true)));
+    public static final ScheduledExecutorService SCHEDULER = Executors.newScheduledThreadPool(300, new NamedThreadFactory("maintenance_", true));
     
     private final Logger logger = LoggerFactory.getLogger(Maintenance.class);
     private final DisseminationStrategy strategy;
