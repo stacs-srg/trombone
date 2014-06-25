@@ -11,7 +11,7 @@ import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.core.util.RelativeRingDistanceComparator;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class PeerState implements Iterable<InternalPeerReference> {
+public class PeerState {
 
     private final Key local_key;
     private final ConcurrentSkipListMap<Key, InternalPeerReference> state;
@@ -128,11 +128,6 @@ public class PeerState implements Iterable<InternalPeerReference> {
         return state.values().stream();
     }
 
-    @Override
-    public Iterator<InternalPeerReference> iterator() {
-
-        return getValues().iterator();
-    }
 
     public Collection<InternalPeerReference> getValues() {
 

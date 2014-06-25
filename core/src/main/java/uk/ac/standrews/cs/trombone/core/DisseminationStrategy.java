@@ -9,7 +9,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.apache.commons.lang.reflect.MethodUtils;
-import org.mashti.jetson.exception.RPCException;
 import uk.ac.standrews.cs.trombone.core.selector.Selector;
 
 /**
@@ -141,7 +140,7 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
             return local.pull(recipient_selector).contains(recipient);
         }
 
-        public void nonOpportunistically(final Peer local) throws RPCException {
+        public void nonOpportunistically(final Peer local) {
 
             if (!opportunistic) {
 
@@ -231,7 +230,7 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
             return new Object[] {push ? getPushData(local) : data_selector};
         }
 
-        List<? extends PeerReference> getRecipients(final Peer local) throws RPCException {
+        List<? extends PeerReference> getRecipients(final Peer local){
 
             return recipient_selector.select(local);
         }
@@ -259,7 +258,7 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
         @Override
         public int hashCode() {
 
-            int result = (opportunistic ? 1 : 0);
+            int result = opportunistic ? 1 : 0;
             result = 31 * result + (push ? 1 : 0);
             result = 31 * result + (data_selector != null ? data_selector.hashCode() : 0);
             result = 31 * result + (recipient_selector != null ? recipient_selector.hashCode() : 0);

@@ -180,7 +180,7 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
         protected FutureResponse writeRequest(final FutureResponse future_response) {
 
             final ChannelFuture channel_future = channel_pool.get(address);
-            Maintenance.SCHEDULER.schedule(new RequestWriter(future_response, channel_future), synthetic_delay.get(peer_address, client_address), TimeUnit.NANOSECONDS);
+            MaintenanceFactory.SCHEDULER.schedule(new RequestWriter(future_response, channel_future), synthetic_delay.get(peer_address, client_address), TimeUnit.NANOSECONDS);
             return future_response;
         }
 

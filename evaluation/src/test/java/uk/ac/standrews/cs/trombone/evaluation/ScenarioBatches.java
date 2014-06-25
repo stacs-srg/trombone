@@ -2,7 +2,7 @@ package uk.ac.standrews.cs.trombone.evaluation;
 
 import java.util.ArrayList;
 import java.util.List;
-import uk.ac.standrews.cs.trombone.core.Maintenance;
+import uk.ac.standrews.cs.trombone.core.MaintenanceFactory;
 import uk.ac.standrews.cs.trombone.core.SyntheticDelay;
 import uk.ac.standrews.cs.trombone.evaluation.scenarios.BaseScenario;
 import uk.ac.standrews.cs.trombone.evaluation.scenarios.Constants;
@@ -36,7 +36,7 @@ public final class ScenarioBatches {
     };
     private static final Object[] CONFIGURATION_STATIC_AND_ADAPTIVE = generate(
             //@formatter:off
-            new Maintenance[] {
+            new MaintenanceFactory[] {
                     //Static Maintenance
                     Constants.NO_MAINTENANCE, 
                     Constants.SUCCESSOR_LIST_MAINTENANCE_5, 
@@ -55,7 +55,7 @@ public final class ScenarioBatches {
 
     private static final Object[] EVOLUTIONARY_RANDOM_TRIAL_TIME = generate(
             //@formatter:off
-            new Maintenance[] {
+            new MaintenanceFactory[] {
                     Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_30_SEC ,
                     Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_1_MIN ,
                     Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_4_MIN ,
@@ -74,18 +74,18 @@ public final class ScenarioBatches {
             {Constants.EXPERIMENT_DURATION_4}
     };
 
-    public static final Object[] EVOLUTIONARY_POPULATION_20_50 = generate(new Maintenance[] {
+    public static final Object[] EVOLUTIONARY_POPULATION_20_50 = generate(new MaintenanceFactory[] {
             Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_20,
             Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_30,
             Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_40,
             Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_50
     }, SYNTHETIC_DELAYS).toArray();
-    public static final Object[] EVOLUTIONARY_RANDOM_48_H = generate(new Maintenance[] {
+    public static final Object[] EVOLUTIONARY_RANDOM_48_H = generate(new MaintenanceFactory[] {
             Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_48_HOURS,
             Constants.RANDOM_MAINTENANCE_10_STOP_AFTER_48_HOURS
     }, SYNTHETIC_DELAYS).toArray();
 
-    public static final Object[] EVOLUTIONARY_RANDOM_CONFIG_SPACE_SIZE = generate(new Maintenance[] {
+    public static final Object[] EVOLUTIONARY_RANDOM_CONFIG_SPACE_SIZE = generate(new MaintenanceFactory[] {
             Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_7_5,
             Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_9_7,
             Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_11_9,
@@ -100,7 +100,7 @@ public final class ScenarioBatches {
             Constants.RANDOM_MAINTENANCE_10_17_15
     }, SYNTHETIC_DELAYS).toArray();
 
-    public static final Object[] EVOLUTIONARY_POPULATION_10_50_FEEDBACK = generate(new Maintenance[] {
+    public static final Object[] EVOLUTIONARY_POPULATION_10_50_FEEDBACK = generate(new MaintenanceFactory[] {
 
             Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10,
             Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_20,
@@ -115,58 +115,58 @@ public final class ScenarioBatches {
     };
 
     private static final Object[][] EVOLUTIONARY_14H = {
-            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, generate(new Maintenance[] {
+            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, generate(new MaintenanceFactory[] {
             Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_10_HOURS
     }, SYNTHETIC_DELAYS).toArray(), {Constants.EXPERIMENT_DURATION_14}
     };
     private static final Object[][] EVOLUTIONARY_12H = {
-            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, generate(new Maintenance[] {
+            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, generate(new MaintenanceFactory[] {
             Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_8_HOURS
     }, SYNTHETIC_DELAYS).toArray(), {Constants.EXPERIMENT_DURATION_12}
     };
     private static final Object[][] EVOLUTIONARY_10H = {
-            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, generate(new Maintenance[] {
+            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, generate(new MaintenanceFactory[] {
             Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_6_HOURS
     }, SYNTHETIC_DELAYS).toArray(), {Constants.EXPERIMENT_DURATION_10}
     };
     private static final Object[][] EVOLUTIONARY_8H = {
-            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, generate(new Maintenance[] {
+            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, generate(new MaintenanceFactory[] {
             Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_4_HOURS
     }, SYNTHETIC_DELAYS).toArray(), {Constants.EXPERIMENT_DURATION_8}
     };
     private static final Object[][] EVOLUTIONARY_6H = {
-            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, generate(new Maintenance[] {
+            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, generate(new MaintenanceFactory[] {
             Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_2_HOURS
     }, SYNTHETIC_DELAYS).toArray(), {Constants.EXPERIMENT_DURATION_6}
     };
 
     private static final Object[][] RANDOM_14H = {
-            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, generate(new Maintenance[] {
+            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, generate(new MaintenanceFactory[] {
             Constants.RANDOM_MAINTENANCE_10_STOP_AFTER_10_HOURS
     }, SYNTHETIC_DELAYS).toArray(), {Constants.EXPERIMENT_DURATION_14}
     };
     private static final Object[][] RANDOM_12H = {
-            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, generate(new Maintenance[] {
+            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, generate(new MaintenanceFactory[] {
             Constants.RANDOM_MAINTENANCE_10_STOP_AFTER_8_HOURS
     }, SYNTHETIC_DELAYS).toArray(), {Constants.EXPERIMENT_DURATION_12}
     };
     private static final Object[][] RANDOM_10H = {
-            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, generate(new Maintenance[] {
+            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, generate(new MaintenanceFactory[] {
             Constants.RANDOM_MAINTENANCE_10_STOP_AFTER_6_HOURS
     }, SYNTHETIC_DELAYS).toArray(), {Constants.EXPERIMENT_DURATION_10}
     };
     private static final Object[][] RANDOM_8H = {
-            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, generate(new Maintenance[] {
+            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, generate(new MaintenanceFactory[] {
             Constants.RANDOM_MAINTENANCE_10_STOP_AFTER_4_HOURS
     }, SYNTHETIC_DELAYS).toArray(), {Constants.EXPERIMENT_DURATION_8}
     };
     private static final Object[][] RANDOM_6H = {
-            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, generate(new Maintenance[] {
+            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, generate(new MaintenanceFactory[] {
             Constants.RANDOM_MAINTENANCE_10_STOP_AFTER_2_HOURS
     }, SYNTHETIC_DELAYS).toArray(), {Constants.EXPERIMENT_DURATION_6}
     };
     private static final Object[][] RANDOM_4H = {
-            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, generate(new Maintenance[] {
+            ALL_CHURN_MODELS, ALL_WORKLOAD_MODELS, generate(new MaintenanceFactory[] {
             Constants.RANDOM_MAINTENANCE_10
     }, SYNTHETIC_DELAYS).toArray(), {Constants.EXPERIMENT_DURATION_4}
     };

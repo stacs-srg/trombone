@@ -23,7 +23,7 @@ public class SingleProcessPeerManager implements ApplicationManager {
     private static final KeyProvider KEY_PROVIDER = new KeyProvider(32, DigestUtils.md5("sss"));
     private static final AttributeKey<Peer> PEER_KEY = new AttributeKey<Peer>();
     private static final Random RANDOM = new Random(545454);
-    private static final Maintenance MAINTENANCE = new Maintenance();
+    private static final MaintenanceFactory MAINTENANCE = new MaintenanceFactory();
     private final Set<PeerReference> joined_peers = new HashSet<PeerReference>();
 
     static {

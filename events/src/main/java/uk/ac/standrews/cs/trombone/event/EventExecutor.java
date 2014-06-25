@@ -44,13 +44,15 @@ import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.core.DisseminationStrategy;
 import uk.ac.standrews.cs.trombone.core.InternalPeerReference;
-import uk.ac.standrews.cs.trombone.core.Maintenance;
+import uk.ac.standrews.cs.trombone.core.MaintenanceFactory;
 import uk.ac.standrews.cs.trombone.core.Peer;
+import uk.ac.standrews.cs.trombone.core.PeerMaintainer;
 import uk.ac.standrews.cs.trombone.core.PeerMetric;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.PeerState;
 import uk.ac.standrews.cs.trombone.core.adaptation.EvaluatedDisseminationStrategy;
-import uk.ac.standrews.cs.trombone.core.adaptation.EvolutionaryMaintenance;
+import uk.ac.standrews.cs.trombone.core.adaptation.EvolutionaryMaintenanceFactory;
+import uk.ac.standrews.cs.trombone.core.adaptation.EvolutionaryPeerMaintainer;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class EventExecutor {
@@ -198,9 +200,9 @@ public class EventExecutor {
                 Peer peer = participant.getPeer();
                 if (peer.isExposed()) {
 
-                    final Maintenance.PeerMaintainer maintainer = peer.getPeerMaintainer();
-                    if (maintainer instanceof EvolutionaryMaintenance.EvolutionaryPeerMaintainer) {
-                        EvolutionaryMaintenance.EvolutionaryPeerMaintainer evolutionary_maintainer = (EvolutionaryMaintenance.EvolutionaryPeerMaintainer) maintainer;
+                    final PeerMaintainer maintainer = peer.getPeerMaintainer();
+                    if (maintainer instanceof EvolutionaryPeerMaintainer) {
+                        EvolutionaryPeerMaintainer evolutionary_maintainer = (EvolutionaryPeerMaintainer) maintainer;
 
                         for (EvaluatedDisseminationStrategy evaluated_strategy : evolutionary_maintainer.getEvaluatedStrategies()) {
                             strategies.add(evaluated_strategy.getStrategy());
@@ -288,14 +290,14 @@ public class EventExecutor {
         metric_registry.register("thread_cpu_usage_gauge", thread_cpu_usage_gauge);
         metric_registry.register("gc_cpu_usage_gauge", gc_cpu_usage_gauge);
         metric_registry.register("memory_usage_gauge", memory_usage_gauge);
-        metric_registry.register("evolutionary_maintenance_cluster_count_sampler", EvolutionaryMaintenance.CLUSTER_COUNT_SAMPLER);
-        metric_registry.register("evolutionary_maintenance_cluster_size_sampler", EvolutionaryMaintenance.CLUSTER_SIZE_SAMPLER);
-        metric_registry.register("evolutionary_maintenance_fitness_sampler", EvolutionaryMaintenance.FITNESS_SAMPLER);
-        metric_registry.register("evolutionary_maintenance_normalized_fitness_sampler", EvolutionaryMaintenance.NORMALIZED_FITNESS_SAMPLER);
-        metric_registry.register("evolutionary_maintenance_weighted_fitness_sampler", EvolutionaryMaintenance.WEIGHTED_FITNESS_SAMPLER);
+        metric_registry.register("evolutionary_maintenance_cluster_count_sampler", EvolutionaryMaintenanceFactory.CLUSTER_COUNT_SAMPLER);
+        metric_registry.register("evolutionary_maintenance_cluster_size_sampler", EvolutionaryMaintenanceFactory.CLUSTER_SIZE_SAMPLER);
+        metric_registry.register("evolutionary_maintenance_fitness_sampler", EvolutionaryMaintenanceFactory.FITNESS_SAMPLER);
+        metric_registry.register("evolutionary_maintenance_normalized_fitness_sampler", EvolutionaryMaintenanceFactory.NORMALIZED_FITNESS_SAMPLER);
+        metric_registry.register("evolutionary_maintenance_weighted_fitness_sampler", EvolutionaryMaintenanceFactory.WEIGHTED_FITNESS_SAMPLER);
         metric_registry.register("rpc_error_rate", PeerMetric.getGlobalRPCErrorRate());
-        metric_registry.register("reconfiguration_rate", Maintenance.RECONFIGURATION_RATE);
-        metric_registry.register("strategy_action_size_sampler", EvolutionaryMaintenance.STRATEGY_ACTION_SIZE_SAMPLER);
+        metric_registry.register("reconfiguration_rate", PeerMaintainer.RECONFIGURATION_RATE);
+        metric_registry.register("strategy_action_size_sampler", EvolutionaryMaintenanceFactory.STRATEGY_ACTION_SIZE_SAMPLER);
         metric_registry.register("strategy_uniformity_sampler", strategy_uniformity_sampler);
         metric_registry.register("generated_strategy_uniformity_sampler", generated_strategy_uniformity_sampler);
 
@@ -375,9 +377,9 @@ public class EventExecutor {
 
         for (Participant participant : event_reader.getParticipants()) {
             final Peer peer = participant.getPeer();
-            final Maintenance.PeerMaintainer peerMaintainer = peer.getPeerMaintainer();
-            if (peerMaintainer instanceof EvolutionaryMaintenance.EvolutionaryPeerMaintainer) {
-                EvolutionaryMaintenance.EvolutionaryPeerMaintainer evolutionary_maintainer = (EvolutionaryMaintenance.EvolutionaryPeerMaintainer) peerMaintainer;
+            final PeerMaintainer peerMaintainer = peer.getPeerMaintainer();
+            if (peerMaintainer instanceof EvolutionaryPeerMaintainer) {
+                EvolutionaryPeerMaintainer evolutionary_maintainer = (EvolutionaryPeerMaintainer) peerMaintainer;
                 node_strategies.put(peer.getKey().toString(), evolutionary_maintainer.getEvaluatedStrategies());
             }
 
@@ -399,7 +401,7 @@ public class EventExecutor {
         }
 
         LOGGER.info("shutting down maintenance scheduler...");
-        Maintenance.SCHEDULER.shutdownNow();
+        MaintenanceFactory.SCHEDULER.shutdownNow();
         //        LOGGER.info("shutting down peer client factory...");
         //        PeerClientFactory.shutdownPeerClientFactory();
         //        LOGGER.info("shutting down peer server factory...");

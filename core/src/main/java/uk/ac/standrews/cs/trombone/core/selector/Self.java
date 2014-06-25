@@ -1,6 +1,6 @@
 package uk.ac.standrews.cs.trombone.core.selector;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
@@ -20,9 +20,7 @@ public final class Self extends Selector {
     public List<PeerReference> select(final Peer peer) {
         
         final PeerReference self_reference = peer.getSelfReference();
-        final List<PeerReference> result = new ArrayList<>(1);
-        result.add(self_reference);
-        return result;
+        return Collections.singletonList(self_reference);
     }
 
     @Override

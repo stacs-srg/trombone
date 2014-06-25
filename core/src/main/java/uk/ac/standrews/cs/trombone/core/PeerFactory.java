@@ -27,7 +27,7 @@ public final class PeerFactory {
             return "NoSyntheticDelay";
         }
     };
-    public static final PeerConfiguration DEFAULT_PEER_CONFIGURATION = new PeerConfiguration(new Maintenance(), NO_SYNTHETIC_DELAY);
+    public static final PeerConfiguration DEFAULT_PEER_CONFIGURATION = new PeerConfiguration(new MaintenanceFactory(), NO_SYNTHETIC_DELAY);
 
     public static PeerRemote bind(PeerReference reference) {
 

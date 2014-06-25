@@ -30,7 +30,7 @@ public class Peer implements PeerRemote {
     private final Server server;
     private final PropertyChangeSupport property_change_support;
     private final PeerMetric metric;
-    private final Maintenance.PeerMaintainer maintainer;
+    private final PeerMaintainer maintainer;
 
     private final MersenneTwisterRNG random;
     private volatile PeerReference self;
@@ -52,7 +52,7 @@ public class Peer implements PeerRemote {
         property_change_support = new PropertyChangeSupport(this);
         metric = new PeerMetric(configuration.isApplicationFeedbackEnabled());
         state = new PeerState(key, metric);
-        maintainer = configuration.getMaintenance().maintain(this);
+        maintainer = configuration.getMaintenanceFactory().maintain(this);
         server = SERVER_FACTORY.createServer(this);
         server.setBindAddress(address);
         server.setWrittenByteCountListener(metric);
@@ -314,7 +314,7 @@ public class Peer implements PeerRemote {
         return maintainer.getDisseminationStrategy();
     }
 
-    public Maintenance.PeerMaintainer getPeerMaintainer() {
+    public PeerMaintainer getPeerMaintainer() {
 
         return maintainer;
     }
