@@ -30,7 +30,7 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AsynchronousPeerClientFactory.class);
 
-    private static final Method[] SORTED_ASYNC_METHODS = ReflectionUtil.sort(AsynchronousPeerRemote.class.getMethods());
+    private static final Method[] SORTED_ASYNC_METHODS = ReflectionUtil.checkAndSort(AsynchronousPeerRemote.class.getMethods());
     private static final CompletableFuture<?> FAILURE_UNEXPOSED_PEER = new CompletableFuture();
 
     static {

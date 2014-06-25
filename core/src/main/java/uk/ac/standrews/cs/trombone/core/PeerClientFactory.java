@@ -46,7 +46,7 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
 
     }
 
-    static final Method[] DISPATCH = ReflectionUtil.sort(PeerRemote.class.getMethods());
+    static final Method[] DISPATCH = ReflectionUtil.checkAndSort(PeerRemote.class.getMethods());
 
     private final Peer peer;
     private final SyntheticDelay synthetic_delay;
