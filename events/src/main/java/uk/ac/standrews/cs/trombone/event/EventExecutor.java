@@ -43,7 +43,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.core.DisseminationStrategy;
-import uk.ac.standrews.cs.trombone.core.InternalPeerReference;
 import uk.ac.standrews.cs.trombone.core.MaintenanceFactory;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerMaintainer;
@@ -123,11 +122,7 @@ public class EventExecutor {
                 Peer peer = participant.getPeer();
                 if (peer.isExposed()) {
                     final PeerState state = peer.getPeerState();
-                    for (InternalPeerReference reference : state) {
-                        if (reference.isReachable()) {
-                            number_of_reachable_state++;
-                        }
-                    }
+                    number_of_reachable_state += state.stream().filter(reference -> reference.isReachable()).count();
                 }
             }
 
@@ -145,11 +140,7 @@ public class EventExecutor {
                 Peer peer = participant.getPeer();
                 if (peer.isExposed()) {
                     final PeerState state = peer.getPeerState();
-                    for (InternalPeerReference reference : state) {
-                        if (!reference.isReachable()) {
-                            number_of_unreachable_state++;
-                        }
-                    }
+                    number_of_unreachable_state += state.stream().filter(reference -> !reference.isReachable()).count();
                 }
             }
 
