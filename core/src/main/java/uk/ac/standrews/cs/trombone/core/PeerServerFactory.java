@@ -30,15 +30,6 @@ public class PeerServerFactory extends ServerFactory<AsynchronousPeerRemote> {
     static final Rate handled_rate = new Rate();
 
     static {
-//        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(new Runnable() {
-//
-//            @Override
-//            public void run() {
-//
-//                LOGGER.info("server handling rate: {}", handling_rate.getRate());
-//                LOGGER.info("server handled rate: {}", handled_rate.getRate());
-//            }
-//        }, 10, 10, TimeUnit.SECONDS);
         parent_event_loop = new NioEventLoopGroup(50, new NamedThreadFactory("server_parent_event_loop_"));
         child_event_loop = new NioEventLoopGroup(50, new NamedThreadFactory("server_child_event_loop_"));
         

@@ -30,7 +30,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.inject.Provider;
+import java.util.function.Supplier;
 import org.json.JSONObject;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
@@ -176,7 +176,7 @@ public class Scenario implements Named, Copyable {
         return name;
     }
 
-    public Provider<Key> getPeerKeyProvider() {
+    public Supplier<Key> getPeerKeyProvider() {
 
         return peer_key_provider;
     }

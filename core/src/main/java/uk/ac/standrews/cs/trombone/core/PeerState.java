@@ -119,7 +119,6 @@ public class PeerState {
 
     public int size() {
 
-        //TODO this is expensive; implement internal counter
         return state.size();
     }
 

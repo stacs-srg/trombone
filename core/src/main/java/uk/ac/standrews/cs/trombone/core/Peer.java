@@ -24,7 +24,6 @@ public class Peer implements AsynchronousPeerRemote {
     private static final ServerFactory<AsynchronousPeerRemote> SERVER_FACTORY = new PeerServerFactory();
     private final PeerState state;
     private final PeerClientFactory remote_factory;
-    private final AsynchronousPeerClientFactory asynchronous_remote_factory;
     private final Key key;
     private final Server server;
     private final PropertyChangeSupport property_change_support;
@@ -56,7 +55,6 @@ public class Peer implements AsynchronousPeerRemote {
         server.setBindAddress(address);
         server.setWrittenByteCountListener(metric);
         remote_factory = new PeerClientFactory(this, configuration.getSyntheticDelay());
-        asynchronous_remote_factory = new AsynchronousPeerClientFactory(this, configuration.getSyntheticDelay());
         refreshSelfReference();
     }
 

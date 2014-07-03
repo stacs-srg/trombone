@@ -1,13 +1,13 @@
 package uk.ac.standrews.cs.trombone.event.provider;
 
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.inject.Provider;
+import java.util.function.Supplier;
 import uk.ac.standrews.cs.trombone.core.util.Copyable;
 import uk.ac.standrews.cs.trombone.core.util.Named;
 import uk.ac.standrews.cs.trombone.core.util.NamingUtils;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class SequentialPortNumberProvider implements Provider<Integer>, Copyable, Named {
+public class SequentialPortNumberProvider implements Supplier<Integer>, Copyable, Named {
 
     private final int start;
     private final AtomicInteger next_port;

@@ -1,14 +1,14 @@
 package uk.ac.standrews.cs.trombone.core.key;
 
 import java.util.Random;
-import javax.inject.Provider;
+import java.util.function.Supplier;
 import org.uncommons.maths.random.MersenneTwisterRNG;
 import uk.ac.standrews.cs.trombone.core.util.Copyable;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class KeyProvider implements Provider<Key>, Copyable {
+public class KeyProvider implements Supplier<Key>, Copyable {
 
     private final int key_length_in_bits;
     protected final byte[] seed;
