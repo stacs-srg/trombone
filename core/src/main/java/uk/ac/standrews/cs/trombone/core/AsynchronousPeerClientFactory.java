@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
+public class AsynchronousPeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AsynchronousPeerClientFactory.class);
 
@@ -81,7 +81,7 @@ public class AsynchronousPeerClientFactory extends ClientFactory<PeerRemote> {
 
     AsynchronousPeerClientFactory(final Peer peer, final SyntheticDelay synthetic_delay) {
 
-        super(PeerRemote.class, PeerClientFactory.DISPATCH, PeerClientFactory.BOOTSTRAP);
+        super(AsynchronousPeerRemote.class, PeerClientFactory.DISPATCH, PeerClientFactory.BOOTSTRAP);
         this.peer = peer;
         this.synthetic_delay = synthetic_delay;
         peer_state = peer.getPeerState();

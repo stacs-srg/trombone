@@ -80,14 +80,14 @@ public class PeerTest {
     @Test
     public void testPull() throws Exception {
 
-        final List<PeerReference> reference = peer.pull(Self.INSTANCE);
+        final List<PeerReference> reference = peer.pull(Self.INSTANCE).get();
         assertEquals(peer_reference, reference.get(0));
     }
 
     @Test
     public void testLookup() throws Exception {
 
-        final PeerReference reference = peer.lookup(peer_key);
+        final PeerReference reference = peer.lookup(peer_key).get();
         assertEquals(peer_reference, reference);
     }
 
@@ -113,7 +113,7 @@ public class PeerTest {
     @Test
     public void testGetRemote() throws Exception {
 
-        assertEquals(peer, peer.getRemote(peer_reference));
+        assertEquals(peer, peer.getAsynchronousRemote(peer_reference));
     }
 
     @Test

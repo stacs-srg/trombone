@@ -25,9 +25,9 @@ public class LookupSelector extends Selector {
 
         return Stream.of(targets).map(target -> {
             try {
-                return peer.lookup(target);
+                return peer.lookup(target).get();
             }
-            catch (RPCException e) {
+            catch (Exception e) {
                 return null;
             }
         }).collect(Collectors.toList());

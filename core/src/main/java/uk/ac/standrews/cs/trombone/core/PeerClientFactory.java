@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class PeerClientFactory extends ClientFactory<PeerRemote> {
+public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PeerClientFactory.class);
     static final Bootstrap BOOTSTRAP = new Bootstrap();
@@ -37,7 +37,7 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
         BOOTSTRAP.channel(NioSocketChannel.class);
         BOOTSTRAP.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30_000);
         BOOTSTRAP.option(ChannelOption.TCP_NODELAY, true);
-        BOOTSTRAP.handler(new LeanClientChannelInitializer(PeerRemote.class, PeerCodecs.INSTANCE));
+        BOOTSTRAP.handler(new LeanClientChannelInitializer(AsynchronousPeerRemote.class, PeerCodecs.INSTANCE));
         BOOTSTRAP.option(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK, 32 * 1024);
         BOOTSTRAP.option(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK, 8 * 1024);
         BOOTSTRAP.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
@@ -46,7 +46,7 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
 
     }
 
-    static final Method[] DISPATCH = ReflectionUtil.checkAndSort(PeerRemote.class.getMethods());
+    static final Method[] DISPATCH = ReflectionUtil.checkAndSort(AsynchronousPeerRemote.class.getMethods());
 
     private final Peer peer;
     private final SyntheticDelay synthetic_delay;
@@ -68,7 +68,7 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
 
     PeerClientFactory(final Peer peer, final SyntheticDelay synthetic_delay) {
 
-        super(PeerRemote.class, DISPATCH, BOOTSTRAP);
+        super(AsynchronousPeerRemote.class, DISPATCH, BOOTSTRAP);
         this.peer = peer;
         this.synthetic_delay = synthetic_delay;
         peer_state = peer.getPeerState();
@@ -82,10 +82,10 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
         return CHANNEL_POOL;
     }
 
-    PeerRemote get(final PeerReference reference) {
+    AsynchronousPeerRemote get(final PeerReference reference) {
 
         final InetSocketAddress address = reference.getAddress();
-        final PeerRemote remote = get(address);
+        final AsynchronousPeerRemote remote = get(address);
         final PeerClient handler = (PeerClient) Proxy.getInvocationHandler(remote);
         handler.reference = peer_state.getInternalReference(reference);
 

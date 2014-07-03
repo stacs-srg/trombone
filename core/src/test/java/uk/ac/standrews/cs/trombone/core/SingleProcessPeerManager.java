@@ -78,7 +78,7 @@ public class SingleProcessPeerManager implements ApplicationManager {
 
     private synchronized void join(final PeerReference peer_reference) throws RPCException {
 
-        final PeerRemote remote = PeerFactory.bind(peer_reference);
+        final AsynchronousPeerRemote remote = PeerFactory.bind(peer_reference);
         final PeerReference known_peer = randomlySelectJoinedPeer(peer_reference);
         remote.join(known_peer);
         joined_peers.add(peer_reference);

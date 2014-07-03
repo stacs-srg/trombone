@@ -36,7 +36,7 @@ public class RecoveryTest {
 
         for (ApplicationDescriptor descriptor : network) {
             final PeerReference reference = descriptor.getApplicationReference();
-            final PeerReference lookup_result = PeerFactory.bind(reference).lookup(reference.getKey());
+            final PeerReference lookup_result = PeerFactory.bind(reference).lookup(reference.getKey()).get();
             assertEquals(reference, lookup_result);
         }
     }

@@ -10,7 +10,7 @@ import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public final class PeerFactory {
 
-    static final LeanClientFactory<PeerRemote> CLIENT_FACTORY = new LeanClientFactory<PeerRemote>(PeerRemote.class, PeerCodecs.INSTANCE);
+    static final LeanClientFactory<AsynchronousPeerRemote> CLIENT_FACTORY = new LeanClientFactory<AsynchronousPeerRemote>(AsynchronousPeerRemote.class, PeerCodecs.INSTANCE);
     public static final SyntheticDelay NO_SYNTHETIC_DELAY = new SyntheticDelay() {
 
         private static final long serialVersionUID = 8318814582661151942L;
@@ -29,15 +29,21 @@ public final class PeerFactory {
     };
     public static final PeerConfiguration DEFAULT_PEER_CONFIGURATION = new PeerConfiguration(new MaintenanceFactory(), NO_SYNTHETIC_DELAY);
 
-    public static PeerRemote bind(PeerReference reference) {
+    public static AsynchronousPeerRemote bind(PeerReference reference) {
 
         return CLIENT_FACTORY.get(reference.getAddress());
     }
 
     public static PeerReference bind(final InetSocketAddress address) throws RPCException {
 
-        final PeerRemote remote = CLIENT_FACTORY.get(address);
-        final Key key = remote.getKey();
+        final AsynchronousPeerRemote remote = CLIENT_FACTORY.get(address);
+        final Key key;
+        try {
+            key = remote.getKey().get();
+        }
+        catch (Exception e) {
+            throw new RPCException(e);
+        }
         return new PeerReference(key, address);
     }
 

@@ -6,8 +6,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import org.mashti.gauge.Rate;
 import org.mashti.jetson.FutureResponse;
 import org.mashti.jetson.Server;
@@ -21,7 +19,7 @@ import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class PeerServerFactory extends ServerFactory<PeerRemote> {
+public class PeerServerFactory extends ServerFactory<AsynchronousPeerRemote> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PeerServerFactory.class);
     private static final ServerBootstrap SERVER_BOOTSTRAP = new ServerBootstrap();
@@ -32,17 +30,18 @@ public class PeerServerFactory extends ServerFactory<PeerRemote> {
     static final Rate handled_rate = new Rate();
 
     static {
-        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(new Runnable() {
-
-            @Override
-            public void run() {
-
-                LOGGER.info("server handling rate: {}", handling_rate.getRate());
-                LOGGER.info("server handled rate: {}", handled_rate.getRate());
-            }
-        }, 10, 10, TimeUnit.SECONDS);
+//        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(new Runnable() {
+//
+//            @Override
+//            public void run() {
+//
+//                LOGGER.info("server handling rate: {}", handling_rate.getRate());
+//                LOGGER.info("server handled rate: {}", handled_rate.getRate());
+//            }
+//        }, 10, 10, TimeUnit.SECONDS);
         parent_event_loop = new NioEventLoopGroup(50, new NamedThreadFactory("server_parent_event_loop_"));
         child_event_loop = new NioEventLoopGroup(50, new NamedThreadFactory("server_child_event_loop_"));
+        
         SERVER_BOOTSTRAP.group(parent_event_loop, child_event_loop);
         SERVER_BOOTSTRAP.channel(NioServerSocketChannel.class);
         SERVER_BOOTSTRAP.option(ChannelOption.TCP_NODELAY, true);
@@ -50,7 +49,7 @@ public class PeerServerFactory extends ServerFactory<PeerRemote> {
         SERVER_BOOTSTRAP.childOption(ChannelOption.SO_KEEPALIVE, true);
         SERVER_BOOTSTRAP.childOption(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK, 32 * 1024);
         SERVER_BOOTSTRAP.childOption(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK, 8 * 1024);
-        SERVER_BOOTSTRAP.childHandler(new LeanServerChannelInitializer<PeerRemote>(PeerRemote.class, PeerCodecs.INSTANCE));
+        SERVER_BOOTSTRAP.childHandler(new LeanServerChannelInitializer<AsynchronousPeerRemote>(AsynchronousPeerRemote.class, PeerCodecs.INSTANCE));
         SERVER_BOOTSTRAP.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
     }
 
@@ -71,7 +70,7 @@ public class PeerServerFactory extends ServerFactory<PeerRemote> {
     }
 
     @Override
-    public Server createServer(final PeerRemote service) {
+    public Server createServer(final AsynchronousPeerRemote service) {
 
         return new MyServer(server_bootstrap, service);
     }

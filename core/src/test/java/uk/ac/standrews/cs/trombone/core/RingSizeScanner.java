@@ -63,11 +63,11 @@ class RingSizeScanner extends Scanner {
         while (!Thread.currentThread().isInterrupted()) {
 
             cycle_length++;
-            final PeerRemote proxy = PeerFactory.bind(node);
+            final AsynchronousPeerRemote proxy = PeerFactory.bind(node);
             try {
-                node = forwards ? proxy.pull(FIRST_REACHABLE).get(0) : proxy.pull(LAST_REACHABLE).get(0);
+                node = forwards ? proxy.pull(FIRST_REACHABLE).get().get(0) : proxy.pull(LAST_REACHABLE).get().get(0);
             }
-            catch (final RPCException e) {
+            catch (final Exception e) {
 
                 LOGGER.debug("error traversing the ring ", e);
                 LOGGER.error("error traversing the ring - current size {}, forwards? {}", cycle_length, forwards);

@@ -8,7 +8,6 @@ import org.mashti.gauge.Metric;
 import org.mashti.gauge.Rate;
 import org.mashti.gauge.Timer;
 import org.mashti.jetson.WrittenByteCountListener;
-import org.mashti.jetson.exception.RPCException;
 import org.mashti.sina.distribution.statistic.Statistics;
 import uk.ac.standrews.cs.trombone.core.adaptation.EnvironmentSnapshot;
 
@@ -128,7 +127,7 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
         private final AtomicInteger retry_count = new AtomicInteger();
         private final AtomicInteger hop_count = new AtomicInteger();
         private volatile PeerReference result;
-        private volatile RPCException error;
+        private volatile Throwable error;
         private long duration_in_nanos;
 
         private LookupMeasurement(int retry_threshold) {
@@ -184,7 +183,7 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
             }
         }
 
-        public synchronized void stop(RPCException error) {
+        public synchronized void stop(Throwable error) {
 
             if (doneIfUndone()) {
                 this.error = error;
@@ -204,7 +203,7 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
             return isDone() && error != null;
         }
 
-        public RPCException getError() {
+        public Throwable getError() {
 
             return error;
         }

@@ -656,8 +656,8 @@ public class EventExecutor {
 
             try {
 
-                final PeerMetric.LookupMeasurement measurement = peer.lookup(event.getTarget(), lookup_retry_count);
                 final PeerReference expected_result = event.getExpectedResult();
+                final PeerMetric.LookupMeasurement measurement = peer.lookupWithRetry(event.getTarget(), lookup_retry_count, expected_result).get();
                 final long hop_count = measurement.getHopCount();
                 final long retry_count = measurement.getRetryCount();
                 final long duration_in_nanos = measurement.getDurationInNanos();
@@ -703,15 +703,14 @@ public class EventExecutor {
         public void handleEvent() {
 
             final LookupEvent event = (LookupEvent) getEvent();
-
-            final CompletionStage<PeerMetric.LookupMeasurement> async_lookup = peer.lookupAsync(event.getTarget(), lookup_retry_count, event.getExpectedResult());
+            final PeerReference expected_result = event.getExpectedResult();
+            final CompletionStage<PeerMetric.LookupMeasurement> async_lookup = peer.lookupWithRetry(event.getTarget(), lookup_retry_count, expected_result);
 
             async_lookup.whenCompleteAsync((measurement, error) -> {
 
                 final boolean looked_up = error == null;
                 if (looked_up) {
                     lookup_execution_rate.mark();
-                    final PeerReference expected_result = event.getExpectedResult();
                     final long hop_count = measurement.getHopCount();
                     final long retry_count = measurement.getRetryCount();
                     final long duration_in_nanos = measurement.getDurationInNanos();

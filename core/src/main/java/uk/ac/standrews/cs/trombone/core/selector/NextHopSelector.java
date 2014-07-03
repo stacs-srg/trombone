@@ -22,7 +22,14 @@ public class NextHopSelector extends Selector {
     @Override
     public List<PeerReference> select(final Peer peer) {
 
-        return Stream.of(targets).map(target -> peer.nextHop(target)).collect(Collectors.toList());
+        return Stream.of(targets).map(target -> {
+            try {
+                return peer.nextHop(target).get();
+            }
+            catch (Exception e) {
+                return null;
+            }
+        }).collect(Collectors.toList());
     }
 
     @Override

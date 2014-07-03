@@ -100,6 +100,8 @@ public class PeerMaintainer implements PropertyChangeListener {
                         }
                     }
                 }
+
+                //                new DisseminationStrategy.Action(false, true, new RandomSelector(10, Selector.ReachabilityCriteria.REACHABLE),new RandomSelector(10, Selector.ReachabilityCriteria.REACHABLE)).nonOpportunistically(peer);
             }
             catch (Throwable e) {
                 LOGGER.error("failed to execute non-opportunistic maintenance", e);

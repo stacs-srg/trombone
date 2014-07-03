@@ -17,8 +17,9 @@ import uk.ac.standrews.cs.trombone.core.selector.Selector;
 public class DisseminationStrategy implements Iterable<DisseminationStrategy.Action>, Serializable {
 
     private static final long serialVersionUID = 7398182589384122556L;
-    static final Method PUSH_METHOD = MethodUtils.getAccessibleMethod(PeerRemote.class, "push", List.class);
-    static final Method PULL_METHOD = MethodUtils.getAccessibleMethod(PeerRemote.class, "pull", Selector.class);
+    static final Method PUSH_METHOD = MethodUtils.getAccessibleMethod(AsynchronousPeerRemote.class, "push", List.class);
+    static final Method PULL_METHOD = MethodUtils.getAccessibleMethod(AsynchronousPeerRemote.class, "pull", Selector.class);
+    
     private final ArrayList<Action> actions;
     private int non_opportunistic_interval_millis = 2_000;
 
@@ -137,7 +138,12 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
 
         public boolean recipientsContain(Peer local, final PeerReference recipient) {
 
-            return local.pull(recipient_selector).contains(recipient);
+            try {
+                return local.pull(recipient_selector).get().contains(recipient);
+            }
+            catch (Exception e) {
+                return false;
+            }
         }
 
         public void nonOpportunistically(final Peer local) {
@@ -217,7 +223,12 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
 
         List<PeerReference> getPushData(final Peer local) {
 
-            return local.pull(data_selector);
+            try {
+                return local.pull(data_selector).get();
+            }
+            catch (Exception e) {
+                return Collections.emptyList();
+            }
         }
 
         Method getMethod() {
@@ -230,7 +241,7 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
             return new Object[] {push ? getPushData(local) : data_selector};
         }
 
-        List<? extends PeerReference> getRecipients(final Peer local){
+        List<? extends PeerReference> getRecipients(final Peer local) {
 
             return recipient_selector.select(local);
         }

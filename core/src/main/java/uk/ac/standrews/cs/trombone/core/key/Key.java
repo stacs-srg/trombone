@@ -118,4 +118,11 @@ public class Key extends Number implements Comparable<Key> {
 
         return value.doubleValue();
     }
+
+    @Override
+    public String toString() {
+
+        
+        return value.toString();
+    }
 }
