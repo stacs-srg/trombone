@@ -15,10 +15,10 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class PeerMaintainer implements PropertyChangeListener {
+public class Maintenance implements PropertyChangeListener {
 
     public static final Rate RECONFIGURATION_RATE = new Rate();
-    private static final Logger LOGGER = LoggerFactory.getLogger(PeerMaintainer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Maintenance.class);
     private final Peer peer;
     protected final ScheduledExecutorService scheduler;
     private final AtomicReference<DisseminationStrategy> strategy;
@@ -26,7 +26,7 @@ public class PeerMaintainer implements PropertyChangeListener {
     private volatile boolean started;
     private ScheduledFuture<?> non_opp_maintenance;
 
-    protected PeerMaintainer(Peer peer, DisseminationStrategy strategy, ScheduledExecutorService scheduler) {
+    protected Maintenance(Peer peer, DisseminationStrategy strategy, ScheduledExecutorService scheduler) {
 
         this.peer = peer;
         this.scheduler = scheduler;

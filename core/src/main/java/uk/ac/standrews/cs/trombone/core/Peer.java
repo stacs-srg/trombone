@@ -28,7 +28,7 @@ public class Peer implements AsynchronousPeerRemote {
     private final Server server;
     private final PropertyChangeSupport property_change_support;
     private final PeerMetric metric;
-    private final PeerMaintainer maintainer;
+    private final Maintenance maintainer;
 
     private final MersenneTwisterRNG random;
     private volatile PeerReference self;
@@ -241,7 +241,7 @@ public class Peer implements AsynchronousPeerRemote {
         return maintainer.getDisseminationStrategy();
     }
 
-    public PeerMaintainer getPeerMaintainer() {
+    public Maintenance getPeerMaintainer() {
 
         return maintainer;
     }

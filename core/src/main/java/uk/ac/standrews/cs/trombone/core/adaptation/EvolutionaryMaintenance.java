@@ -18,16 +18,16 @@ import org.uncommons.maths.random.MersenneTwisterRNG;
 import org.uncommons.maths.random.Probability;
 import uk.ac.standrews.cs.trombone.core.DisseminationStrategy;
 import uk.ac.standrews.cs.trombone.core.Peer;
-import uk.ac.standrews.cs.trombone.core.PeerMaintainer;
+import uk.ac.standrews.cs.trombone.core.Maintenance;
 import uk.ac.standrews.cs.trombone.core.PeerMetric;
 import uk.ac.standrews.cs.trombone.core.util.CosineSimilarity;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class EvolutionaryPeerMaintainer extends PeerMaintainer {
+public class EvolutionaryMaintenance extends Maintenance {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(EvolutionaryPeerMaintainer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(EvolutionaryMaintenance.class);
     protected final MersenneTwisterRNG random;
     protected final PeerMetric metric;
     protected final List<EvaluatedDisseminationStrategy> evaluated_strategies;
@@ -45,7 +45,7 @@ public class EvolutionaryPeerMaintainer extends PeerMaintainer {
     private static final Comparator<EvaluatedDisseminationStrategy> ASCENDING_FITNESS_COMPARATOR = Comparator.reverseOrder();
     private EvolutionaryMaintenanceFactory.TerminationCondition termination_condition;
 
-    EvolutionaryPeerMaintainer(final Peer peer, ScheduledExecutorService scheduler,int population_size, int elite_count, Probability mutation_probability, long evolution_cycle_length, TimeUnit evolution_cycle_unit, Clusterer<EvaluatedDisseminationStrategy> clusterer, DisseminationStrategyGenerator strategy_generator) {
+    EvolutionaryMaintenance(final Peer peer, ScheduledExecutorService scheduler, int population_size, int elite_count, Probability mutation_probability, long evolution_cycle_length, TimeUnit evolution_cycle_unit, Clusterer<EvaluatedDisseminationStrategy> clusterer, DisseminationStrategyGenerator strategy_generator) {
 
         super(peer, null, scheduler);
         this.population_size = population_size;

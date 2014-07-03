@@ -51,7 +51,7 @@
             <artifactId>slf4j-api</artifactId>
             <version>1.7.5</version>
         </dependency>
-        
+
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
@@ -62,12 +62,6 @@
             <groupId>org.uncommons.maths</groupId>
             <artifactId>uncommons-maths</artifactId>
             <version>1.2.2</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>jfree</groupId>
-                    <artifactId>jfreechart</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
 

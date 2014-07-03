@@ -6,7 +6,7 @@ import org.mashti.gauge.Sampler;
 import org.uncommons.maths.random.Probability;
 import uk.ac.standrews.cs.trombone.core.MaintenanceFactory;
 import uk.ac.standrews.cs.trombone.core.Peer;
-import uk.ac.standrews.cs.trombone.core.PeerMaintainer;
+import uk.ac.standrews.cs.trombone.core.Maintenance;
 import uk.ac.standrews.cs.trombone.core.util.Named;
 import uk.ac.standrews.cs.trombone.core.util.NamingUtils;
 
@@ -94,16 +94,16 @@ public class EvolutionaryMaintenanceFactory extends MaintenanceFactory {
     }
 
     @Override
-    protected PeerMaintainer maintain(Peer peer) {
+    protected Maintenance maintain(Peer peer) {
 
-        final PeerMaintainer listener = new EvolutionaryPeerMaintainer(peer, SCHEDULER, population_size, elite_count, mutation_probability, evolution_cycle_length, evolution_cycle_unit, clusterer, strategy_generator);
+        final Maintenance listener = new EvolutionaryMaintenance(peer, SCHEDULER, population_size, elite_count, mutation_probability, evolution_cycle_length, evolution_cycle_unit, clusterer, strategy_generator);
         peer.addExposureChangeListener(listener);
         return listener;
     }
 
     public interface TerminationCondition {
 
-        boolean terminate(EvolutionaryPeerMaintainer maintainer);
+        boolean terminate(EvolutionaryMaintenance maintainer);
     }
 
     public static class ElapsedTimeTerminationCondition implements TerminationCondition, Named {
@@ -121,7 +121,7 @@ public class EvolutionaryMaintenanceFactory extends MaintenanceFactory {
         }
 
         @Override
-        public boolean terminate(final EvolutionaryPeerMaintainer maintainer) {
+        public boolean terminate(final EvolutionaryMaintenance maintainer) {
 
             return maintainer.getElapsedMillisecondsSinceFirstStart() >= elapsed_time_millis;
         }

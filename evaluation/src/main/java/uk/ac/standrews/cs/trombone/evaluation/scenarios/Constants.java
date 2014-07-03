@@ -12,7 +12,7 @@ import uk.ac.standrews.cs.trombone.core.MaintenanceFactory;
 import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
 import uk.ac.standrews.cs.trombone.core.adaptation.EvaluatedDisseminationStrategy;
 import uk.ac.standrews.cs.trombone.core.adaptation.EvolutionaryMaintenanceFactory;
-import uk.ac.standrews.cs.trombone.core.adaptation.RandomMaintenance;
+import uk.ac.standrews.cs.trombone.core.adaptation.RandomMaintenanceFactory;
 import uk.ac.standrews.cs.trombone.core.adaptation.clustering.PerPointClusterer;
 import uk.ac.standrews.cs.trombone.core.adaptation.clustering.pfclust.PFClustClusterer;
 import uk.ac.standrews.cs.trombone.core.key.KeyProvider;
@@ -78,24 +78,24 @@ public final class Constants {
     public static final EvolutionaryMaintenanceFactory EVOLUTIONARY_MAINTENANCE_PFCLUST_10_15_13 = new EvolutionaryMaintenanceFactory(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 15, 13);
     public static final EvolutionaryMaintenanceFactory EVOLUTIONARY_MAINTENANCE_PFCLUST_10_17_15 = new EvolutionaryMaintenanceFactory(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 17, 15);
 
-    public static final RandomMaintenance RANDOM_MAINTENANCE_10_7_5 = new RandomMaintenance(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 7, 5);
-    public static final RandomMaintenance RANDOM_MAINTENANCE_10_9_7 = new RandomMaintenance(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 9, 7);
-    public static final RandomMaintenance RANDOM_MAINTENANCE_10_11_9 = new RandomMaintenance(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 11, 9);
-    public static final RandomMaintenance RANDOM_MAINTENANCE_10_13_11 = new RandomMaintenance(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 13, 11);
-    public static final RandomMaintenance RANDOM_MAINTENANCE_10_15_13 = new RandomMaintenance(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 15, 13);
-    public static final RandomMaintenance RANDOM_MAINTENANCE_10_17_15 = new RandomMaintenance(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 17, 15);
+    public static final RandomMaintenanceFactory RANDOM_MAINTENANCE_10_7_5 = new RandomMaintenanceFactory(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 7, 5);
+    public static final RandomMaintenanceFactory RANDOM_MAINTENANCE_10_9_7 = new RandomMaintenanceFactory(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 9, 7);
+    public static final RandomMaintenanceFactory RANDOM_MAINTENANCE_10_11_9 = new RandomMaintenanceFactory(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 11, 9);
+    public static final RandomMaintenanceFactory RANDOM_MAINTENANCE_10_13_11 = new RandomMaintenanceFactory(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 13, 11);
+    public static final RandomMaintenanceFactory RANDOM_MAINTENANCE_10_15_13 = new RandomMaintenanceFactory(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 15, 13);
+    public static final RandomMaintenanceFactory RANDOM_MAINTENANCE_10_17_15 = new RandomMaintenanceFactory(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 17, 15);
 
-    public static final RandomMaintenance RANDOM_MAINTENANCE_10_30_SEC = new RandomMaintenance(10, 30, TimeUnit.SECONDS, PF_CLUST_CLUSTERER, 5, 3);
-    public static final RandomMaintenance RANDOM_MAINTENANCE_10_1_MIN = new RandomMaintenance(10, 1, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 5, 3);
-    public static final RandomMaintenance RANDOM_MAINTENANCE_10_4_MIN = new RandomMaintenance(10, 4, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 5, 3);
-    public static final RandomMaintenance RANDOM_MAINTENANCE_10_8_MIN = new RandomMaintenance(10, 8, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 5, 3);
-    public static final RandomMaintenance RANDOM_MAINTENANCE_10 = new RandomMaintenance(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 5, 3);
-    public static final RandomMaintenance RANDOM_MAINTENANCE_10_STOP_AFTER_48_HOURS = new RandomMaintenance(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 5, 3);
-    public static final RandomMaintenance RANDOM_MAINTENANCE_10_STOP_AFTER_10_HOURS = new RandomMaintenance(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 5, 3);
-    public static final RandomMaintenance RANDOM_MAINTENANCE_10_STOP_AFTER_8_HOURS = new RandomMaintenance(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 5, 3);
-    public static final RandomMaintenance RANDOM_MAINTENANCE_10_STOP_AFTER_6_HOURS = new RandomMaintenance(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 5, 3);
-    public static final RandomMaintenance RANDOM_MAINTENANCE_10_STOP_AFTER_4_HOURS = new RandomMaintenance(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 5, 3);
-    public static final RandomMaintenance RANDOM_MAINTENANCE_10_STOP_AFTER_2_HOURS = new RandomMaintenance(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 5, 3);
+    public static final RandomMaintenanceFactory RANDOM_MAINTENANCE_10_30_SEC = new RandomMaintenanceFactory(10, 30, TimeUnit.SECONDS, PF_CLUST_CLUSTERER, 5, 3);
+    public static final RandomMaintenanceFactory RANDOM_MAINTENANCE_10_1_MIN = new RandomMaintenanceFactory(10, 1, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 5, 3);
+    public static final RandomMaintenanceFactory RANDOM_MAINTENANCE_10_4_MIN = new RandomMaintenanceFactory(10, 4, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 5, 3);
+    public static final RandomMaintenanceFactory RANDOM_MAINTENANCE_10_8_MIN = new RandomMaintenanceFactory(10, 8, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 5, 3);
+    public static final RandomMaintenanceFactory RANDOM_MAINTENANCE_10 = new RandomMaintenanceFactory(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 5, 3);
+    public static final RandomMaintenanceFactory RANDOM_MAINTENANCE_10_STOP_AFTER_48_HOURS = new RandomMaintenanceFactory(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 5, 3);
+    public static final RandomMaintenanceFactory RANDOM_MAINTENANCE_10_STOP_AFTER_10_HOURS = new RandomMaintenanceFactory(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 5, 3);
+    public static final RandomMaintenanceFactory RANDOM_MAINTENANCE_10_STOP_AFTER_8_HOURS = new RandomMaintenanceFactory(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 5, 3);
+    public static final RandomMaintenanceFactory RANDOM_MAINTENANCE_10_STOP_AFTER_6_HOURS = new RandomMaintenanceFactory(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 5, 3);
+    public static final RandomMaintenanceFactory RANDOM_MAINTENANCE_10_STOP_AFTER_4_HOURS = new RandomMaintenanceFactory(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 5, 3);
+    public static final RandomMaintenanceFactory RANDOM_MAINTENANCE_10_STOP_AFTER_2_HOURS = new RandomMaintenanceFactory(10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, 5, 3);
 
     static {
         EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_48_HOURS.setTerminationCondition(TERMINATION_CONDITION_48);
