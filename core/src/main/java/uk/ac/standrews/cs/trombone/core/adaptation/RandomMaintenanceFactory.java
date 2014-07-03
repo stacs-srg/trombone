@@ -3,8 +3,8 @@ package uk.ac.standrews.cs.trombone.core.adaptation;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.math3.ml.clustering.Clusterer;
 import org.uncommons.maths.random.Probability;
-import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.Maintenance;
+import uk.ac.standrews.cs.trombone.core.Peer;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
@@ -21,8 +21,6 @@ public class RandomMaintenanceFactory extends EvolutionaryMaintenanceFactory {
     @Override
     protected Maintenance maintain(Peer peer) {
 
-        final Maintenance listener = new RandomMaintenance(peer, SCHEDULER, population_size, evolution_cycle_length, evolution_cycle_unit, clusterer, strategy_generator);
-        peer.addExposureChangeListener(listener);
-        return listener;
+        return new RandomMaintenance(peer, SCHEDULER, population_size, evolution_cycle_length, evolution_cycle_unit, clusterer, strategy_generator);
     }
 }

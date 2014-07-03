@@ -39,8 +39,6 @@ public class MaintenanceFactory implements Serializable, Named {
 
     protected Maintenance maintain(Peer peer) {
 
-        final Maintenance listener = new Maintenance(peer, strategy, SCHEDULER);
-        peer.addExposureChangeListener(listener);
-        return listener;
+        return new Maintenance(peer, strategy, SCHEDULER);
     }
 }

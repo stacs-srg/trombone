@@ -4,9 +4,9 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.math3.ml.clustering.Clusterer;
 import org.mashti.gauge.Sampler;
 import org.uncommons.maths.random.Probability;
+import uk.ac.standrews.cs.trombone.core.Maintenance;
 import uk.ac.standrews.cs.trombone.core.MaintenanceFactory;
 import uk.ac.standrews.cs.trombone.core.Peer;
-import uk.ac.standrews.cs.trombone.core.Maintenance;
 import uk.ac.standrews.cs.trombone.core.util.Named;
 import uk.ac.standrews.cs.trombone.core.util.NamingUtils;
 
@@ -96,9 +96,7 @@ public class EvolutionaryMaintenanceFactory extends MaintenanceFactory {
     @Override
     protected Maintenance maintain(Peer peer) {
 
-        final Maintenance listener = new EvolutionaryMaintenance(peer, SCHEDULER, population_size, elite_count, mutation_probability, evolution_cycle_length, evolution_cycle_unit, clusterer, strategy_generator);
-        peer.addExposureChangeListener(listener);
-        return listener;
+        return new EvolutionaryMaintenance(peer, SCHEDULER, population_size, elite_count, mutation_probability, evolution_cycle_length, evolution_cycle_unit, clusterer, strategy_generator);
     }
 
     public interface TerminationCondition {

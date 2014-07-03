@@ -32,6 +32,7 @@ public class Maintenance implements PropertyChangeListener {
         this.scheduler = scheduler;
         this.strategy = new AtomicReference<>(strategy);
         nonOpportunisticDisseminator = new NonOpportunisticDisseminator();
+        peer.addExposureChangeListener(this);
     }
 
     protected DisseminationStrategy getDisseminationStrategy() {
