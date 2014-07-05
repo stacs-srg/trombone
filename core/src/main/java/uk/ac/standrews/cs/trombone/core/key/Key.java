@@ -44,6 +44,16 @@ public class Key extends Number implements Comparable<Key> {
         return value.toByteArray();
     }
 
+    public Key next() {
+
+        return valueOf(value.add(BigInteger.ONE));
+    }
+
+    public Key previous() {
+
+        return valueOf(value.subtract(BigInteger.ONE));
+    }
+
     public int compareRingDistance(Key first, Key second) {
 
         final int first_to_second = first.compareTo(second);
@@ -122,7 +132,6 @@ public class Key extends Number implements Comparable<Key> {
     @Override
     public String toString() {
 
-        
         return value.toString();
     }
 }

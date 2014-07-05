@@ -2,9 +2,9 @@ package uk.ac.standrews.cs.trombone.core;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
 import org.mashti.jetson.exception.RPCException;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationManager;
@@ -23,7 +23,7 @@ public class SingleProcessPeerManager implements ApplicationManager {
     private static final AttributeKey<Peer> PEER_KEY = new AttributeKey<Peer>();
     private static final Random RANDOM = new Random(545454);
     private static final MaintenanceFactory MAINTENANCE = new MaintenanceFactory();
-    private final Set<PeerReference> joined_peers = new HashSet<PeerReference>();
+    private final Set<PeerReference> joined_peers = new ConcurrentSkipListSet<>();
 
     static {
         final DisseminationStrategy strategy = MAINTENANCE.getStrategy();
@@ -79,11 +79,10 @@ public class SingleProcessPeerManager implements ApplicationManager {
 
         final AsynchronousPeerRemote remote = PeerFactory.bind(peer_reference);
         final PeerReference known_peer = randomlySelectJoinedPeer(peer_reference);
-        remote.join(known_peer);
-        joined_peers.add(peer_reference);
+        remote.join(known_peer).thenRun(() -> joined_peers.add(peer_reference));
     }
 
-    private synchronized PeerReference randomlySelectJoinedPeer(final PeerReference peer_reference) throws RPCException {
+    private synchronized PeerReference randomlySelectJoinedPeer(final PeerReference peer_reference) {
 
         if (!joined_peers.isEmpty()) {
 

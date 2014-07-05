@@ -94,10 +94,10 @@ public class Peer implements AsynchronousPeerRemote {
     @Override
     public CompletableFuture<Void> join(final PeerReference member) {
 
-        return CompletableFuture.runAsync(() -> {
-            if (isExposed() && member != null && !self.equals(member)) {
-                push(member);
-            }
+        final AsynchronousPeerRemote member_remote = getAsynchronousRemote(member);
+        return member_remote.lookup(key).thenAccept(this :: push).thenRun(() -> {
+            push(member);
+            member_remote.push(self);
         });
     }
 
@@ -142,7 +142,7 @@ public class Peer implements AsynchronousPeerRemote {
             }
             else {
                 final PeerReference ceiling = state.ceilingReachable(target);
-                next_hop = ceiling != null ? ceiling : state.firstReachable();
+                next_hop = ceiling != null ? ceiling : self;
             }
             return next_hop;
         });
@@ -267,7 +267,6 @@ public class Peer implements AsynchronousPeerRemote {
                     final PeerMetric.LookupMeasurement lookupMeasurement = measurement.get();
                     lookupMeasurement.incrementHopCount();
                     if (lookupMeasurement.getHopCount() > 20) {
-                        System.out.println("HOP " + lookupMeasurement.getHopCount());
                         future_lookup.complete(next_hop);
                         return;
                     }

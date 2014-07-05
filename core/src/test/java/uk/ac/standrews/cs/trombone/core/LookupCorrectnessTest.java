@@ -1,11 +1,11 @@
 package uk.ac.standrews.cs.trombone.core;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
-import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.CompletableFuture;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,7 +24,7 @@ public class LookupCorrectnessTest {
     @Before
     public void setUp() throws Exception {
 
-        Set<PeerReference> references = new HashSet<>();
+        List<PeerReference> references = new ArrayList<>();
         for (int i = 0; i < NETWORK_SIZE; i++) {
             final Key key = KEY_PROVIDER.get();
             final Peer peer = PeerFactory.createPeer(key);
@@ -35,16 +35,18 @@ public class LookupCorrectnessTest {
         }
 
         for (Peer peer : network.values()) {
-            peer.push(new ArrayList<PeerReference>(references)).get();
+            peer.join(lookupCorrectly(peer.getKey().get().next())).get();
         }
     }
 
     @Test
-    public void testState() throws Exception {
+    public void testRingStabilisation() throws Exception {
 
-        for (Peer peer : network.values()) {
+        for (Map.Entry<Key, Peer> entry : network.entrySet()) {
+            Key key = entry.getKey();
+            Peer peer = entry.getValue();
 
-            Assert.assertEquals(network.size() - 1, peer.getPeerState().size());
+            Assert.assertEquals(lookupCorrectly(key.next()), peer.getPeerState().first());
         }
 
     }
@@ -52,14 +54,29 @@ public class LookupCorrectnessTest {
     @Test
     public void testLookupCorrectness() throws Exception {
 
-        for (int i = 0; i < 500; i++) {
-            final Map.Entry<Key, Peer> entry = network.firstEntry();
+        List<CompletableFuture<?>> futures = new ArrayList<>();
+
+        for (Map.Entry<Key, Peer> entry : network.entrySet()) {
+
             final Peer peer = entry.getValue();
-            final Key target = KEY_PROVIDER.get();
+            for (int i = 0; i < 10; i++) {
 
-            final Map.Entry<Key, Peer> ceilingEntry = network.ceilingEntry(target);
-            Assert.assertEquals((ceilingEntry == null ? network.firstEntry() : ceilingEntry).getKey(), peer.lookup(target).get().getKey());
+                final Key target = KEY_PROVIDER.get();
+                final CompletableFuture<Void> future_test = peer.lookup(target).thenAccept(actual -> {
 
+                    final PeerReference expected = lookupCorrectly(target);
+                    Assert.assertEquals(expected, actual);
+                });
+
+                futures.add(future_test);
+            }
         }
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()])).get();
+    }
+
+    private PeerReference lookupCorrectly(Key target) {
+
+        final Map.Entry<Key, Peer> ceilingEntry = network.ceilingEntry(target);
+        return (ceilingEntry == null ? network.firstEntry() : ceilingEntry).getValue().getSelfReference();
     }
 }
