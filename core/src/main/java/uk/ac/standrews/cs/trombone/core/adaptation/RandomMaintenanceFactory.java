@@ -2,9 +2,9 @@ package uk.ac.standrews.cs.trombone.core.adaptation;
 
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.math3.ml.clustering.Clusterer;
-import org.uncommons.maths.random.Probability;
 import uk.ac.standrews.cs.trombone.core.Maintenance;
 import uk.ac.standrews.cs.trombone.core.Peer;
+import uk.ac.standrews.cs.trombone.core.util.Probability;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)

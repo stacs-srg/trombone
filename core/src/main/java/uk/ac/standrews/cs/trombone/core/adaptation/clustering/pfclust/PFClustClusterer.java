@@ -9,7 +9,8 @@ import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.ml.clustering.CentroidCluster;
 import org.apache.commons.math3.ml.clustering.Clusterable;
 import org.apache.commons.math3.ml.clustering.Clusterer;
-import org.uncommons.maths.random.MersenneTwisterRNG;
+import org.apache.commons.math3.random.MersenneTwister;
+import org.apache.commons.math3.random.RandomAdaptor;
 import uk.ac.standrews.cs.trombone.core.util.CosineSimilarity;
 
 /**
@@ -36,10 +37,10 @@ public class PFClustClusterer<Point extends Clusterable> extends Clusterer<Point
     public static int maxIteration = 3;
     private final Random random;
 
-    public PFClustClusterer(byte[] seed) {
+    public PFClustClusterer(long seed) {
 
         super(COSINE_SIMILARITY);
-        random = new MersenneTwisterRNG(seed);
+        random = new RandomAdaptor(new MersenneTwister(seed));
     }
 
     @Override

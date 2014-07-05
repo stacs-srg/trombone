@@ -3,7 +3,7 @@ package uk.ac.standrews.cs.trombone.core.adaptation;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.math3.ml.clustering.Clusterer;
 import org.mashti.gauge.Sampler;
-import org.uncommons.maths.random.Probability;
+import uk.ac.standrews.cs.trombone.core.util.Probability;
 import uk.ac.standrews.cs.trombone.core.Maintenance;
 import uk.ac.standrews.cs.trombone.core.MaintenanceFactory;
 import uk.ac.standrews.cs.trombone.core.Peer;

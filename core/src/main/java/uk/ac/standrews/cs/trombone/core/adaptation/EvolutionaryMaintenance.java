@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.TreeMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledExecutorService;
@@ -14,13 +15,12 @@ import org.apache.commons.math3.ml.clustering.Cluster;
 import org.apache.commons.math3.ml.clustering.Clusterer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.uncommons.maths.random.MersenneTwisterRNG;
-import org.uncommons.maths.random.Probability;
 import uk.ac.standrews.cs.trombone.core.DisseminationStrategy;
-import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.Maintenance;
+import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerMetric;
 import uk.ac.standrews.cs.trombone.core.util.CosineSimilarity;
+import uk.ac.standrews.cs.trombone.core.util.Probability;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
@@ -28,7 +28,7 @@ import uk.ac.standrews.cs.trombone.core.util.CosineSimilarity;
 public class EvolutionaryMaintenance extends Maintenance {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EvolutionaryMaintenance.class);
-    protected final MersenneTwisterRNG random;
+    protected final Random random;
     protected final PeerMetric metric;
     protected final List<EvaluatedDisseminationStrategy> evaluated_strategies;
     protected final DoubleAdder total_fitness = new DoubleAdder();

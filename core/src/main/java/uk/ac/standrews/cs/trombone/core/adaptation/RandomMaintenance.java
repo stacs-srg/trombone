@@ -4,7 +4,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.math3.ml.clustering.Cluster;
 import org.apache.commons.math3.ml.clustering.Clusterer;
-import org.uncommons.maths.random.Probability;
+import uk.ac.standrews.cs.trombone.core.util.Probability;
 import uk.ac.standrews.cs.trombone.core.DisseminationStrategy;
 import uk.ac.standrews.cs.trombone.core.Peer;
 

@@ -1,9 +1,9 @@
 package uk.ac.standrews.cs.trombone.event.environment;
 
-import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-import org.uncommons.maths.random.MersenneTwisterRNG;
+import org.apache.commons.math3.random.MersenneTwister;
+import org.apache.commons.math3.random.RandomAdaptor;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.core.util.Named;
 import uk.ac.standrews.cs.trombone.core.util.NamingUtils;
@@ -18,9 +18,9 @@ import static java.lang.Math.log;
 public class FixedExponentialInterval implements IntervalGenerator, Named {
 
     private final long mean_nanos;
-    private final MersenneTwisterRNG random;
+    private final Random random;
     private final Duration mean;
-    private final byte[] seed;
+    private final long seed;
 
     /**
      * Instantiates a new exponentially distributed interval generator with a fixed mean.
@@ -28,12 +28,12 @@ public class FixedExponentialInterval implements IntervalGenerator, Named {
      * @param mean the mean interval
      * @param seed the random seed
      */
-    public FixedExponentialInterval(Duration mean, byte[] seed) {
+    public FixedExponentialInterval(Duration mean, long seed) {
 
         this.mean = mean;
         this.seed = seed;
         mean_nanos = mean.getLength(TimeUnit.NANOSECONDS);
-        random = new MersenneTwisterRNG(seed);
+        random = new RandomAdaptor(new MersenneTwister(seed));
     }
 
     @Override
@@ -63,7 +63,7 @@ public class FixedExponentialInterval implements IntervalGenerator, Named {
      *
      * @return the random seed
      */
-    public byte[] getSeed() {
+    public long getSeed() {
 
         return seed;
     }
@@ -90,7 +90,7 @@ public class FixedExponentialInterval implements IntervalGenerator, Named {
 
         final StringBuilder sb = new StringBuilder("FixedExponentialInterval{");
         sb.append("mean=").append(mean);
-        sb.append(", seed=").append(Arrays.toString(random.getSeed()));
+        sb.append(", seed=").append(seed);
         sb.append('}');
         return sb.toString();
     }

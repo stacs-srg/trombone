@@ -6,13 +6,14 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
-import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.math3.random.MersenneTwister;
+import org.apache.commons.math3.random.RandomAdaptor;
 import org.mashti.jetson.Server;
 import org.mashti.jetson.ServerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.uncommons.maths.random.MersenneTwisterRNG;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.core.selector.Selector;
 
@@ -30,7 +31,7 @@ public class Peer implements AsynchronousPeerRemote {
     private final PeerMetric metric;
     private final Maintenance maintainer;
 
-    private final MersenneTwisterRNG random;
+    private final Random random;
     private volatile PeerReference self;
 
     Peer(final Key key) {
@@ -46,7 +47,7 @@ public class Peer implements AsynchronousPeerRemote {
     Peer(final InetSocketAddress address, final Key key, PeerConfiguration configuration) {
 
         this.key = key;
-        random = new MersenneTwisterRNG(DigestUtils.md5(key.toByteArray()));
+        random = new RandomAdaptor(new MersenneTwister(key.longValue()));
         property_change_support = new PropertyChangeSupport(this);
         metric = new PeerMetric(configuration.isApplicationFeedbackEnabled());
         state = new PeerState(key, metric);
@@ -58,7 +59,7 @@ public class Peer implements AsynchronousPeerRemote {
         refreshSelfReference();
     }
 
-    public MersenneTwisterRNG getRandom() {
+    public Random getRandom() {
 
         return random;
     }
@@ -110,8 +111,7 @@ public class Peer implements AsynchronousPeerRemote {
     public CompletableFuture<Void> push(final List<PeerReference> references) {
 
         return CompletableFuture.runAsync(() -> {
-            
-            
+
             if (references != null) {
                 references.forEach(reference -> {state.add(reference);});
             }
@@ -256,7 +256,7 @@ public class Peer implements AsynchronousPeerRemote {
     void lookupHelper(CompletableFuture<PeerReference> future_lookup, Key target, PeerReference current, CompletableFuture<PeerReference> next, Optional<PeerMetric.LookupMeasurement> measurement) {
 
         next.whenCompleteAsync((next_hop, error) -> {
-            
+
             if (next.isCompletedExceptionally()) {
                 future_lookup.completeExceptionally(error);
                 current.setReachable(false);
@@ -266,7 +266,7 @@ public class Peer implements AsynchronousPeerRemote {
                 if (!current.equals(self) && measurement.isPresent()) {
                     final PeerMetric.LookupMeasurement lookupMeasurement = measurement.get();
                     lookupMeasurement.incrementHopCount();
-                    if(lookupMeasurement.getHopCount() > 20){
+                    if (lookupMeasurement.getHopCount() > 20) {
                         System.out.println("HOP " + lookupMeasurement.getHopCount());
                         future_lookup.complete(next_hop);
                         return;
@@ -279,13 +279,12 @@ public class Peer implements AsynchronousPeerRemote {
                 else {
 
                     final AsynchronousPeerRemote next_hop_remote = getAsynchronousRemote(next_hop);
-                    next_hop_remote.push(self);
                     lookupHelper(future_lookup, target, next_hop, next_hop_remote.nextHop(target), measurement);
                 }
             }
-            
+
             push(current);
-        }, MaintenanceFactory.SCHEDULER);
+        });
     }
 
     private void refreshSelfReference() {

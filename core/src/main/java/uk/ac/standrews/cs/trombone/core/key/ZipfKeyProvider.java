@@ -1,11 +1,13 @@
 package uk.ac.standrews.cs.trombone.core.key;
 
 import java.util.NavigableMap;
+import java.util.Random;
 import java.util.concurrent.ConcurrentSkipListMap;
+import org.apache.commons.math3.random.MersenneTwister;
+import org.apache.commons.math3.random.RandomAdaptor;
 import org.mashti.sina.distribution.ZipfDistribution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.uncommons.maths.random.MersenneTwisterRNG;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class ZipfKeyProvider extends KeyProvider {
@@ -15,12 +17,12 @@ public class ZipfKeyProvider extends KeyProvider {
     private final int elements_count;
     private final double exponent;
 
-    public ZipfKeyProvider(final int elements_count, double exponent, int key_length_in_bits, byte[] seed) {
+    public ZipfKeyProvider(final int elements_count, double exponent, int key_length_in_bits, long seed) {
 
         this(elements_count, exponent, key_length_in_bits, seed, generateZipfKeyRank(elements_count, exponent, seed, key_length_in_bits));
     }
 
-    private ZipfKeyProvider(final int elements_count, double exponent, int key_length_in_bits, byte[] seed, NavigableMap<Double, Key> key_rank) {
+    private ZipfKeyProvider(final int elements_count, double exponent, int key_length_in_bits, long seed, NavigableMap<Double, Key> key_rank) {
 
         super(key_length_in_bits, seed);
 
@@ -63,9 +65,9 @@ public class ZipfKeyProvider extends KeyProvider {
         return new ZipfKeyProvider(elements_count, exponent, getKeyLengthInBits(), getSeed(), key_rank);
     }
 
-    private static NavigableMap<Double, Key> generateZipfKeyRank(final int elements_count, final double exponent, final byte[] seed, int key_length_in_bits) {
+    private static NavigableMap<Double, Key> generateZipfKeyRank(final int elements_count, final double exponent, final long seed, int key_length_in_bits) {
 
-        final MersenneTwisterRNG random = new MersenneTwisterRNG(seed);
+        final Random random = new RandomAdaptor(new MersenneTwister(seed));
         LOGGER.info("ranking {} keys based on zipf distribution with the exponent of {}", elements_count, exponent);
         final ConcurrentSkipListMap<Double, Key> key_rank = new ConcurrentSkipListMap<>();
         final ZipfDistribution distribution = new ZipfDistribution(elements_count, exponent);

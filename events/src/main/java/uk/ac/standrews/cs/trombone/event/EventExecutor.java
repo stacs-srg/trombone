@@ -43,9 +43,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.core.DisseminationStrategy;
+import uk.ac.standrews.cs.trombone.core.Maintenance;
 import uk.ac.standrews.cs.trombone.core.MaintenanceFactory;
 import uk.ac.standrews.cs.trombone.core.Peer;
-import uk.ac.standrews.cs.trombone.core.Maintenance;
 import uk.ac.standrews.cs.trombone.core.PeerMetric;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.PeerState;
@@ -90,6 +90,15 @@ public class EventExecutor {
     private final CsvReporter csv_reporter;
     private final Rate join_failure_rate = new Rate();
     private final Rate join_success_rate = new Rate();
+
+    private final Gauge<Double> lookup_correctness_ratio = new Gauge<Double>() {
+
+        @Override
+        public Double get() {
+
+            return (double) lookup_correctness_rate.getCount() / lookup_execution_rate.getCount();
+        }
+    };
     private final Gauge<Double> sent_bytes_per_alive_peer_per_second_gauge = new Gauge<Double>() {
 
         @Override
@@ -248,6 +257,7 @@ public class EventExecutor {
         scenario_properties = reader.getScenario();
         lookup_retry_count = getLookupRetryCount();
         metric_registry = new MetricRegistry("test");
+        metric_registry.register("lookup_correctness_ratio", lookup_correctness_ratio);
         metric_registry.register("lookup_execution_rate", lookup_execution_rate);
         metric_registry.register("lookup_failure_rate", lookup_failure_rate);
         metric_registry.register("lookup_failure_hop_count_sampler", lookup_failure_hop_count_sampler);

@@ -152,7 +152,7 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
                     peer_metric.notifyRPCError(error);
                     LOGGER.debug("failure occurred on future", error);
                 }
-            });
+            }, BOOTSTRAP.group());
 
             return future_response;
         }
@@ -160,12 +160,21 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
         @Override
         protected void beforeFlush(final Channel channel, final FutureResponse future_response) throws RPCException {
 
+            
+            channel.write(newFutureResponse(DisseminationStrategy.PUSH_SINGLE_METHOD, new Object[]{peer.getSelfReference()}));
+            
             final DisseminationStrategy strategy = peer.getDisseminationStrategy();
             if (strategy != null) {
                 for (DisseminationStrategy.Action action : strategy) {
-                    if (action.isOpportunistic() && action.recipientsContain(peer, reference)) {
-                        final FutureResponse future_dissemination = newFutureResponse(action.getMethod(), action.getArguments(peer));
-                        channel.write(future_dissemination);
+                    if (action.isOpportunistic()) {
+
+                        action.recipientsContain(peer, reference).thenAcceptAsync(contains -> {
+                            if (contains) {
+
+                                final FutureResponse future_dissemination = newFutureResponse(action.getMethod(), action.getArguments(peer));
+                                channel.write(future_dissemination);
+                            }
+                        });
                     }
                 }
             }

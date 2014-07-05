@@ -1,12 +1,9 @@
 package uk.ac.standrews.cs.trombone.evaluation.scenarios;
 
 import java.util.concurrent.TimeUnit;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.math3.ml.clustering.KMeansPlusPlusClusterer;
 import org.apache.commons.math3.ml.distance.EuclideanDistance;
 import org.apache.commons.math3.random.MersenneTwister;
-import org.uncommons.maths.binary.BinaryUtils;
-import org.uncommons.maths.random.Probability;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.core.MaintenanceFactory;
 import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
@@ -16,6 +13,7 @@ import uk.ac.standrews.cs.trombone.core.adaptation.RandomMaintenanceFactory;
 import uk.ac.standrews.cs.trombone.core.adaptation.clustering.PerPointClusterer;
 import uk.ac.standrews.cs.trombone.core.adaptation.clustering.pfclust.PFClustClusterer;
 import uk.ac.standrews.cs.trombone.core.key.KeyProvider;
+import uk.ac.standrews.cs.trombone.core.util.Probability;
 import uk.ac.standrews.cs.trombone.event.environment.Churn;
 import uk.ac.standrews.cs.trombone.event.environment.FixedExponentialInterval;
 import uk.ac.standrews.cs.trombone.event.environment.IntervalGenerator;
@@ -32,7 +30,7 @@ public final class Constants {
 
     }
 
-    public static final byte[] SCENARIO_MASTER_SEED = BinaryUtils.convertHexStringToBytes("2AAFEAE2AB6A2C60109803310D9254DF");
+    public static final long SCENARIO_MASTER_SEED = 1413;
     public static final int NUMBER_OF_REPETITIONS = 5;
     public static final int NETWORK_SIZE = 1_000;
     public static final PFClustClusterer<EvaluatedDisseminationStrategy> PF_CLUST_CLUSTERER = new PFClustClusterer<>(SCENARIO_MASTER_SEED);
@@ -120,8 +118,8 @@ public final class Constants {
     public static final EvolutionaryMaintenanceFactory EVOLUTIONARY_MAINTENANCE_KMEAN_PLUS_PLUS_10 = new EvolutionaryMaintenanceFactory(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, new KMeansPlusPlusClusterer<EvaluatedDisseminationStrategy>(5, 100, new EuclideanDistance(), new MersenneTwister(852)), 5, 3);
     public static final EvolutionaryMaintenanceFactory EVOLUTIONARY_MAINTENANCE_PER_POINT_CLUSTER_10 = new EvolutionaryMaintenanceFactory(10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, new PerPointClusterer<EvaluatedDisseminationStrategy>(), 5, 3);
 
-    private static final byte[] SEED = BinaryUtils.convertHexStringToBytes("2ABFEAE2AB6A2C60109803310D9254DF");
-    public static final UniformSyntheticDelay BLUB_UNIFORMLY_DISTRIBUTED_SYNTHETIC_DELAY = new UniformSyntheticDelay(233763, 866279, DigestUtils.md5("masih"));
+    private static final long SEED = 56982201;
+    public static final UniformSyntheticDelay BLUB_UNIFORMLY_DISTRIBUTED_SYNTHETIC_DELAY = new UniformSyntheticDelay(233763, 866279, SEED);
     public static final int ACTIVE_MAINTENANCE_INTERVAL_MILLIS = 1_500;
     public static final int LOOKUP_RETRY_COUNT = 5;
 

@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Set;
 import java.util.TreeMap;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,7 +17,7 @@ import uk.ac.standrews.cs.trombone.core.key.KeyProvider;
  */
 public class LookupCorrectnessTest {
 
-    public static final KeyProvider KEY_PROVIDER = new KeyProvider(32, DigestUtils.md5("test"));
+    public static final KeyProvider KEY_PROVIDER = new KeyProvider(32, 984156);
     private final NavigableMap<Key, Peer> network = new TreeMap<>();
     private static final int NETWORK_SIZE = 500;
 

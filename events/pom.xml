@@ -38,12 +38,6 @@
             <groupId>org.mashti</groupId>
             <artifactId>gauge</artifactId>
             <version>1.0-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>bcprov-jdk14</artifactId>
-                    <groupId>bouncycastle</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>

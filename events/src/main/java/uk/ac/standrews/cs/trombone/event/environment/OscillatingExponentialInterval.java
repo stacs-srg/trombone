@@ -1,8 +1,9 @@
 package uk.ac.standrews.cs.trombone.event.environment;
 
-import java.util.Arrays;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
-import org.uncommons.maths.random.MersenneTwisterRNG;
+import org.apache.commons.math3.random.MersenneTwister;
+import org.apache.commons.math3.random.RandomAdaptor;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.core.util.Named;
 import uk.ac.standrews.cs.trombone.core.util.NamingUtils;
@@ -20,14 +21,14 @@ public class OscillatingExponentialInterval implements IntervalGenerator, Named 
     private final long max_mean_nanos;
     private final long min_mean_nanos;
     private final long cycle_length_nanos;
-    private final MersenneTwisterRNG random;
+    private final Random random;
     private final double curve;
     private final double offset;
     private final double half_cycle;
     private final Duration max_mean;
     private final Duration min_mean;
     private final Duration cycle_length;
-    private final byte[] seed;
+    private final long seed;
 
     /**
      * Instantiates a new exponentially distributed interval generator with oscillating mean interval.
@@ -37,7 +38,7 @@ public class OscillatingExponentialInterval implements IntervalGenerator, Named 
      * @param cycle_length the oscillating cycle length
      * @param seed the random seed
      */
-    public OscillatingExponentialInterval(Duration max_mean, Duration min_mean, Duration cycle_length, byte[] seed) {
+    public OscillatingExponentialInterval(Duration max_mean, Duration min_mean, Duration cycle_length, long seed) {
 
         this.max_mean = max_mean;
         this.min_mean = min_mean;
@@ -52,7 +53,7 @@ public class OscillatingExponentialInterval implements IntervalGenerator, Named 
         curve = (max_mean_nanos - min_mean_nanos) / 2d;
         offset = max_mean_nanos - curve;
 
-        random = new MersenneTwisterRNG(seed);
+        random = new RandomAdaptor(new MersenneTwister(seed));
     }
 
     @Override
@@ -104,7 +105,7 @@ public class OscillatingExponentialInterval implements IntervalGenerator, Named 
      *
      * @return the random seed
      */
-    public byte[] getSeed() {
+    public long getSeed() {
 
         return seed;
     }
@@ -122,7 +123,7 @@ public class OscillatingExponentialInterval implements IntervalGenerator, Named 
         sb.append("max_mean=").append(max_mean);
         sb.append(", min_mean=").append(min_mean);
         sb.append(", cycle_length=").append(cycle_length);
-        sb.append(", seed=").append(Arrays.toString(random.getSeed()));
+        sb.append(", seed=").append(seed);
         sb.append('}');
         return sb.toString();
     }

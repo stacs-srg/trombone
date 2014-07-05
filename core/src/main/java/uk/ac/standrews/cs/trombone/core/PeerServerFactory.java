@@ -30,9 +30,14 @@ public class PeerServerFactory extends ServerFactory<AsynchronousPeerRemote> {
     static final Rate handled_rate = new Rate();
 
     static {
+
+        //        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
+        //            System.out.println("HANDLE " + (handling_rate.getRateAndReset() - handled_rate.getRateAndReset()));
+        //        }, 0, 10, TimeUnit.SECONDS);
+
         parent_event_loop = new NioEventLoopGroup(50, new NamedThreadFactory("server_parent_event_loop_"));
         child_event_loop = new NioEventLoopGroup(50, new NamedThreadFactory("server_child_event_loop_"));
-        
+
         SERVER_BOOTSTRAP.group(parent_event_loop, child_event_loop);
         SERVER_BOOTSTRAP.channel(NioServerSocketChannel.class);
         SERVER_BOOTSTRAP.option(ChannelOption.TCP_NODELAY, true);
@@ -67,7 +72,7 @@ public class PeerServerFactory extends ServerFactory<AsynchronousPeerRemote> {
     }
 
     static class MyServer extends Server {
-
+                                                            
         private final Peer peer;
 
         MyServer(final ServerBootstrap server_bootstrap, final Object service) {
@@ -82,7 +87,9 @@ public class PeerServerFactory extends ServerFactory<AsynchronousPeerRemote> {
             handling_rate.mark();
             peer.getPeerMetric().notifyServe(future_response.getMethod()); // record frequency of called methods
             MyServer.super.handle(context, future_response);
-            handled_rate.mark();
+            future_response.thenRunAsync(() -> {
+                handled_rate.mark();
+            }, SERVER_BOOTSTRAP.childGroup());
         }
     }
 }

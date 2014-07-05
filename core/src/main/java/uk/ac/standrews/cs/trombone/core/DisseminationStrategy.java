@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.apache.commons.lang.reflect.MethodUtils;
 import uk.ac.standrews.cs.trombone.core.selector.Selector;
@@ -17,9 +18,10 @@ import uk.ac.standrews.cs.trombone.core.selector.Selector;
 public class DisseminationStrategy implements Iterable<DisseminationStrategy.Action>, Serializable {
 
     private static final long serialVersionUID = 7398182589384122556L;
+    static final Method PUSH_SINGLE_METHOD = MethodUtils.getAccessibleMethod(AsynchronousPeerRemote.class, "push", PeerReference.class);
     static final Method PUSH_METHOD = MethodUtils.getAccessibleMethod(AsynchronousPeerRemote.class, "push", List.class);
     static final Method PULL_METHOD = MethodUtils.getAccessibleMethod(AsynchronousPeerRemote.class, "pull", Selector.class);
-    
+
     private final ArrayList<Action> actions;
     private int non_opportunistic_interval_millis = 2_000;
 
@@ -136,14 +138,11 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
             return push;
         }
 
-        public boolean recipientsContain(Peer local, final PeerReference recipient) {
+        public CompletableFuture<Boolean> recipientsContain(Peer local, final PeerReference recipient) {
 
-            try {
-                return local.pull(recipient_selector).get().contains(recipient);
-            }
-            catch (Exception e) {
-                return false;
-            }
+            return local.pull(recipient_selector).thenComposeAsync(result -> CompletableFuture.supplyAsync(() -> {
+                return result.contains(recipient);
+            }));
         }
 
         public void nonOpportunistically(final Peer local) {
@@ -153,12 +152,14 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
                 final List<? extends PeerReference> recipients = getRecipients(local);
                 if (recipients != null && !recipients.isEmpty()) {
                     if (push) {
-                        final List<PeerReference> data_to_push = getPushData(local);
-                        if (data_to_push != null && !data_to_push.isEmpty()) {
-                            recipients.stream().filter(recipient -> recipient != null).forEach(recipient -> {
-                                local.getAsynchronousRemote(recipient).push(data_to_push);
-                            });
-                        }
+                        getPushData(local).thenAcceptAsync(data_to_push -> {
+
+                            if (data_to_push != null && !data_to_push.isEmpty()) {
+                                recipients.stream().filter(recipient -> recipient != null).forEach(recipient -> {
+                                    local.getAsynchronousRemote(recipient).push(data_to_push);
+                                });
+                            }
+                        });
                     }
                     else {
                         recipients.stream().filter(recipient -> recipient != null).forEach(recipient -> {
@@ -221,14 +222,9 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
             this.data_selector = data_selector;
         }
 
-        List<PeerReference> getPushData(final Peer local) {
+        CompletableFuture<List<PeerReference>> getPushData(final Peer local) {
 
-            try {
-                return local.pull(data_selector).get();
-            }
-            catch (Exception e) {
-                return Collections.emptyList();
-            }
+            return local.pull(data_selector);
         }
 
         Method getMethod() {

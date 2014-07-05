@@ -5,7 +5,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.ml.clustering.CentroidCluster;
@@ -29,8 +28,8 @@ public class PFClustClustererTest {
     private static final int POINTS_COUNT = 100;
     private static final int POINT_DIMENSION = 10;
     private static final CosineSimilarity COSINE_SIMILARITY = new CosineSimilarity();
-    public static final byte[] SEED = DigestUtils.md5("test");
-    private static String[] TEST_FILE_NAMES = {
+    public static final long SEED = 456852;
+    private static final String[] TEST_FILE_NAMES = {
             "cath_12.tsv", "random_14.tsv", "s_2.tsv", "s_3.tsv"
     };
 
@@ -64,7 +63,7 @@ public class PFClustClustererTest {
 
     }
 
-    private List<DoublePoint> generateRandomPoints(int count, int dimensions) {
+    private static List<DoublePoint> generateRandomPoints(int count, int dimensions) {
 
         List<DoublePoint> points = new ArrayList<>();
 

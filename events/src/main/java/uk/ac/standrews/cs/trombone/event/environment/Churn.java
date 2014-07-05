@@ -20,7 +20,7 @@
 package uk.ac.standrews.cs.trombone.event.environment;
 
 import java.util.concurrent.TimeUnit;
-import org.uncommons.maths.random.Probability;
+import uk.ac.standrews.cs.trombone.core.util.Probability;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.core.util.Copyable;
 
