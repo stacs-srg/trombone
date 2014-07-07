@@ -3,7 +3,6 @@ package uk.ac.standrews.cs.trombone.core.selector;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.mashti.jetson.exception.RPCException;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.key.Key;
