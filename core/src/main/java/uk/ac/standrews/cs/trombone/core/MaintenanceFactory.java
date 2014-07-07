@@ -12,7 +12,7 @@ public class MaintenanceFactory implements Serializable, Named {
 
     private static final long serialVersionUID = -15296211081078575L;
 
-    public static final ScheduledExecutorService SCHEDULER = Executors.newScheduledThreadPool(300, new NamedThreadFactory("maintenance_", true));
+    public static final ScheduledExecutorService SCHEDULER = Executors.newScheduledThreadPool(100, new NamedThreadFactory("maintenance_", true));
     private final DisseminationStrategy strategy;
 
     public MaintenanceFactory() {
