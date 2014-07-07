@@ -5,7 +5,7 @@ import java.net.InetSocketAddress;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
-import org.mashti.jetson.exception.RPCException;
+import java.util.concurrent.ExecutionException;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
@@ -75,11 +75,12 @@ public class SingleProcessPeerManager implements ApplicationManager {
         joined_peers.remove(peer_reference);
     }
 
-    private synchronized void join(final PeerReference peer_reference) throws RPCException {
+    private void join(final PeerReference peer_reference) throws ExecutionException, InterruptedException {
 
         final AsynchronousPeerRemote remote = PeerFactory.bind(peer_reference);
         final PeerReference known_peer = randomlySelectJoinedPeer(peer_reference);
-        remote.join(known_peer).thenRun(() -> joined_peers.add(peer_reference));
+        remote.join(known_peer).get();
+        joined_peers.add(peer_reference);
     }
 
     private synchronized PeerReference randomlySelectJoinedPeer(final PeerReference peer_reference) {
