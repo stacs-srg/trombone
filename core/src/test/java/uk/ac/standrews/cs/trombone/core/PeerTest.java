@@ -57,7 +57,7 @@ public class PeerTest {
     @Test
     public void testGetKey() throws Exception {
 
-        assertEquals(peer_key, peer.getKey());
+        assertEquals(peer_key, peer.getKey().get());
         assertEquals(peer_key, peer_reference.getKey());
         assertEquals(peer_key, peer.getAsynchronousRemote(peer_reference).getKey().toCompletableFuture().get());
     }
