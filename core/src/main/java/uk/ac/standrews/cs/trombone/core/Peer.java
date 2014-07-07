@@ -94,11 +94,12 @@ public class Peer implements AsynchronousPeerRemote {
     @Override
     public CompletableFuture<Void> join(final PeerReference member) {
 
-        final AsynchronousPeerRemote member_remote = getAsynchronousRemote(member);
-        return member_remote.lookup(key).thenAccept(this :: push).thenRun(() -> {
-            push(member);
-            member_remote.push(self);
-        });
+        //        final AsynchronousPeerRemote member_remote = getAsynchronousRemote(member);
+        //        return member_remote.lookup(key).thenAccept(this :: push).thenRun(() -> {
+        //            push(member);
+        //            member_remote.push(self);
+        //        });
+        return push(member);
     }
 
     @Override
