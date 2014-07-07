@@ -1,6 +1,5 @@
 package uk.ac.standrews.cs.trombone.event;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -60,7 +59,7 @@ public class EventQueue implements Iterator<Event> {
 
         init(this.scenario);
 
-        generator_task = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().build()).submit(new Callable<Void>() {
+        generator_task = Executors.newSingleThreadExecutor().submit(new Callable<Void>() {
 
             @Override
             public Void call() throws Exception {
