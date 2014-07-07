@@ -24,7 +24,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.mashti.jetson.exception.RPCException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
@@ -63,11 +62,11 @@ class RingSizeScanner extends Scanner {
         while (!Thread.currentThread().isInterrupted()) {
 
             cycle_length++;
-            final PeerRemote proxy = PeerFactory.bind(node);
+            final AsynchronousPeerRemote proxy = PeerFactory.bind(node);
             try {
-                node = forwards ? proxy.pull(FIRST_REACHABLE).get(0) : proxy.pull(LAST_REACHABLE).get(0);
+                node = forwards ? proxy.pull(FIRST_REACHABLE).get().get(0) : proxy.pull(LAST_REACHABLE).get().get(0);
             }
-            catch (final RPCException e) {
+            catch (final Exception e) {
 
                 LOGGER.debug("error traversing the ring ", e);
                 LOGGER.error("error traversing the ring - current size {}, forwards? {}", cycle_length, forwards);

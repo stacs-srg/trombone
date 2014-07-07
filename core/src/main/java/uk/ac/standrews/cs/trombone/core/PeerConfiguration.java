@@ -6,17 +6,17 @@ import java.io.Serializable;
 public class PeerConfiguration implements Serializable {
 
     private static final long serialVersionUID = -6034624232106255574L;
-    private final Maintenance maintenance;
+    private final MaintenanceFactory maintenance;
     private final SyntheticDelay synthetic_delay;
     private boolean application_feedback_enabled;
 
-    public PeerConfiguration(Maintenance maintenance, SyntheticDelay synthetic_delay) {
+    public PeerConfiguration(MaintenanceFactory maintenance, SyntheticDelay synthetic_delay) {
 
         this.maintenance = maintenance;
         this.synthetic_delay = synthetic_delay;
     }
 
-    public Maintenance getMaintenance() {
+    public MaintenanceFactory getMaintenanceFactory() {
 
         return maintenance;
     }

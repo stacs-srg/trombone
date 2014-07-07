@@ -1,7 +1,9 @@
 package uk.ac.standrews.cs.trombone.evaluation.scenarios;
 
 import java.net.InetAddress;
-import org.uncommons.maths.random.MersenneTwisterRNG;
+import java.util.Random;
+import org.apache.commons.math3.random.MersenneTwister;
+import org.apache.commons.math3.random.RandomAdaptor;
 import uk.ac.standrews.cs.trombone.core.SyntheticDelay;
 import uk.ac.standrews.cs.trombone.core.util.NamingUtils;
 
@@ -15,18 +17,18 @@ public class UniformSyntheticDelay implements SyntheticDelay {
     private static final long serialVersionUID = -6653326115826807344L;
     private final int min_delay_nanos;
     private final int max_delay_nanos;
-    private final byte[] seed;
-    private final MersenneTwisterRNG random;
+    private final long seed;
+    private final Random random;
     private final int range;
 
-    public UniformSyntheticDelay(int min_delay_nanos, int max_delay_nanos, byte[] seed) {
+    public UniformSyntheticDelay(int min_delay_nanos, int max_delay_nanos, long seed) {
 
         this.min_delay_nanos = min_delay_nanos;
         this.max_delay_nanos = max_delay_nanos;
         range = max_delay_nanos - min_delay_nanos + 1;
 
         this.seed = seed;
-        random = new MersenneTwisterRNG(seed);
+        random = new RandomAdaptor(new MersenneTwister(seed));
     }
 
     @Override
@@ -48,7 +50,7 @@ public class UniformSyntheticDelay implements SyntheticDelay {
         return max_delay_nanos;
     }
 
-    public byte[] getSeed() {
+    public long getSeed() {
 
         return seed;
     }

@@ -2,8 +2,6 @@ package uk.ac.standrews.cs.trombone.event;
 
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -13,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.ExecutionException;
@@ -44,14 +43,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.core.DisseminationStrategy;
-import uk.ac.standrews.cs.trombone.core.InternalPeerReference;
 import uk.ac.standrews.cs.trombone.core.Maintenance;
+import uk.ac.standrews.cs.trombone.core.MaintenanceFactory;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerMetric;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.PeerState;
 import uk.ac.standrews.cs.trombone.core.adaptation.EvaluatedDisseminationStrategy;
 import uk.ac.standrews.cs.trombone.core.adaptation.EvolutionaryMaintenance;
+import uk.ac.standrews.cs.trombone.core.adaptation.EvolutionaryMaintenanceFactory;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class EventExecutor {
@@ -90,6 +90,15 @@ public class EventExecutor {
     private final CsvReporter csv_reporter;
     private final Rate join_failure_rate = new Rate();
     private final Rate join_success_rate = new Rate();
+
+    private final Gauge<Double> lookup_correctness_ratio = new Gauge<Double>() {
+
+        @Override
+        public Double get() {
+
+            return (double) lookup_correctness_rate.getCount() / lookup_execution_rate.getCount();
+        }
+    };
     private final Gauge<Double> sent_bytes_per_alive_peer_per_second_gauge = new Gauge<Double>() {
 
         @Override
@@ -122,11 +131,7 @@ public class EventExecutor {
                 Peer peer = participant.getPeer();
                 if (peer.isExposed()) {
                     final PeerState state = peer.getPeerState();
-                    for (InternalPeerReference reference : state) {
-                        if (reference.isReachable()) {
-                            number_of_reachable_state++;
-                        }
-                    }
+                    number_of_reachable_state += state.stream().filter(reference -> reference.isReachable()).count();
                 }
             }
 
@@ -144,11 +149,7 @@ public class EventExecutor {
                 Peer peer = participant.getPeer();
                 if (peer.isExposed()) {
                     final PeerState state = peer.getPeerState();
-                    for (InternalPeerReference reference : state) {
-                        if (!reference.isReachable()) {
-                            number_of_unreachable_state++;
-                        }
-                    }
+                    number_of_unreachable_state += state.stream().filter(reference -> !reference.isReachable()).count();
                 }
             }
 
@@ -199,9 +200,9 @@ public class EventExecutor {
                 Peer peer = participant.getPeer();
                 if (peer.isExposed()) {
 
-                    final Maintenance.PeerMaintainer maintainer = peer.getPeerMaintainer();
-                    if (maintainer instanceof EvolutionaryMaintenance.EvolutionaryPeerMaintainer) {
-                        EvolutionaryMaintenance.EvolutionaryPeerMaintainer evolutionary_maintainer = (EvolutionaryMaintenance.EvolutionaryPeerMaintainer) maintainer;
+                    final Maintenance maintainer = peer.getPeerMaintainer();
+                    if (maintainer instanceof EvolutionaryMaintenance) {
+                        EvolutionaryMaintenance evolutionary_maintainer = (EvolutionaryMaintenance) maintainer;
 
                         for (EvaluatedDisseminationStrategy evaluated_strategy : evolutionary_maintainer.getEvaluatedStrategies()) {
                             strategies.add(evaluated_strategy.getStrategy());
@@ -256,6 +257,7 @@ public class EventExecutor {
         scenario_properties = reader.getScenario();
         lookup_retry_count = getLookupRetryCount();
         metric_registry = new MetricRegistry("test");
+        metric_registry.register("lookup_correctness_ratio", lookup_correctness_ratio);
         metric_registry.register("lookup_execution_rate", lookup_execution_rate);
         metric_registry.register("lookup_failure_rate", lookup_failure_rate);
         metric_registry.register("lookup_failure_hop_count_sampler", lookup_failure_hop_count_sampler);
@@ -289,14 +291,14 @@ public class EventExecutor {
         metric_registry.register("thread_cpu_usage_gauge", thread_cpu_usage_gauge);
         metric_registry.register("gc_cpu_usage_gauge", gc_cpu_usage_gauge);
         metric_registry.register("memory_usage_gauge", memory_usage_gauge);
-        metric_registry.register("evolutionary_maintenance_cluster_count_sampler", EvolutionaryMaintenance.CLUSTER_COUNT_SAMPLER);
-        metric_registry.register("evolutionary_maintenance_cluster_size_sampler", EvolutionaryMaintenance.CLUSTER_SIZE_SAMPLER);
-        metric_registry.register("evolutionary_maintenance_fitness_sampler", EvolutionaryMaintenance.FITNESS_SAMPLER);
-        metric_registry.register("evolutionary_maintenance_normalized_fitness_sampler", EvolutionaryMaintenance.NORMALIZED_FITNESS_SAMPLER);
-        metric_registry.register("evolutionary_maintenance_weighted_fitness_sampler", EvolutionaryMaintenance.WEIGHTED_FITNESS_SAMPLER);
+        metric_registry.register("evolutionary_maintenance_cluster_count_sampler", EvolutionaryMaintenanceFactory.CLUSTER_COUNT_SAMPLER);
+        metric_registry.register("evolutionary_maintenance_cluster_size_sampler", EvolutionaryMaintenanceFactory.CLUSTER_SIZE_SAMPLER);
+        metric_registry.register("evolutionary_maintenance_fitness_sampler", EvolutionaryMaintenanceFactory.FITNESS_SAMPLER);
+        metric_registry.register("evolutionary_maintenance_normalized_fitness_sampler", EvolutionaryMaintenanceFactory.NORMALIZED_FITNESS_SAMPLER);
+        metric_registry.register("evolutionary_maintenance_weighted_fitness_sampler", EvolutionaryMaintenanceFactory.WEIGHTED_FITNESS_SAMPLER);
         metric_registry.register("rpc_error_rate", PeerMetric.getGlobalRPCErrorRate());
         metric_registry.register("reconfiguration_rate", Maintenance.RECONFIGURATION_RATE);
-        metric_registry.register("strategy_action_size_sampler", EvolutionaryMaintenance.STRATEGY_ACTION_SIZE_SAMPLER);
+        metric_registry.register("strategy_action_size_sampler", EvolutionaryMaintenanceFactory.STRATEGY_ACTION_SIZE_SAMPLER);
         metric_registry.register("strategy_uniformity_sampler", strategy_uniformity_sampler);
         metric_registry.register("generated_strategy_uniformity_sampler", generated_strategy_uniformity_sampler);
 
@@ -376,9 +378,9 @@ public class EventExecutor {
 
         for (Participant participant : event_reader.getParticipants()) {
             final Peer peer = participant.getPeer();
-            final Maintenance.PeerMaintainer peerMaintainer = peer.getPeerMaintainer();
-            if (peerMaintainer instanceof EvolutionaryMaintenance.EvolutionaryPeerMaintainer) {
-                EvolutionaryMaintenance.EvolutionaryPeerMaintainer evolutionary_maintainer = (EvolutionaryMaintenance.EvolutionaryPeerMaintainer) peerMaintainer;
+            final Maintenance maintenance = peer.getPeerMaintainer();
+            if (maintenance instanceof EvolutionaryMaintenance) {
+                EvolutionaryMaintenance evolutionary_maintainer = (EvolutionaryMaintenance) maintenance;
                 node_strategies.put(peer.getKey().toString(), evolutionary_maintainer.getEvaluatedStrategies());
             }
 
@@ -400,7 +402,7 @@ public class EventExecutor {
         }
 
         LOGGER.info("shutting down maintenance scheduler...");
-        Maintenance.SCHEDULER.shutdownNow();
+        MaintenanceFactory.SCHEDULER.shutdownNow();
         //        LOGGER.info("shutting down peer client factory...");
         //        PeerClientFactory.shutdownPeerClientFactory();
         //        LOGGER.info("shutting down peer server factory...");
@@ -456,7 +458,7 @@ public class EventExecutor {
     void queue(Peer peer, final LookupEvent event) {
 
         //        runnable_events.add(new RunnableLookupEvent(peer, event));
-        runnable_events.add(new RunnableLookupAsynchEvent(peer, event));
+        runnable_events.add(new RunnableLookupAsyncEvent(peer, event));
     }
 
     private Future<Void> startTaskQueuePopulator() {
@@ -664,8 +666,8 @@ public class EventExecutor {
 
             try {
 
-                final PeerMetric.LookupMeasurement measurement = peer.lookup(event.getTarget(), lookup_retry_count);
                 final PeerReference expected_result = event.getExpectedResult();
+                final PeerMetric.LookupMeasurement measurement = peer.lookupWithRetry(event.getTarget(), lookup_retry_count, expected_result).get();
                 final long hop_count = measurement.getHopCount();
                 final long retry_count = measurement.getRetryCount();
                 final long duration_in_nanos = measurement.getDurationInNanos();
@@ -698,11 +700,11 @@ public class EventExecutor {
         }
     }
 
-    private class RunnableLookupAsynchEvent extends RunnableExperimentEvent {
+    private class RunnableLookupAsyncEvent extends RunnableExperimentEvent {
 
         private final Logger logger = LoggerFactory.getLogger(RunnableLookupEvent.class);
 
-        private RunnableLookupAsynchEvent(Peer peer, final LookupEvent event) {
+        private RunnableLookupAsyncEvent(Peer peer, final LookupEvent event) {
 
             super(peer, event);
         }
@@ -711,14 +713,14 @@ public class EventExecutor {
         public void handleEvent() {
 
             final LookupEvent event = (LookupEvent) getEvent();
+            final PeerReference expected_result = event.getExpectedResult();
+            final CompletionStage<PeerMetric.LookupMeasurement> async_lookup = peer.lookupWithRetry(event.getTarget(), lookup_retry_count, expected_result);
 
-            Futures.addCallback(peer.lookupAsynch(event.getTarget(), lookup_retry_count, event.getExpectedResult()), new FutureCallback<PeerMetric.LookupMeasurement>() {
+            async_lookup.whenCompleteAsync((measurement, error) -> {
 
-                @Override
-                public void onSuccess(final PeerMetric.LookupMeasurement measurement) {
-
+                final boolean looked_up = error == null;
+                if (looked_up) {
                     lookup_execution_rate.mark();
-                    final PeerReference expected_result = event.getExpectedResult();
                     final long hop_count = measurement.getHopCount();
                     final long retry_count = measurement.getRetryCount();
                     final long duration_in_nanos = measurement.getDurationInNanos();
@@ -742,12 +744,8 @@ public class EventExecutor {
                         lookup_incorrectness_delay_timer.update(duration_in_nanos, TimeUnit.NANOSECONDS);
                     }
                 }
-
-                @Override
-                public void onFailure(final Throwable t) {
-
-                    lookup_execution_rate.mark();
-                    logger.error("failure occurred when executing lookup", t);
+                else {
+                    logger.error("failure occurred when executing lookup", error);
                 }
             }, task_executor);
         }

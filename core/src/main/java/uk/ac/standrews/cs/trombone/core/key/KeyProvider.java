@@ -1,25 +1,26 @@
 package uk.ac.standrews.cs.trombone.core.key;
 
 import java.util.Random;
-import javax.inject.Provider;
-import org.uncommons.maths.random.MersenneTwisterRNG;
+import java.util.function.Supplier;
+import org.apache.commons.math3.random.MersenneTwister;
+import org.apache.commons.math3.random.RandomAdaptor;
 import uk.ac.standrews.cs.trombone.core.util.Copyable;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class KeyProvider implements Provider<Key>, Copyable {
+public class KeyProvider implements Supplier<Key>, Copyable {
 
     private final int key_length_in_bits;
-    protected final byte[] seed;
-    protected final MersenneTwisterRNG random;
+    protected final long seed;
+    protected final Random random;
 
-    public KeyProvider(int key_length_in_bits, byte[] seed) {
+    public KeyProvider(int key_length_in_bits, long seed) {
 
         this.key_length_in_bits = key_length_in_bits;
         this.seed = seed;
 
-        random = new MersenneTwisterRNG(seed);
+        random = new RandomAdaptor(new MersenneTwister(seed));
     }
 
     static Key generate(int key_length_in_bits, Random random) {
@@ -44,7 +45,7 @@ public class KeyProvider implements Provider<Key>, Copyable {
         return generate(key_length_in_bits, random);
     }
 
-    public byte[] getSeed() {
+    public long getSeed() {
 
         return seed;
     }

@@ -3,7 +3,7 @@ package uk.ac.standrews.cs.trombone.core.adaptation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import org.uncommons.maths.random.Probability;
+import uk.ac.standrews.cs.trombone.core.util.Probability;
 import uk.ac.standrews.cs.trombone.core.DisseminationStrategy;
 import uk.ac.standrews.cs.trombone.core.selector.EmptySelector;
 import uk.ac.standrews.cs.trombone.core.selector.First;

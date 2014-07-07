@@ -1,8 +1,8 @@
 package uk.ac.standrews.cs.trombone.core.selector;
 
-import java.util.ArrayList;
 import java.util.List;
-import org.mashti.jetson.exception.RPCException;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.key.Key;
@@ -22,19 +22,14 @@ public class LookupSelector extends Selector {
     @Override
     public List<PeerReference> select(final Peer peer) {
 
-        final List<PeerReference> results = new ArrayList<>(targets.length);
-        for (Key target : targets) {
-
-            PeerReference lookup_result;
+        return Stream.of(targets).map(target -> {
             try {
-                lookup_result = peer.lookup(target);
+                return peer.lookup(target).get();
             }
-            catch (RPCException e) {
-                lookup_result = null;
+            catch (Exception e) {
+                return null;
             }
-            results.add(lookup_result);
-        }
-        return results;
+        }).collect(Collectors.toList());
     }
 
     @Override

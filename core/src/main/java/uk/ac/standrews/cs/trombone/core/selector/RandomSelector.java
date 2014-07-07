@@ -2,12 +2,12 @@ package uk.ac.standrews.cs.trombone.core.selector;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.uncommons.maths.random.MersenneTwisterRNG;
+import java.util.Random;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class RandomSelector extends Selector{
+public class RandomSelector extends Selector {
 
     private static final long serialVersionUID = -2686666721712477700L;
 
@@ -24,7 +24,7 @@ public class RandomSelector extends Selector{
 
         final int result_size = Math.min(size, references_size);
         final List<PeerReference> result = new ArrayList<>(result_size);
-        final MersenneTwisterRNG random = peer.getRandom();
+        final Random random = peer.getRandom();
 
         for (int i = 0; i < result_size; i++) {
             final int selection_index = random.nextInt(references_size - i);

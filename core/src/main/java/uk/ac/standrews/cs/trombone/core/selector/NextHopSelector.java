@@ -1,7 +1,8 @@
 package uk.ac.standrews.cs.trombone.core.selector;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.key.Key;
@@ -21,11 +22,14 @@ public class NextHopSelector extends Selector {
     @Override
     public List<PeerReference> select(final Peer peer) {
 
-        final List<PeerReference> next_hops = new ArrayList<>(targets.length);
-        for (Key target : targets) {
-            next_hops.add(peer.nextHop(target));
-        }
-        return next_hops;
+        return Stream.of(targets).map(target -> {
+            try {
+                return peer.nextHop(target).get();
+            }
+            catch (Exception e) {
+                return null;
+            }
+        }).collect(Collectors.toList());
     }
 
     @Override

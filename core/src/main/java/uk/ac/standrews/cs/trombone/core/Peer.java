@@ -1,41 +1,37 @@
 package uk.ac.standrews.cs.trombone.core;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
-import java.util.concurrent.Callable;
-import org.apache.commons.codec.digest.DigestUtils;
+import java.util.Optional;
+import java.util.Random;
+import java.util.concurrent.CompletableFuture;
+import org.apache.commons.math3.random.MersenneTwister;
+import org.apache.commons.math3.random.RandomAdaptor;
 import org.mashti.jetson.Server;
 import org.mashti.jetson.ServerFactory;
-import org.mashti.jetson.exception.RPCException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.uncommons.maths.random.MersenneTwisterRNG;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.core.selector.Selector;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class Peer implements PeerRemote {
+public class Peer implements AsynchronousPeerRemote {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Peer.class);
     private static final String EXPOSURE_PROPERTY_NAME = "exposure";
-    private static final ServerFactory<PeerRemote> SERVER_FACTORY = new PeerServerFactory();
+    private static final ServerFactory<AsynchronousPeerRemote> SERVER_FACTORY = new PeerServerFactory();
     private final PeerState state;
     private final PeerClientFactory remote_factory;
-    private final AsynchronousPeerClientFactory asynchronous_remote_factory;
     private final Key key;
     private final Server server;
     private final PropertyChangeSupport property_change_support;
     private final PeerMetric metric;
-    private final Maintenance.PeerMaintainer maintainer;
+    private final Maintenance maintainer;
 
-    private final MersenneTwisterRNG random;
+    private final Random random;
     private volatile PeerReference self;
 
     Peer(final Key key) {
@@ -51,20 +47,19 @@ public class Peer implements PeerRemote {
     Peer(final InetSocketAddress address, final Key key, PeerConfiguration configuration) {
 
         this.key = key;
-        random = new MersenneTwisterRNG(DigestUtils.md5(key.toByteArray()));
+        random = new RandomAdaptor(new MersenneTwister(key.longValue()));
         property_change_support = new PropertyChangeSupport(this);
         metric = new PeerMetric(configuration.isApplicationFeedbackEnabled());
         state = new PeerState(key, metric);
-        maintainer = configuration.getMaintenance().maintain(this);
+        maintainer = configuration.getMaintenanceFactory().maintain(this);
         server = SERVER_FACTORY.createServer(this);
         server.setBindAddress(address);
         server.setWrittenByteCountListener(metric);
         remote_factory = new PeerClientFactory(this, configuration.getSyntheticDelay());
-        asynchronous_remote_factory = new AsynchronousPeerClientFactory(this, configuration.getSyntheticDelay());
         refreshSelfReference();
     }
 
-    public MersenneTwisterRNG getRandom() {
+    public Random getRandom() {
 
         return random;
     }
@@ -91,60 +86,66 @@ public class Peer implements PeerRemote {
     }
 
     @Override
-    public Key getKey() {
+    public CompletableFuture<Key> getKey() {
 
-        return key;
+        return CompletableFuture.completedFuture(key);
     }
 
     @Override
-    public synchronized void join(final PeerReference member) {
+    public CompletableFuture<Void> join(final PeerReference member) {
 
-        if (isExposed() && member != null && !self.equals(member)) {
+        final AsynchronousPeerRemote member_remote = getAsynchronousRemote(member);
+        return member_remote.lookup(key).thenAccept(this :: push).thenRun(() -> {
             push(member);
-        }
+            member_remote.push(self);
+        });
     }
 
     @Override
-    public void push(final PeerReference reference) {
+    public CompletableFuture<Void> push(final PeerReference reference) {
 
-        state.add(reference);
-
+        return CompletableFuture.runAsync(() -> { state.add(reference); });
     }
 
     @Override
-    public void push(final List<PeerReference> references) {
+    public CompletableFuture<Void> push(final List<PeerReference> references) {
 
-        if (references != null) {
-            for (PeerReference reference : references) {
-                push(reference);
+        return CompletableFuture.runAsync(() -> {
+
+            if (references != null) {
+                references.forEach(reference -> {state.add(reference);});
             }
-        }
+        });
     }
 
     @Override
-    public List<PeerReference> pull(final Selector selector) {
+    public CompletableFuture<List<PeerReference>> pull(final Selector selector) {
 
-        return (List<PeerReference>) selector.select(this);
+        return CompletableFuture.supplyAsync(() -> {
+            return (List<PeerReference>) selector.select(this);
+        });
     }
 
     @Override
-    public PeerReference lookup(final Key target) throws RPCException {
+    public CompletableFuture<PeerReference> lookup(final Key target) {
 
-        return lookup(target, null);
+        return lookup(target, Optional.empty());
     }
 
     @Override
-    public PeerReference nextHop(final Key target) {
+    public CompletableFuture<PeerReference> nextHop(final Key target) {
 
-        final PeerReference next_hop;
-        if (state.inLocalKeyRange(target)) {
-            next_hop = self;
-        }
-        else {
-            final PeerReference ceiling = state.ceilingReachable(target);
-            next_hop = ceiling != null ? ceiling : self;
-        }
-        return next_hop;
+        return CompletableFuture.supplyAsync(() -> {
+            final PeerReference next_hop;
+            if (state.inLocalKeyRange(target)) {
+                next_hop = self;
+            }
+            else {
+                final PeerReference ceiling = state.ceilingReachable(target);
+                next_hop = ceiling != null ? ceiling : self;
+            }
+            return next_hop;
+        });
     }
 
     @Override
@@ -178,114 +179,9 @@ public class Peer implements PeerRemote {
         return self;
     }
 
-    public PeerRemote getRemote(final PeerReference reference) {
-
-        return !self.equals(reference) ? remote_factory.get(reference) : this;
-    }
-
     public AsynchronousPeerRemote getAsynchronousRemote(final PeerReference reference) {
 
-        if (self.equals(reference)) {
-            return new AsynchronousPeerRemote() {
-
-                @Override
-                public ListenableFuture<Key> getKey() {
-
-                    return Maintenance.SCHEDULER.submit(new Callable<Key>() {
-
-                        @Override
-                        public Key call() throws Exception {
-
-                            return Peer.this.getKey();
-                        }
-                    });
-                }
-
-                @Override
-                public ListenableFuture<Void> join(final PeerReference member) {
-
-                    return Maintenance.SCHEDULER.submit(new Callable<Void>() {
-
-                        @Override
-                        public Void call() throws Exception {
-
-                            Peer.this.join(member);
-                            return null; //void
-                        }
-                    });
-                }
-
-                @Override
-                public ListenableFuture<Void> push(final List<PeerReference> references) {
-
-                    return Maintenance.SCHEDULER.submit(new Callable<Void>() {
-
-                        @Override
-                        public Void call() throws Exception {
-
-                            Peer.this.push(references);
-                            return null; //void
-                        }
-                    });
-                }
-
-                @Override
-                public ListenableFuture<Void> push(final PeerReference reference) {
-
-                    return Maintenance.SCHEDULER.submit(new Callable<Void>() {
-
-                        @Override
-                        public Void call() throws Exception {
-
-                            Peer.this.push(reference);
-                            return null; //void
-                        }
-                    });
-                }
-
-                @Override
-                public ListenableFuture<List<PeerReference>> pull(final Selector selector) {
-
-                    return Maintenance.SCHEDULER.submit(new Callable<List<PeerReference>>() {
-
-                        @Override
-                        public List<PeerReference> call() throws Exception {
-
-                            return Peer.this.pull(selector);
-                        }
-                    });
-                }
-
-                @Override
-                public ListenableFuture<PeerReference> lookup(final Key target) {
-
-                    return Maintenance.SCHEDULER.submit(new Callable<PeerReference>() {
-
-                        @Override
-                        public PeerReference call() throws Exception {
-
-                            return Peer.this.lookup(target);
-                        }
-                    });
-                }
-
-                @Override
-                public ListenableFuture<PeerReference> nextHop(final Key target) {
-
-                    return Maintenance.SCHEDULER.submit(new Callable<PeerReference>() {
-
-                        @Override
-                        public PeerReference call() throws Exception {
-
-                            return Peer.this.nextHop(target);
-                        }
-                    });
-                }
-            };
-        }
-        else {
-            return asynchronous_remote_factory.get(reference);
-        }
+        return !self.equals(reference) ? remote_factory.get(reference) : this;
     }
 
     public PeerMetric getPeerMetric() {
@@ -303,62 +199,41 @@ public class Peer implements PeerRemote {
         return server.isExposed();
     }
 
-    public PeerMetric.LookupMeasurement lookup(final Key target, int retry_count) {
+    public CompletableFuture<PeerMetric.LookupMeasurement> lookupWithRetry(final Key target, int retry_count) {
 
-        final PeerMetric.LookupMeasurement measurement = metric.newLookupMeasurement(retry_count);
-        do {
-            try {
-                final PeerReference result = lookup(target, measurement);
-                measurement.stop(result);
-            }
-            catch (final RPCException e) {
+        return lookupWithRetry(target, retry_count, null);
+    }
+
+    public CompletableFuture<PeerMetric.LookupMeasurement> lookupWithRetry(final Key target, int retry_count, final PeerReference expected_result) {
+
+        final PeerMetric.LookupMeasurement measurement = metric.newLookupMeasurement(retry_count, expected_result);
+        final CompletableFuture<PeerMetric.LookupMeasurement> future_lookup_measurement = new CompletableFuture<>();
+        lookupWithRetryRecursively(future_lookup_measurement, target, measurement);
+
+        return future_lookup_measurement;
+    }
+
+    private void lookupWithRetryRecursively(final CompletableFuture<PeerMetric.LookupMeasurement> future_lookup_measurement, final Key target, final PeerMetric.LookupMeasurement measurement) {
+
+        final CompletableFuture<PeerReference> lookup_try = lookup(target, Optional.of(measurement));
+        lookup_try.whenCompleteAsync((result, error) -> {
+
+            measurement.incrementRetryCount();
+
+            if (lookup_try.isCompletedExceptionally()) {
                 if (measurement.hasRetryThresholdReached()) {
-                    measurement.stop(e);
+                    measurement.stop(error);
+                    future_lookup_measurement.complete(measurement);
+                }
+                else {
+                    lookupWithRetryRecursively(future_lookup_measurement, target, measurement);
                 }
             }
-            finally {
-                measurement.incrementRetryCount();
+            else {
+                measurement.stop(result);
+                future_lookup_measurement.complete(measurement);
             }
-        } while (!Thread.currentThread().isInterrupted() && !measurement.isDone());
-        return measurement;
-    }
-
-    public ListenableFuture<PeerMetric.LookupMeasurement> lookupAsynch(final Key target, int retry_count, final PeerReference expectedResult) {
-
-        final PeerMetric.LookupMeasurement measurement = metric.newLookupMeasurement(retry_count, expectedResult);
-        final SettableFuture<PeerMetric.LookupMeasurement> future = SettableFuture.create();
-        lookupAsynch(future, measurement, target);
-        return future;
-    }
-
-    private void lookupAsynch(final SettableFuture<PeerMetric.LookupMeasurement> future, final PeerMetric.LookupMeasurement measurement, final Key target) {
-
-        if (measurement.isDone()) {
-            future.set(measurement);
-        }
-        else {
-            final ListenableFuture<PeerReference> ff = lookupAsynchronous(target, measurement);
-            Futures.addCallback(ff, new FutureCallback<PeerReference>() {
-
-                @Override
-                public void onSuccess(final PeerReference result) {
-
-                    measurement.stop(result);
-                    measurement.incrementRetryCount();
-                    lookupAsynch(future, measurement, target);
-                }
-
-                @Override
-                public void onFailure(final Throwable t) {
-
-                    if (measurement.hasRetryThresholdReached()) {
-                        measurement.stop(new RPCException(t));
-                    }
-                    measurement.incrementRetryCount();
-                    lookupAsynch(future, measurement, target);
-                }
-            }, Maintenance.SCHEDULER);
-        }
+        });
     }
 
     public DisseminationStrategy getDisseminationStrategy() {
@@ -366,94 +241,49 @@ public class Peer implements PeerRemote {
         return maintainer.getDisseminationStrategy();
     }
 
-    public Maintenance.PeerMaintainer getPeerMaintainer() {
+    public Maintenance getPeerMaintainer() {
 
         return maintainer;
     }
 
-    private PeerReference lookup(final Key target, final PeerMetric.LookupMeasurement measurement) throws RPCException {
+    private CompletableFuture<PeerReference> lookup(final Key target, final Optional<PeerMetric.LookupMeasurement> optional_measurement) {
 
-        PeerReference current_hop = self;
-        PeerRemote current_hop_remote = this;
-        PeerReference next_hop = current_hop_remote.nextHop(target);
-        while (!current_hop.equals(next_hop)) {
-
-            final PeerRemote next_hop_remote = getRemote(next_hop);
-            try {
-                next_hop = next_hop_remote.nextHop(target);
-            }
-            catch (final RPCException error) {
-                next_hop.setReachable(false);
-                current_hop_remote.push(next_hop); // Notify current hop of the broken next hop
-                throw error;
-            }
-            finally {
-                if (measurement != null) {
-                    measurement.incrementHopCount();
-                }
-                push(next_hop);
-            }
-            current_hop = next_hop;
-            current_hop_remote = next_hop_remote;
-        }
-
-        return next_hop;
+        final CompletableFuture<PeerReference> future_lookup = new CompletableFuture<>();
+        lookupHelper(future_lookup, target, self, nextHop(target), optional_measurement);
+        return future_lookup;
     }
 
-    private ListenableFuture<PeerReference> lookupAsynchronous(final Key target, final PeerMetric.LookupMeasurement measurement) {
+    void lookupHelper(CompletableFuture<PeerReference> future_lookup, Key target, PeerReference current, CompletableFuture<PeerReference> next, Optional<PeerMetric.LookupMeasurement> measurement) {
 
-        SettableFuture<PeerReference> asynchLookup = SettableFuture.create();
-        nextHopAsynch(asynchLookup, target, nextHop(target), self, measurement);
-        return asynchLookup;
-    }
+        next.whenCompleteAsync((next_hop, error) -> {
 
-    private void nextHopAsynch(final SettableFuture<PeerReference> asynch_lookup, final Key target, final PeerReference next_hop, final PeerReference current_hop, final PeerMetric.LookupMeasurement measurement) {
-
-        if (current_hop.equals(next_hop)) {
-            asynch_lookup.set(next_hop);
-        }
-        else {
-
-            if (measurement != null && measurement.getHopCount() > 100) {
-                asynch_lookup.set(nextHop(target));
-            }
-            else if (!next_hop.equals(self)) {
-                final AsynchronousPeerRemote next_hop_asynch_remote = asynchronous_remote_factory.get(next_hop);
-                next_hop_asynch_remote.push(self);
-
-                final ListenableFuture future_next_hop = next_hop_asynch_remote.nextHop(target);
-                if (measurement != null) {
-                    measurement.incrementHopCount();
-                }
-
-                Futures.addCallback(future_next_hop, new FutureCallback<PeerReference>() {
-
-                    @Override
-                    public void onSuccess(final PeerReference result) {
-
-                        push(next_hop);
-                        nextHopAsynch(asynch_lookup, target, result, next_hop, measurement);
-                    }
-
-                    @Override
-                    public void onFailure(final Throwable t) {
-
-                        asynch_lookup.setException(t);
-                        next_hop.setReachable(false);
-                        push(next_hop);
-                        if (!current_hop.equals(self)) {
-                            asynchronous_remote_factory.get(current_hop).push(next_hop);
-                        }
-                    }
-                }, Maintenance.SCHEDULER);
+            if (next.isCompletedExceptionally()) {
+                future_lookup.completeExceptionally(error);
+                current.setReachable(false);
             }
             else {
-                if (measurement != null) {
-                    LOGGER.debug("traversed to itself after {} hops", measurement.getHopCount());
+
+                if (!current.equals(self) && measurement.isPresent()) {
+                    final PeerMetric.LookupMeasurement lookupMeasurement = measurement.get();
+                    lookupMeasurement.incrementHopCount();
+                    if (lookupMeasurement.getHopCount() > 20) {
+                        future_lookup.complete(next_hop);
+                        return;
+                    }
                 }
-                asynch_lookup.set(nextHop(target));
+
+                if (current.equals(next_hop)) {
+                    future_lookup.complete(next_hop);
+                }
+                else {
+
+                    final AsynchronousPeerRemote next_hop_remote = getAsynchronousRemote(next_hop);
+                    lookupHelper(future_lookup, target, next_hop, next_hop_remote.nextHop(target), measurement);
+                }
             }
-        }
+
+            push(current);
+        });
     }
 
     private void refreshSelfReference() {

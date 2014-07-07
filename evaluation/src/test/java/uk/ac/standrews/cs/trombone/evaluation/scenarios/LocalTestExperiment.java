@@ -19,7 +19,9 @@ public class LocalTestExperiment {
     @Test
     public void testExecution() throws Exception {
 
-        final Scenario scenario = ScenarioBatches.CHURN_RATE_SCENARIOS.get(14);
+        final Scenario scenario = ScenarioBatches.STATIC_AND_ADAPTIVE_4H_SCENARIOS.get(14);
+        System.out.println(scenario.getHostScenarios().first().getWorkload());
+        System.out.println(scenario.getHostScenarios().first().getConfiguration().getMaintenanceFactory());
         System.out.println(scenario.toJson());
         testExecution(scenario);
     }

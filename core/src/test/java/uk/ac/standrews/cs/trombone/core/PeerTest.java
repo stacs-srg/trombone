@@ -5,7 +5,6 @@ import java.beans.PropertyChangeListener;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,7 +22,7 @@ import static org.junit.Assert.assertTrue;
 public class PeerTest {
 
     private final InetSocketAddress initial_address = new InetSocketAddress("localhost", 0);
-    private final Key peer_key = new KeyProvider(32, DigestUtils.md5("ddd")).get();
+    private final Key peer_key = new KeyProvider(32, 852456).get();
     private final Peer peer = new Peer(initial_address, peer_key);
     private final PeerState peer_state = peer.getPeerState();
     private PeerReference peer_reference;
@@ -60,7 +59,7 @@ public class PeerTest {
 
         assertEquals(peer_key, peer.getKey());
         assertEquals(peer_key, peer_reference.getKey());
-        assertEquals(peer_key, peer.getAsynchronousRemote(peer_reference).getKey().get());
+        assertEquals(peer_key, peer.getAsynchronousRemote(peer_reference).getKey().toCompletableFuture().get());
     }
 
     @Test
@@ -80,14 +79,14 @@ public class PeerTest {
     @Test
     public void testPull() throws Exception {
 
-        final List<PeerReference> reference = peer.pull(Self.INSTANCE);
+        final List<PeerReference> reference = peer.pull(Self.INSTANCE).get();
         assertEquals(peer_reference, reference.get(0));
     }
 
     @Test
     public void testLookup() throws Exception {
 
-        final PeerReference reference = peer.lookup(peer_key);
+        final PeerReference reference = peer.lookup(peer_key).get();
         assertEquals(peer_reference, reference);
     }
 
@@ -113,7 +112,7 @@ public class PeerTest {
     @Test
     public void testGetRemote() throws Exception {
 
-        assertEquals(peer, peer.getRemote(peer_reference));
+        assertEquals(peer, peer.getAsynchronousRemote(peer_reference));
     }
 
     @Test

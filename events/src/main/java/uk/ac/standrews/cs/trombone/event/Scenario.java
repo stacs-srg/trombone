@@ -30,7 +30,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.inject.Provider;
+import java.util.function.Supplier;
 import org.json.JSONObject;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
@@ -51,7 +51,7 @@ public class Scenario implements Named, Copyable {
 
     private final AtomicInteger next_host_scenario_id = new AtomicInteger();
     private final String name;
-    private final byte[] master_seed;
+    private final long master_seed;
     private final TreeSet<HostScenario> host_scenarios = new TreeSet<>();
     private final Map<Integer, String> host_name_indices = new TreeMap<>();
     private final AtomicInteger next_host_index;
@@ -66,7 +66,7 @@ public class Scenario implements Named, Copyable {
      * @param name the name of the scenario
      * @param master_seed the master seed
      */
-    public Scenario(String name, byte[] master_seed) {
+    public Scenario(String name, long master_seed) {
 
         this.name = name;
         this.master_seed = master_seed;
@@ -176,7 +176,7 @@ public class Scenario implements Named, Copyable {
         return name;
     }
 
-    public Provider<Key> getPeerKeyProvider() {
+    public Supplier<Key> getPeerKeyProvider() {
 
         return peer_key_provider;
     }
@@ -186,7 +186,7 @@ public class Scenario implements Named, Copyable {
         this.peer_key_provider = peer_key_provider;
     }
 
-    public byte[] getMasterSeed() {
+    public long getMasterSeed() {
 
         return master_seed;
     }

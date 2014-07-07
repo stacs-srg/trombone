@@ -3,7 +3,7 @@ package uk.ac.standrews.cs.trombone.evaluation.scenarios;
 import java.util.ArrayList;
 import java.util.List;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
-import uk.ac.standrews.cs.trombone.core.Maintenance;
+import uk.ac.standrews.cs.trombone.core.MaintenanceFactory;
 import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
 import uk.ac.standrews.cs.trombone.core.SyntheticDelay;
 
@@ -18,19 +18,19 @@ public final class PeerConfigurationGenerator {
 
     }
 
-    public static List<PeerConfiguration> generate(Maintenance[] maintenance_factories, SyntheticDelay[] delays) {
+    public static List<PeerConfiguration> generate(MaintenanceFactory[] maintenance_factories, SyntheticDelay[] delays) {
 
         return generate(maintenance_factories, delays, DEFAULT_APPLICATION_FEEDBACK);
     }
 
-    public static List<PeerConfiguration> generate(Maintenance[] maintenance_factories, SyntheticDelay[] delays, Boolean[] application_feedbacks) {
+    public static List<PeerConfiguration> generate(MaintenanceFactory[] maintenance_factories, SyntheticDelay[] delays, Boolean[] application_feedbacks) {
 
         List<PeerConfiguration> configurations = new ArrayList<>();
         final List<Object[]> args = Combinations.generateArgumentCombinations(new Object[][] {
                 maintenance_factories, delays, application_feedbacks
         });
         for (Object[] arg : args) {
-            final Maintenance maintenance_factory = (Maintenance) arg[0];
+            final MaintenanceFactory maintenance_factory = (MaintenanceFactory) arg[0];
             final SyntheticDelay delay = (SyntheticDelay) arg[1];
             final Boolean application_feedback = (Boolean) arg[2];
             final PeerConfiguration configuration = new PeerConfiguration(maintenance_factory, delay);

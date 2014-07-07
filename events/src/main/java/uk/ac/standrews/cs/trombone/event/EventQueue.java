@@ -1,12 +1,12 @@
 package uk.ac.standrews.cs.trombone.event;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -14,11 +14,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
+import org.apache.commons.math3.random.MersenneTwister;
+import org.apache.commons.math3.random.RandomAdaptor;
 import org.json.JSONObject;
 import org.mashti.gauge.Rate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.uncommons.maths.random.MersenneTwisterRNG;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 
 /**
@@ -32,7 +33,7 @@ public class EventQueue implements Iterator<Event> {
     private final Scenario scenario;
     private final int host_index;
     private final Future<Void> generator_task;
-    private final MersenneTwisterRNG random;
+    private final Random random;
     private final PriorityQueue<ParticipantEventIterator> event_generators;
     private final Rate event_generation_rate = new Rate();
     private final AtomicLong last_persisted_event_time = new AtomicLong();
@@ -51,14 +52,14 @@ public class EventQueue implements Iterator<Event> {
         this.scenario.substituteHostNames(substitute_host_indices);
         events = new LinkedBlockingQueue<>(BUFFERED_EVENTS);
 
-        random = new MersenneTwisterRNG(this.scenario.getMasterSeed());
+        random = new RandomAdaptor(new MersenneTwister(this.scenario.getMasterSeed()));
         event_generators = new PriorityQueue<>();
         alive_peers = new ConcurrentSkipListMap<Key, Participant>();
         participants = this.scenario.getParticipants();
 
         init(this.scenario);
 
-        generator_task = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().build()).submit(new Callable<Void>() {
+        generator_task = Executors.newSingleThreadExecutor().submit(new Callable<Void>() {
 
             @Override
             public Void call() throws Exception {

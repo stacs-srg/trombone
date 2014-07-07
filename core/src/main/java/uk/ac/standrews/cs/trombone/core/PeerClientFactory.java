@@ -1,7 +1,5 @@
 package uk.ac.standrews.cs.trombone.core;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
@@ -27,7 +25,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class PeerClientFactory extends ClientFactory<PeerRemote> {
+public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PeerClientFactory.class);
     static final Bootstrap BOOTSTRAP = new Bootstrap();
@@ -39,7 +37,7 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
         BOOTSTRAP.channel(NioSocketChannel.class);
         BOOTSTRAP.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30_000);
         BOOTSTRAP.option(ChannelOption.TCP_NODELAY, true);
-        BOOTSTRAP.handler(new LeanClientChannelInitializer(PeerRemote.class, PeerCodecs.INSTANCE));
+        BOOTSTRAP.handler(new LeanClientChannelInitializer(AsynchronousPeerRemote.class, PeerCodecs.INSTANCE));
         BOOTSTRAP.option(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK, 32 * 1024);
         BOOTSTRAP.option(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK, 8 * 1024);
         BOOTSTRAP.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
@@ -48,7 +46,7 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
 
     }
 
-    static final Method[] DISPATCH = ReflectionUtil.sort(PeerRemote.class.getMethods());
+    static final Method[] DISPATCH = ReflectionUtil.checkAndSort(AsynchronousPeerRemote.class.getMethods());
 
     private final Peer peer;
     private final SyntheticDelay synthetic_delay;
@@ -70,7 +68,7 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
 
     PeerClientFactory(final Peer peer, final SyntheticDelay synthetic_delay) {
 
-        super(PeerRemote.class, DISPATCH, BOOTSTRAP);
+        super(AsynchronousPeerRemote.class, DISPATCH, BOOTSTRAP);
         this.peer = peer;
         this.synthetic_delay = synthetic_delay;
         peer_state = peer.getPeerState();
@@ -84,10 +82,10 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
         return CHANNEL_POOL;
     }
 
-    PeerRemote get(final PeerReference reference) {
+    AsynchronousPeerRemote get(final PeerReference reference) {
 
         final InetSocketAddress address = reference.getAddress();
-        final PeerRemote remote = get(address);
+        final AsynchronousPeerRemote remote = get(address);
         final PeerClient handler = (PeerClient) Proxy.getInvocationHandler(remote);
         handler.reference = peer_state.getInternalReference(reference);
 
@@ -130,57 +128,57 @@ public class PeerClientFactory extends ClientFactory<PeerRemote> {
         }
 
         @Override
-        public FutureResponse newFutureResponse(final Method method, final Object[] arguments) {
+        public FutureResponse<?> newFutureResponse(final Method method, final Object[] arguments) {
 
-            final FutureResponse future_response = super.newFutureResponse(method, arguments);
-            Futures.addCallback(future_response, new DefaultCallback(), Maintenance.SCHEDULER);
+            final FutureResponse<?> future_response = super.newFutureResponse(method, arguments);
+            future_response.whenCompleteAsync((Object result, Throwable error) -> {
+                if (!future_response.isCompletedExceptionally()) {
+                    reference.seen(true);
+
+                    if (result instanceof PeerReference) {
+                        peer.push((PeerReference) result);
+                    }
+
+                    if (result instanceof List) {
+                        List<?> list = (List<?>) result;
+                        list.stream().filter(element -> element instanceof PeerReference).forEach(element -> {
+                            PeerReference peerReference = (PeerReference) element;
+                            peer.push(peerReference);
+                        });
+                    }
+                }
+                else {
+                    reference.seen(false);
+                    peer_metric.notifyRPCError(error);
+                    LOGGER.debug("failure occurred on future", error);
+                }
+            }, BOOTSTRAP.group());
+
             return future_response;
         }
 
         @Override
         protected void beforeFlush(final Channel channel, final FutureResponse future_response) throws RPCException {
 
+            
+            channel.write(newFutureResponse(DisseminationStrategy.PUSH_SINGLE_METHOD, new Object[]{peer.getSelfReference()}));
+            
             final DisseminationStrategy strategy = peer.getDisseminationStrategy();
             if (strategy != null) {
                 for (DisseminationStrategy.Action action : strategy) {
-                    if (action.isOpportunistic() && action.recipientsContain(peer, reference)) {
-                        final FutureResponse future_dissemination = newFutureResponse(action.getMethod(), action.getArguments(peer));
-                        channel.write(future_dissemination);
+                    if (action.isOpportunistic()) {
+
+                        action.recipientsContain(peer, reference).thenAcceptAsync(contains -> {
+                            if (contains) {
+
+                                final FutureResponse future_dissemination = newFutureResponse(action.getMethod(), action.getArguments(peer));
+                                channel.write(future_dissemination);
+                            }
+                        });
                     }
                 }
             }
             super.beforeFlush(channel, future_response);
-        }
-
-        private class DefaultCallback implements FutureCallback<Object> {
-
-            @Override
-            public void onSuccess(final Object result) {
-
-                reference.seen(true);
-
-                if (result instanceof PeerReference) {
-                    peer.push((PeerReference) result);
-                }
-
-                if (result instanceof List) {
-                    List list = (List) result;
-                    for (Object element : list) {
-                        if (element instanceof PeerReference) {
-                            PeerReference peerReference = (PeerReference) element;
-                            peer.push(peerReference);
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(final Throwable t) {
-
-                reference.seen(false);
-                peer_metric.notifyRPCError(t);
-                LOGGER.debug("failure occurred on future", t);
-            }
         }
     }
 }

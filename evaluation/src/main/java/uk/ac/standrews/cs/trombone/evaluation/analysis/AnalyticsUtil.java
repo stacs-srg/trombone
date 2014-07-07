@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.util.concurrent.AtomicDouble;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
@@ -25,6 +24,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.DoubleAdder;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
@@ -290,23 +290,23 @@ final class AnalyticsUtil {
 
     static class WeightedAverage {
 
-        private final AtomicDouble a = new AtomicDouble();
+        private final DoubleAdder a = new DoubleAdder();
         private final AtomicLong b = new AtomicLong();
 
         public void add(double mean, long sample_size) {
 
-            a.addAndGet(mean * sample_size);
+            a.add(mean * sample_size);
             b.addAndGet(sample_size);
         }
 
         public double getWeightedAverage() {
 
-            return a.get() / b.get();
+            return a.sum() / b.get();
         }
 
         public void reset() {
 
-            a.set(0);
+            a.reset();
             b.set(0);
         }
     }
@@ -314,7 +314,7 @@ final class AnalyticsUtil {
     static class CombinedStandardDeviation {
 
         private final WeightedAverage wa = new WeightedAverage();
-        private final AtomicDouble a = new AtomicDouble();
+        private final DoubleAdder a = new DoubleAdder();
         private final boolean skip_nan;
 
         public CombinedStandardDeviation(final boolean skip_nan) {
@@ -333,12 +333,12 @@ final class AnalyticsUtil {
             }
 
             wa.add(mean, sample_size);
-            a.addAndGet((sample_size - 1) * Math.pow(st_dev, 2) + sample_size * Math.pow(mean, 2));
+            a.add((sample_size - 1) * Math.pow(st_dev, 2) + sample_size * Math.pow(mean, 2));
         }
 
         public double getCombinedStandardDeviation() {
 
-            return Math.sqrt((a.get() - wa.b.get() * Math.pow(wa.getWeightedAverage(), 2)) / (wa.b.get() - 1));
+            return Math.sqrt((a.sum() - wa.b.get() * Math.pow(wa.getWeightedAverage(), 2)) / (wa.b.get() - 1));
         }
 
         public double getWeightedAverage() {
@@ -348,7 +348,7 @@ final class AnalyticsUtil {
 
         public void reset() {
 
-            a.set(0);
+            a.reset();
             wa.reset();
         }
 

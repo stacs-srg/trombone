@@ -1,6 +1,5 @@
 package uk.ac.standrews.cs.trombone.evaluation.analysis;
 
-import com.google.visualization.datasource.base.TypeMismatchException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -29,9 +28,9 @@ public final class Analysis {
     private static final Logger LOGGER = LoggerFactory.getLogger(Analysis.class);
     private static final Pattern UNDERSCORE = Pattern.compile("_");
 
-    public static void main(String[] args) throws IOException, TypeMismatchException {
+    public static void main(String[] args) throws IOException {
 
-        final PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:results/*"); 
+        final PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:results/*");
         final List<Path> matching_paths = FileSystemUtils.getMatchingDirectories(ScenarioUtils.getResultsHome(), matcher);
         final List<ScenarioAnalyzer> scenarioAnalyzers = new ArrayList<>();
         for (Path path : matching_paths) {
@@ -79,8 +78,10 @@ public final class Analysis {
                     }
                     else {
 
-                        analyser.setYAxisLabel(UNDERSCORE.matcher(base_name).replaceAll(" "));
-                        analyser.saveAsCsv(destination_directory);
+                        throw new RuntimeException("IMPLEMENT");
+
+                        //                        analyser.setYAxisLabel(UNDERSCORE.matcher(base_name).replaceAll(" "));
+                        //                        analyser.saveAsCsv(destination_directory);
                     }
                 }
             }
