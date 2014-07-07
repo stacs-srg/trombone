@@ -161,7 +161,7 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
         protected void beforeFlush(final Channel channel, final FutureResponse future_response) throws RPCException {
 
             
-            channel.write(newFutureResponse(DisseminationStrategy.PUSH_SINGLE_METHOD, new Object[]{peer.getSelfReference()}));
+//            channel.write(newFutureResponse(DisseminationStrategy.PUSH_SINGLE_METHOD, new Object[]{peer.getSelfReference()}));
             
             final DisseminationStrategy strategy = peer.getDisseminationStrategy();
             if (strategy != null) {

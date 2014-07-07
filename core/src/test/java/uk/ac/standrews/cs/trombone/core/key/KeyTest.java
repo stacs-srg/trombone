@@ -25,7 +25,6 @@ public class KeyTest {
     private static final double DELTA = 1e-15;
     private static final Random random = new Random(894156);
 
-
     @Test
     public void testCompareRingDistance() throws Exception {
 
@@ -108,7 +107,7 @@ public class KeyTest {
             final int length = random.nextInt(3) + 1;
             final byte[] value = new byte[length];
             random.nextBytes(value);
-            
+
             final Key key = Key.valueOf(value);
             final BigInteger big_integer = new BigInteger(value);
             final int length2 = random.nextInt(3) + 1;
@@ -118,24 +117,16 @@ public class KeyTest {
             final Key key2 = Key.valueOf(value2);
             final BigInteger big_integer2 = new BigInteger(value2);
 
-            long now = System.nanoTime();
             final int expected = key.compareTo(key2);
-            System.out.println("1took " + (System.nanoTime() - now));
-            now = System.nanoTime();
             final int actual = big_integer.compareTo(big_integer2);
-            System.out.println("2took " + (System.nanoTime() - now));
-
-            LOGGER.info("key: {}, key_length: {}, big_int: {}", key, length, big_integer);
-            LOGGER.info("key: {}, key_length: {}, big_int: {}", key2, length2, big_integer2);
-            System.out.println();
             assertEquals(expected, actual);
-            //            assertEquals(value[length - 1], key.byteValue());
-            //            assertEquals(big_integer.byteValue(), key.byteValue());
-            //            assertEquals(big_integer.shortValue(), key.shortValue());
-            //            assertEquals(big_integer.intValue(), key.intValue());
-            //            assertEquals(big_integer.longValue(), key.longValue());
-            //            assertEquals(big_integer.floatValue(), key.floatValue(), DELTA);
-            //            assertEquals(big_integer.doubleValue(), key.doubleValue(), DELTA);
+            assertEquals(value[length - 1], key.byteValue());
+            assertEquals(big_integer.byteValue(), key.byteValue());
+            assertEquals(big_integer.shortValue(), key.shortValue());
+            assertEquals(big_integer.intValue(), key.intValue());
+            assertEquals(big_integer.longValue(), key.longValue());
+            assertEquals(big_integer.floatValue(), key.floatValue(), DELTA);
+            assertEquals(big_integer.doubleValue(), key.doubleValue(), DELTA);
         }
     }
 
