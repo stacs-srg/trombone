@@ -61,6 +61,8 @@ public class BlubUnzippedExperiment {
 
     static {
         //        AVAILABLE_HOSTS.remove("compute-0-6.local");
+        AVAILABLE_HOSTS.clear();
+        AVAILABLE_HOSTS.add("localhost");
     }
 
     private static final Duration ADDITIONAL_WAIT = new Duration(30, TimeUnit.MINUTES);
@@ -87,7 +89,7 @@ public class BlubUnzippedExperiment {
 
         final List<Scenario> scenarios_with_repetitions = new ArrayList<>();
 
-        for (Scenario scenario : ScenarioBatches.PLATFORM_JUSTIFICATION) {
+        for (Scenario scenario : ScenarioBatches.STATIC_AND_ADAPTIVE_4H_SCENARIOS) {
             final String scenario_name = scenario.getName();
             final Path repetitionsHome = ScenarioUtils.getScenarioRepetitionsHome(scenario_name);
             int existing_repetitions = Files.exists(repetitionsHome) ? FileSystemUtils.getMatchingFiles(repetitionsHome, repetitionsHome.getFileSystem().getPathMatcher("glob:**/*.zip")).size() : 0;
@@ -95,8 +97,8 @@ public class BlubUnzippedExperiment {
             final int required_repetitions = Math.max(0, Constants.NUMBER_OF_REPETITIONS - existing_repetitions);
             LOGGER.info("{} repetitions of {} already exists, doing {} repetitions", existing_repetitions, scenario_name, required_repetitions);
 
-            for (int i = 0; i < required_repetitions; i++) {
-                scenarios_with_repetitions.add(scenario);
+            for (int i = 0; i < 1; i++) {
+                if (scenarios_with_repetitions.isEmpty()) { scenarios_with_repetitions.add(scenario); }
             }
         }
 

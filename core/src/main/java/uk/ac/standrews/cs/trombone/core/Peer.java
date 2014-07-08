@@ -70,7 +70,7 @@ public class Peer implements AsynchronousPeerRemote {
         if (exposed) {
             refreshSelfReference();
             property_change_support.firePropertyChange(EXPOSURE_PROPERTY_NAME, false, true);
-            LOGGER.trace("exposed {} on {}", key, getAddress());
+            LOGGER.debug("exposed {} on {}", key, getAddress());
 
         }
         return exposed;
@@ -81,6 +81,7 @@ public class Peer implements AsynchronousPeerRemote {
         final boolean unexposed = server.unexpose();
         if (unexposed) {
             property_change_support.firePropertyChange(EXPOSURE_PROPERTY_NAME, true, false);
+            LOGGER.debug("unexposed {} from {}", key, getAddress());
         }
         return unexposed;
     }
@@ -98,6 +99,7 @@ public class Peer implements AsynchronousPeerRemote {
         return member_remote.lookup(key).thenAccept(this :: push).thenRun(() -> {
             push(member);
             member_remote.push(self);
+            LOGGER.debug("{} joined {}", key, member);
         });
     }
 
