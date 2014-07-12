@@ -140,9 +140,7 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
 
         public CompletableFuture<Boolean> recipientsContain(Peer local, final PeerReference recipient) {
 
-            return local.pull(recipient_selector).thenCompose(result -> CompletableFuture.supplyAsync(() -> {
-                return result.contains(recipient);
-            }, local.getExecutor()));
+            return local.pull(recipient_selector).thenCompose(result -> CompletableFuture.completedFuture(result.contains(recipient)));
         }
 
         public void nonOpportunistically(final Peer local) {
