@@ -3,18 +3,17 @@ package uk.ac.standrews.cs.trombone.core.adaptation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import uk.ac.standrews.cs.trombone.core.util.Probability;
 import uk.ac.standrews.cs.trombone.core.DisseminationStrategy;
 import uk.ac.standrews.cs.trombone.core.selector.EmptySelector;
 import uk.ac.standrews.cs.trombone.core.selector.First;
 import uk.ac.standrews.cs.trombone.core.selector.Last;
-import uk.ac.standrews.cs.trombone.core.selector.MostRecentlySeen;
 import uk.ac.standrews.cs.trombone.core.selector.RandomSelector;
 import uk.ac.standrews.cs.trombone.core.selector.Selector;
 import uk.ac.standrews.cs.trombone.core.selector.SelectorFactory;
 import uk.ac.standrews.cs.trombone.core.selector.Self;
 import uk.ac.standrews.cs.trombone.core.util.Named;
 import uk.ac.standrews.cs.trombone.core.util.NamingUtils;
+import uk.ac.standrews.cs.trombone.core.util.Probability;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
@@ -29,10 +28,11 @@ public class DisseminationStrategyGenerator implements Named {
         SELECTORS.add(EmptySelector.INSTANCE);
         SELECTORS.add(new First(1, Selector.ReachabilityCriteria.REACHABLE_OR_UNREACHABLE));
         SELECTORS.add(new Last(1, Selector.ReachabilityCriteria.REACHABLE_OR_UNREACHABLE));
-        SELECTORS.add(new MostRecentlySeen(1, Selector.ReachabilityCriteria.REACHABLE_OR_UNREACHABLE));
+        //        SELECTORS.add(new MostRecentlySeen(1, Selector.ReachabilityCriteria.REACHABLE_OR_UNREACHABLE));
         SELECTORS.add(new RandomSelector(1, Selector.ReachabilityCriteria.REACHABLE_OR_UNREACHABLE));
         SELECTORS.add(Self.INSTANCE);
     }
+
     private final int max_action_size;
     private final SelectorFactory selector_factory;
 

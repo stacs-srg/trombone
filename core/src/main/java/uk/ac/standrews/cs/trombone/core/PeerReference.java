@@ -58,12 +58,7 @@ public class PeerReference implements Comparable<PeerReference> {
     @Override
     public String toString() {
 
-        final StringBuilder sb = new StringBuilder("PeerReference{");
-        sb.append("key=").append(getKey());
-        sb.append(", address=").append(getAddress());
-        sb.append(", reachable=").append(isReachable());
-        sb.append('}');
-        return sb.toString();
+        return "PeerReference{" + "key=" + getKey() + ", address=" + getAddress() + ", reachable=" + isReachable() + '}';
     }
 
     @Override

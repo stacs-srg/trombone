@@ -41,7 +41,6 @@ public class InternalPeerReference extends PeerReference {
         return last_seen.get();
     }
 
-
     boolean seen(boolean reachable) {
 
         final long now = System.currentTimeMillis();

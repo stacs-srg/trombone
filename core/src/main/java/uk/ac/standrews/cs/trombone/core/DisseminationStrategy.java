@@ -140,9 +140,9 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
 
         public CompletableFuture<Boolean> recipientsContain(Peer local, final PeerReference recipient) {
 
-            return local.pull(recipient_selector).thenComposeAsync(result -> CompletableFuture.supplyAsync(() -> {
+            return local.pull(recipient_selector).thenCompose(result -> CompletableFuture.supplyAsync(() -> {
                 return result.contains(recipient);
-            }));
+            }, local.getExecutor()));
         }
 
         public void nonOpportunistically(final Peer local) {
@@ -159,11 +159,11 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
                                     local.getAsynchronousRemote(recipient).push(data_to_push);
                                 });
                             }
-                        });
+                        }, local.getExecutor());
                     }
                     else {
                         recipients.stream().filter(recipient -> recipient != null).forEach(recipient -> {
-                            local.getAsynchronousRemote(recipient).pull(data_selector).thenAcceptAsync(result -> local.push(result));
+                            local.getAsynchronousRemote(recipient).pull(data_selector).thenAcceptAsync(result -> local.push(result), local.getExecutor());
                         });
                     }
                 }

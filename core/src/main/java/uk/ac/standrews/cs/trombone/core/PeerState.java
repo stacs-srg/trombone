@@ -16,7 +16,7 @@ public class PeerState {
     private final Key local_key;
     private final ConcurrentSkipListMap<Key, InternalPeerReference> state;
 
-    public PeerState(final Key local_key, final PeerMetric metric) {
+    public PeerState(final Key local_key) {
 
         this.local_key = local_key;
         state = new ConcurrentSkipListMap<Key, InternalPeerReference>(new RelativeRingDistanceComparator(local_key));
@@ -32,7 +32,7 @@ public class PeerState {
     public boolean inLocalKeyRange(Key target) {
 
         final PeerReference last_reachable = lastReachable();
-        return last_reachable == null || local_key.equals(target) || last_reachable.getKey().compareRingDistance(local_key, target) > 0;
+        return last_reachable == null || target.equals(local_key) || !target.equals(last_reachable.getKey()) && target.compareRingDistance(local_key, last_reachable.getKey()) <= 0;
     }
 
     public boolean add(final PeerReference reference) {
@@ -126,7 +126,6 @@ public class PeerState {
 
         return state.values().stream();
     }
-
 
     public Collection<InternalPeerReference> getValues() {
 

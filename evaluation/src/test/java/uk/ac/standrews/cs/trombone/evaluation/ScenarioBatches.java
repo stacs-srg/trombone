@@ -91,12 +91,9 @@ public final class ScenarioBatches {
             Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_11_9,
             Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_13_11,
             Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_15_13,
-            Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_17_15, 
-            Constants.RANDOM_MAINTENANCE_10_7_5,
-            Constants.RANDOM_MAINTENANCE_10_9_7, 
-            Constants.RANDOM_MAINTENANCE_10_11_9,
-            Constants.RANDOM_MAINTENANCE_10_13_11, 
-            Constants.RANDOM_MAINTENANCE_10_15_13,
+            Constants.EVOLUTIONARY_MAINTENANCE_PFCLUST_10_17_15, Constants.RANDOM_MAINTENANCE_10_7_5,
+            Constants.RANDOM_MAINTENANCE_10_9_7, Constants.RANDOM_MAINTENANCE_10_11_9,
+            Constants.RANDOM_MAINTENANCE_10_13_11, Constants.RANDOM_MAINTENANCE_10_15_13,
             Constants.RANDOM_MAINTENANCE_10_17_15
     }, SYNTHETIC_DELAYS).toArray();
 
@@ -224,13 +221,10 @@ public final class ScenarioBatches {
     public static final List<Scenario> EVOLUTIONARY_APPLICATION_FEEDBACK_SCENARIOS = BaseScenario.generateAll("evolutionary_app_feedback_4h_", EVOLUTIONARY_APP_FEEDBACK_4_H);
     public static final List<Scenario> GA_RANDOM_CONFIG_SPACE_SIZE = BaseScenario.generateAll("config_space_size_4h_", CONFIG_SPACE_SIZE);
 
-    
-    
     public static final List<Scenario> PLATFORM_JUSTIFICATION = new ArrayList<>();
-    
-    
+
     static {
-        
+
         PLATFORM_JUSTIFICATION.add(new PlatformJustificationSingleHost(10));
         PLATFORM_JUSTIFICATION.add(new PlatformJustificationSingleHost(20));
         PLATFORM_JUSTIFICATION.add(new PlatformJustificationSingleHost(30));
@@ -255,5 +249,9 @@ public final class ScenarioBatches {
         RANDOM_4H_PLUS_SCENARIOS.addAll(RANDOM_8H_SCENARIOS);
         RANDOM_4H_PLUS_SCENARIOS.addAll(RANDOM_6H_SCENARIOS);
         RANDOM_4H_PLUS_SCENARIOS.addAll(RANDOM_4H_SCENARIOS);
+    }
+
+    private ScenarioBatches() {
+
     }
 }

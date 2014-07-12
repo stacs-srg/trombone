@@ -38,6 +38,7 @@ public class RecoveryTest {
             final PeerReference reference = descriptor.getApplicationReference();
             final PeerReference lookup_result = PeerFactory.bind(reference).lookup(reference.getKey()).get();
             assertEquals(reference, lookup_result);
+            LOGGER.info("OK {}", reference);
         }
     }
 

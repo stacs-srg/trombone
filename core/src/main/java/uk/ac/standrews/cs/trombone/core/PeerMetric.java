@@ -4,11 +4,11 @@ import java.lang.reflect.Method;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.apache.commons.math3.stat.descriptive.SynchronizedDescriptiveStatistics;
 import org.mashti.gauge.Metric;
 import org.mashti.gauge.Rate;
 import org.mashti.gauge.Timer;
 import org.mashti.jetson.WrittenByteCountListener;
-import org.mashti.sina.distribution.statistic.Statistics;
 import uk.ac.standrews.cs.trombone.core.adaptation.EnvironmentSnapshot;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
@@ -68,8 +68,8 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
 
     public long getMeanLookupSuccessDelay(TimeUnit unit) {
 
-        final Statistics stats = lookup_success_delay_timer.getAndReset();
-        final long mean_delay_nanaos = stats.getMean().longValue();
+        final SynchronizedDescriptiveStatistics stats = lookup_success_delay_timer.getAndReset();
+        final long mean_delay_nanaos = (long) stats.getMean();
         return unit.convert(mean_delay_nanaos, TimeUnit.NANOSECONDS);
     }
 

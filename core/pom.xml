@@ -15,7 +15,11 @@
     <artifactId>core</artifactId>
 
     <dependencies>
-
+        <dependency>
+            <groupId>org.mashti</groupId>
+            <artifactId>sina</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>

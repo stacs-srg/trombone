@@ -126,8 +126,8 @@ public final class Constants {
     public static final SequentialPortNumberProvider PORT_NUMBER_PROVIDER = new SequentialPortNumberProvider(64000);
     public static final Duration OBSERVATION_INTERVAL = new Duration(10, TimeUnit.SECONDS);
     public static final int KEY_LENGTH_IN_BITS = Integer.SIZE;
-        private static final KeyProvider TARGET_KEY_PROVIDER = new KeyProvider(KEY_LENGTH_IN_BITS, SEED);
-//    private static final ZipfKeyProvider TARGET_KEY_PROVIDER = new ZipfKeyProvider(20_000, 1, KEY_LENGTH_IN_BITS, SEED);
+    private static final KeyProvider TARGET_KEY_PROVIDER = new KeyProvider(KEY_LENGTH_IN_BITS, SEED);
+    //    private static final ZipfKeyProvider TARGET_KEY_PROVIDER = new ZipfKeyProvider(20_000, 1, KEY_LENGTH_IN_BITS, SEED);
     public static final KeyProvider PEER_KEY_PROVIDER = new KeyProvider(KEY_LENGTH_IN_BITS, SEED);
 
     public static final Duration DURATION_1_S = new Duration(1, TimeUnit.SECONDS);

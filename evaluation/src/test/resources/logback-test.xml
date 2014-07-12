@@ -16,7 +16,7 @@
     <!--SSHJ error logs only-->
     <logger name="net.schmizz" level="ERROR"/>
     <logger name="io.netty" level="ERROR"/>
-    <logger name="uk.ac.standrews.cs.trombone.evaluation" level="INFO"/>
+    <!--<logger name="uk.ac.standrews.cs.trombone.evaluation" level="warn"/>-->
 
     <root level="warn">
         <appender-ref ref="FILE"/>

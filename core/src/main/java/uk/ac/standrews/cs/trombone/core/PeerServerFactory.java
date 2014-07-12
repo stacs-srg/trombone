@@ -89,7 +89,7 @@ public class PeerServerFactory extends ServerFactory<AsynchronousPeerRemote> {
             MyServer.super.handle(context, future_response);
             future_response.thenRunAsync(() -> {
                 handled_rate.mark();
-            }, SERVER_BOOTSTRAP.childGroup());
+            }, peer.getExecutor());
         }
     }
 }

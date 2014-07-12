@@ -24,6 +24,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.math3.stat.descriptive.SynchronizedDescriptiveStatistics;
 import org.json.JSONObject;
 import org.mashti.gauge.Counter;
 import org.mashti.gauge.Gauge;
@@ -38,7 +39,6 @@ import org.mashti.gauge.jvm.ThreadCountGauge;
 import org.mashti.gauge.jvm.ThreadCpuUsageGauge;
 import org.mashti.gauge.reporter.CsvReporter;
 import org.mashti.jetson.util.NamedThreadFactory;
-import org.mashti.sina.distribution.statistic.Statistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
@@ -161,7 +161,7 @@ public class EventExecutor {
     private final Sampler strategy_uniformity_sampler = new Sampler() {
 
         @Override
-        protected Statistics get() {
+        protected SynchronizedDescriptiveStatistics get() {
 
             final HashMultiset<DisseminationStrategy> strategies = HashMultiset.create();
             for (Participant participant : event_reader.getParticipants()) {
@@ -170,15 +170,15 @@ public class EventExecutor {
                     strategies.add(peer.getDisseminationStrategy());
                 }
             }
-            final Statistics statistics = new Statistics();
+            final SynchronizedDescriptiveStatistics statistics = new SynchronizedDescriptiveStatistics(10000);
             for (Multiset.Entry<DisseminationStrategy> entry : strategies.entrySet()) {
-                statistics.addSample(entry.getCount());
+                statistics.addValue(entry.getCount());
             }
             return statistics;
         }
 
         @Override
-        public Statistics getAndReset() {
+        public SynchronizedDescriptiveStatistics getAndReset() {
 
             return get();
         }
@@ -193,7 +193,7 @@ public class EventExecutor {
     private final Sampler generated_strategy_uniformity_sampler = new Sampler() {
 
         @Override
-        protected Statistics get() {
+        protected SynchronizedDescriptiveStatistics get() {
 
             final HashMultiset<DisseminationStrategy> strategies = HashMultiset.create();
             for (Participant participant : event_reader.getParticipants()) {
@@ -210,15 +210,15 @@ public class EventExecutor {
                     }
                 }
             }
-            final Statistics statistics = new Statistics();
+            final SynchronizedDescriptiveStatistics statistics = new SynchronizedDescriptiveStatistics(10000);
             for (Multiset.Entry<DisseminationStrategy> entry : strategies.entrySet()) {
-                statistics.addSample(entry.getCount());
+                statistics.addValue(entry.getCount());
             }
             return statistics;
         }
 
         @Override
-        public Statistics getAndReset() {
+        public SynchronizedDescriptiveStatistics getAndReset() {
 
             return get();
         }
@@ -494,7 +494,7 @@ public class EventExecutor {
         queue(peer, event);
     }
 
-    private void joinWithTimeout(final Peer peer, final long timeout_nanos, final Set<PeerReference> known_peers) {
+    private void joinWithTimeout(final Peer peer, final long timeout_nanos, final Set<PeerReference> known_peers) throws ExecutionException, InterruptedException {
 
         if (known_peers != null && !known_peers.isEmpty()) {
 
@@ -503,7 +503,7 @@ public class EventExecutor {
             try {
                 while (!Thread.currentThread().isInterrupted() && !successful && iterator.hasNext()) {
                     final PeerReference reference = iterator.next();
-                    peer.join(reference);
+                    peer.join(reference).get();
                     successful = true;
                 }
             }
@@ -615,7 +615,7 @@ public class EventExecutor {
                     joinWithTimeout(peer, join_event.getDurationInNanos(), join_event.getKnownPeerReferences());
                 }
             }
-            catch (final IOException e) {
+            catch (final Exception e) {
                 logger.warn("failed to expose peer {} on address {}", peer, peer.getAddress());
                 logger.error("failure occurred when executing join event", e);
             }
