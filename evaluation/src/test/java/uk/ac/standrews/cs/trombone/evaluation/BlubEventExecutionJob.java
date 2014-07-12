@@ -19,32 +19,32 @@ import uk.ac.standrews.cs.trombone.event.EventExecutor;
 import uk.ac.standrews.cs.trombone.event.EventQueue;
 import uk.ac.standrews.cs.trombone.event.Scenario;
 
-import static uk.ac.standrews.cs.trombone.evaluation.BlubUnzippedExperiment.BLUB_NODE_RESULTS_HOME;
+import static uk.ac.standrews.cs.trombone.evaluation.BlubExperiment.BLUB_NODE_RESULTS_HOME;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class BlubUnzipEventExecutionJob implements Job<String> {
+public class BlubEventExecutionJob implements Job<String> {
 
     private static final long serialVersionUID = 2675891974884649473L;
-    private static final Logger LOGGER = LoggerFactory.getLogger(BlubUnzipEventExecutionJob.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BlubEventExecutionJob.class);
     static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss-SSS");
     private final String scenario_name;
     private final int host_index;
     private final HashMap<Integer, String> host_indices;
     private final String results_home_path;
 
-    public BlubUnzipEventExecutionJob(String scenario_name, int host_index) {
+    public BlubEventExecutionJob(String scenario_name, int host_index) {
 
         this(scenario_name, host_index, null);
     }
 
-    public BlubUnzipEventExecutionJob(String scenario_name, int host_index, HashMap<Integer, String> host_indices) {
+    public BlubEventExecutionJob(String scenario_name, int host_index, HashMap<Integer, String> host_indices) {
 
         this(scenario_name, host_index, host_indices, BLUB_NODE_RESULTS_HOME);
     }
 
-    public BlubUnzipEventExecutionJob(String scenario_name, int host_index, HashMap<Integer, String> host_indices, Path results_home) {
+    public BlubEventExecutionJob(String scenario_name, int host_index, HashMap<Integer, String> host_indices, Path results_home) {
 
         this.scenario_name = scenario_name;
         this.host_index = host_index;
@@ -108,7 +108,6 @@ public class BlubUnzipEventExecutionJob implements Job<String> {
         ScenarioUtils.compressDirectoryRecursively(observations, compressed_observations);
         LOGGER.info("compressed observations at {}", compressed_observations.toAbsolutePath());
         return compressed_observations.toString();
-
     }
 
     private static Path getCompressedObservationsPath(final boolean failed, Path observations) {

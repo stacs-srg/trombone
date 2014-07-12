@@ -42,8 +42,8 @@ public class BlubRoundTripDelayExperiment {
             LOGGER.info("Added {}", host);
         }
 
-        network.addMavenDependency("uk.ac.standrews.cs.t3", "evaluation", "1.0-SNAPSHOT", "tests");
-        network.addMavenDependency("uk.ac.standrews.cs.t3", "evaluation", "1.0-SNAPSHOT", null);
+        network.addMavenDependency("uk.ac.standrews.cs.t3", "evaluation", "2.0-SNAPSHOT", "tests");
+        network.addMavenDependency("uk.ac.standrews.cs.t3", "evaluation", "2.0-SNAPSHOT", null);
 
         network.getWorkerManager().setWorkerDeploymentTimeout(new Duration(1, TimeUnit.MINUTES));
         LOGGER.info("Deploying worker network...");

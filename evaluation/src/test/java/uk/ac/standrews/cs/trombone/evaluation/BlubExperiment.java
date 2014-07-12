@@ -22,7 +22,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.locks.ReentrantLock;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.junit.After;
@@ -53,26 +52,19 @@ import uk.ac.standrews.cs.trombone.event.Scenario;
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 @RunWith(Parallelized.class)
-public class BlubUnzippedExperiment {
+public class BlubExperiment {
 
     static final Path BLUB_NODE_RESULTS_HOME = Paths.get("/state", "partition1", "t3", "evaluation");
     static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss-SSS");
     private static final LinkedBlockingQueue<String> AVAILABLE_HOSTS = new LinkedBlockingQueue<>(BlubCluster.getNodeNames());
-
-    static {
-        //        AVAILABLE_HOSTS.remove("compute-0-6.local");
-        AVAILABLE_HOSTS.clear();
-        AVAILABLE_HOSTS.add("localhost");
-    }
 
     private static final Duration ADDITIONAL_WAIT = new Duration(30, TimeUnit.MINUTES);
 
     private static WorkerNetwork network;
     private final Scenario scenario;
     private HashMap<Integer, String> host_indices;
-    private static final Logger LOGGER = LoggerFactory.getLogger(BlubUnzippedExperiment.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BlubExperiment.class);
     private final String scenario_name;
-    private static final ReentrantLock lock = new ReentrantLock(true);
     private static final Semaphore semaphore = new Semaphore(AVAILABLE_HOSTS.size());
 
     private final List<ApplicationDescriptor> workers = new ArrayList<>();
@@ -89,7 +81,7 @@ public class BlubUnzippedExperiment {
 
         final List<Scenario> scenarios_with_repetitions = new ArrayList<>();
 
-        for (Scenario scenario : ScenarioBatches.STATIC_AND_ADAPTIVE_4H_SCENARIOS) {
+        for (Scenario scenario : ScenarioBatches.CHURN_RATE_SCENARIOS) {
             final String scenario_name = scenario.getName();
             final Path repetitionsHome = ScenarioUtils.getScenarioRepetitionsHome(scenario_name);
             int existing_repetitions = Files.exists(repetitionsHome) ? FileSystemUtils.getMatchingFiles(repetitionsHome, repetitionsHome.getFileSystem().getPathMatcher("glob:**/*.zip")).size() : 0;
@@ -97,7 +89,7 @@ public class BlubUnzippedExperiment {
             final int required_repetitions = Math.max(0, Constants.NUMBER_OF_REPETITIONS - existing_repetitions);
             LOGGER.info("{} repetitions of {} already exists, doing {} repetitions", existing_repetitions, scenario_name, required_repetitions);
 
-            for (int i = 0; i < 1; i++) {
+            for (int i = 0; i < required_repetitions; i++) {
                 if (scenarios_with_repetitions.isEmpty()) { scenarios_with_repetitions.add(scenario); }
             }
         }
@@ -108,7 +100,7 @@ public class BlubUnzippedExperiment {
         });
     }
 
-    public BlubUnzippedExperiment(Scenario scenario) {
+    public BlubExperiment(Scenario scenario) {
 
         this.scenario = scenario;
         scenario_name = scenario.getName();
@@ -120,13 +112,11 @@ public class BlubUnzippedExperiment {
 
         network = new WorkerNetwork();
         final WorkerManager manager = network.getWorkerManager();
-        manager.setWorkerJVMArguments("-Xmx6G -Xms1G -XX:MaxPermSize=512m -XX:+HeapDumpOnOutOfMemoryError");
-        //        manager.setWorkerJVMArguments("-Xmx6G -Xms1G -XX:MaxPermSize=512m -XX:+HeapDumpOnOutOfMemoryError -XX:+UseG1GC");
+        manager.setWorkerJVMArguments("-Xmx6G -Xms1G");
         manager.setWorkerDeploymentTimeout(new Duration(5, TimeUnit.MINUTES));
 
-        //        network.addMavenDependency("uk.ac.standrews.cs.t3", "evaluation", "1.0-SNAPSHOT", "tests");
-        //                network.addMavenDependency("uk.ac.standrews.cs.t3", "evaluation", "1.0-SNAPSHOT", null);
-        //        network.addMavenDependency("ch.qos.logback", "logback-core", "1.1.1", null);
+        //        network.addMavenDependency("uk.ac.standrews.cs.t3", "evaluation", "2.0-SNAPSHOT", "tests");
+        //        network.addMavenDependency("uk.ac.standrews.cs.t3", "evaluation", "2.0-SNAPSHOT", null);
         network.addCurrentJVMClasspath();
         network.setAutoDeployEnabled(false);
     }
@@ -169,7 +159,7 @@ public class BlubUnzippedExperiment {
             final int host_index = getHostIndexByName(host.getName());
 
             LOGGER.info("submitting job to {} indexed as {}", host, host_index);
-            final Future<String> future_event_execution = worker.submit(new BlubUnzipEventExecutionJob(scenario_name, host_index, host_indices));
+            final Future<String> future_event_execution = worker.submit(new BlubEventExecutionJob(scenario_name, host_index, host_indices));
             host_event_executions.put(host, future_event_execution);
         }
 
