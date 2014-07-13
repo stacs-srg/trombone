@@ -14,12 +14,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomAdaptor;
 import org.json.JSONObject;
 import org.mashti.gauge.Rate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 
 /**
@@ -28,7 +30,8 @@ import uk.ac.standrews.cs.trombone.core.key.Key;
 public class EventQueue implements Iterator<Event> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EventQueue.class);
-    private static final int BUFFERED_EVENTS = 1000;
+    private static final int BUFFERED_EVENTS = 2000;
+    private static final int MAX_JOIN_KNOWN_PEERS = 5;
     private final LinkedBlockingQueue<Event> events;
     private final Scenario scenario;
     private final int host_index;
@@ -100,12 +103,12 @@ public class EventQueue implements Iterator<Event> {
 
     public JSONObject getScenario() {
 
-        return ScenarioJSON.toJSON(scenario);
+        return new JSONObject(scenario);
     }
 
     void put(final Event event) throws InterruptedException {
 
-        final int host_index = event.getParticipant().getHostIndex();
+        final int host_index = event.getSource().getHostIndex();
         if (this.host_index == host_index) {
             events.put(event);
         }
@@ -147,7 +150,7 @@ public class EventQueue implements Iterator<Event> {
     private void checkEventPersistenceOrder(final Event event) {
 
         if (event.getTimeInNanos() < last_persisted_event_time.get()) {
-            LOGGER.warn("WTF events are out of order; concurrency error, probably due to bad bad code");
+            LOGGER.error("WTF events are out of order; concurrency error, probably due to bad bad code");
             throw new IllegalStateException("WTF events are out of order; concurrency error, probably due to bad bad code");
         }
     }
@@ -155,13 +158,14 @@ public class EventQueue implements Iterator<Event> {
     private void persist(final Event event) throws InterruptedException {
 
         checkEventPersistenceOrder(event);
-        final Participant participant = event.getParticipant();
+        final Participant participant = event.getSource();
         final Key peer_key = participant.getKey();
         if (event instanceof JoinEvent) {
 
             final JoinEvent join_event = (JoinEvent) event;
-            final Set<Participant> known_peers = pickRandomly(5, alive_peers.values());
-            join_event.setKnownPeers(known_peers);
+            final Set<Participant> known_peers = pickRandomly(MAX_JOIN_KNOWN_PEERS, alive_peers.values());
+            final Set<PeerReference> references = known_peers.stream().map(Participant:: getReference).collect(Collectors.toSet());
+            join_event.setKnownPeerReferences(references);
             alive_peers.put(peer_key, participant);
         }
         else if (event instanceof LeaveEvent) {
@@ -177,7 +181,7 @@ public class EventQueue implements Iterator<Event> {
             if (expected_result == null) {
                 expected_result = alive_peers.firstEntry();
             }
-            lookupEvent.setExpectedResult(expected_result.getValue());
+            lookupEvent.setExpectedResult(expected_result.getValue().getReference());
         }
 
         put(event);

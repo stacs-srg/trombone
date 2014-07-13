@@ -51,7 +51,7 @@ public class EventQueueTest {
         final String substitute_host_name = "AAAAAA";
         substitutes.put(1, substitute_host_name);
         event_queue = new EventQueue(scenario, 1, substitutes);
-        assertEquals(substitute_host_name, event_queue.next().getSource().getAddress().getHostName());
+        assertEquals(substitute_host_name, event_queue.next().getSource().getHostName());
     }
 
     @Test

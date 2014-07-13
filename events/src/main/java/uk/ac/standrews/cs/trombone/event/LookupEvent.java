@@ -1,6 +1,5 @@
 package uk.ac.standrews.cs.trombone.event;
 
-import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 
@@ -27,20 +26,9 @@ public class LookupEvent extends Event {
         return expected_result;
     }
 
-    public void setExpectedResult(final Participant expected_result) {
-
-        this.expected_result = expected_result.getReference();
-    }
-
     public void setExpectedResult(final PeerReference expected_result) {
 
         this.expected_result = expected_result;
-    }
-
-    @Override
-    public int hashCode() {
-
-        return HashCodeUtil.generate(super.hashCode(), target.hashCode(), expected_result.hashCode());
     }
 
     @Override
@@ -48,19 +36,30 @@ public class LookupEvent extends Event {
 
         if (this == other) { return true; }
         if (!(other instanceof LookupEvent)) { return false; }
+        if (!super.equals(other)) { return false; }
+
         final LookupEvent that = (LookupEvent) other;
-        return super.equals(other) && target.equals(that.target) && expected_result.equals(that.expected_result);
+
+        if (expected_result != null ? !expected_result.equals(that.expected_result) : that.expected_result != null) {
+            return false;
+        }
+        if (!target.equals(that.target)) { return false; }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+
+        int result = super.hashCode();
+        result = 31 * result + target.hashCode();
+        result = 31 * result + (expected_result != null ? expected_result.hashCode() : 0);
+        return result;
     }
 
     @Override
     public String toString() {
 
-        final StringBuilder sb = new StringBuilder("LookupEvent{");
-        sb.append("time=").append(getTimeInNanos());
-        sb.append(", peer=").append(getSource());
-        sb.append(", target=").append(target);
-        sb.append(", expected_result=").append(expected_result);
-        sb.append('}');
-        return sb.toString();
+        return "LookupEvent{" + "time=" + getTimeInNanos() + ", peer=" + getSource() + ", target=" + target + ", expected_result=" + expected_result + '}';
     }
 }

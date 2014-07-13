@@ -99,12 +99,7 @@ public class Participant implements Comparable<Participant> {
     @Override
     public String toString() {
 
-        final StringBuilder sb = new StringBuilder("Participant{");
-        sb.append("id=").append(id);
-        sb.append(", key=").append(key);
-        sb.append(", address=").append(address);
-        sb.append('}');
-        return sb.toString();
+        return "Participant{" + "id=" + id + ", key=" + key + ", address=" + address + '}';
     }
 
     public PeerConfiguration getPeerConfiguration() {

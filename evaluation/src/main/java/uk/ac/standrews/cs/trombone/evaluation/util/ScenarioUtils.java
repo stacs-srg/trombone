@@ -18,7 +18,6 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.event.Scenario;
-import uk.ac.standrews.cs.trombone.event.ScenarioJSON;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
@@ -64,7 +63,7 @@ public final class ScenarioUtils {
 
     public static void saveScenarioAsJson(Scenario scenario, Path directory) throws IOException {
 
-        final JSONObject scenario_json = ScenarioJSON.toJSON(scenario);
+        final JSONObject scenario_json = new JSONObject(scenario);
         final Path json_path = directory.resolve("scenario.json");
         Files.write(json_path, scenario_json.toString(4).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
     }

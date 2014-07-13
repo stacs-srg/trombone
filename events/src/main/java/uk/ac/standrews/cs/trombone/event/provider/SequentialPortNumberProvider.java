@@ -33,10 +33,7 @@ public class SequentialPortNumberProvider implements Supplier<Integer>, Copyable
     @Override
     public String toString() {
 
-        final StringBuilder sb = new StringBuilder("SequentialPortNumberProvider{");
-        sb.append("start=").append(start);
-        sb.append('}');
-        return sb.toString();
+        return "SequentialPortNumberProvider{" + "start=" + start + '}';
     }
 
     @Override

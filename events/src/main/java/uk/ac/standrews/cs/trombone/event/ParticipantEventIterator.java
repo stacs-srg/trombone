@@ -145,12 +145,11 @@ public class ParticipantEventIterator implements Iterator<Event>, Comparable<Par
         final Long current_time = getCurrentTime();
 
         available = isFirstEvent(current_time) ? churn.getAvailabilityAt(0).nextEvent(random) : !available;
-        //        available = churn.getAvailabilityAt(current_time).nextEvent(random);
 
         if (available) {
             final long session_length = normalize(churn.getSessionLengthAt(current_time));
             session_end_time = current_time + session_length;
-            return new JoinEvent(participant, current_time, session_length);
+            return new JoinEvent(participant, current_time);
         }
         else {
             final long downtime = normalize(churn.getDowntimeAt(current_time));

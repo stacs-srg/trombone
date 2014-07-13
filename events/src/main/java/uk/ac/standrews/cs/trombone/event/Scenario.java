@@ -105,7 +105,7 @@ public class Scenario implements Named, Copyable {
         }
     }
 
-    public HashMap<Integer,String> getHostIndices() {
+    public HashMap<Integer, String> getHostIndices() {
 
         return new HashMap<>(host_name_indices);
     }
@@ -313,15 +313,7 @@ public class Scenario implements Named, Copyable {
         @Override
         public String toString() {
 
-            final StringBuilder sb = new StringBuilder("HostScenario{");
-            sb.append("host_index='").append(host_index).append('\'');
-            sb.append(", churn=").append(churn);
-            sb.append(", workload=").append(workload);
-            sb.append(", configuration=").append(configuration);
-            sb.append(", peer_count=").append(peer_count);
-            sb.append(", port_number_provider=").append(port_number_provider);
-            sb.append('}');
-            return sb.toString();
+            return "HostScenario{" + "host_index='" + host_index + '\'' + ", churn=" + churn + ", workload=" + workload + ", configuration=" + configuration + ", peer_count=" + peer_count + ", port_number_provider=" + port_number_provider + '}';
         }
     }
 }

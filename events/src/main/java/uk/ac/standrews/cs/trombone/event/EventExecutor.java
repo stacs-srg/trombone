@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
@@ -343,9 +344,19 @@ public class EventExecutor {
                     final Duration observation_interval = getObservationInterval();
                     csv_reporter.start(observation_interval.getLength(), observation_interval.getTimeUnit());
                     try {
+                        CompletableFuture<Void> previous_future = null;
                         while (!Thread.currentThread().isInterrupted() && !task_populator_future.isDone() || !runnable_events.isEmpty()) {
                             final RunnableExperimentEvent runnable = runnable_events.take();
-                            task_executor.execute(runnable);
+
+                            if (previous_future == null) {
+                                previous_future = CompletableFuture.runAsync(runnable, task_executor);
+                            }
+                            else {
+                                previous_future = previous_future.thenRunAsync(runnable, task_executor);
+                            }
+
+                            //                            task_executor.execute(runnable);
+
                             event_scheduling_rate.mark();
                             load_balancer.release();
                         }
@@ -489,34 +500,9 @@ public class EventExecutor {
     private void queueNextEvent() throws IOException {
 
         final Event event = event_reader.next();
-        final Participant participant = event.getParticipant();
+        final Participant participant = event.getSource();
         final Peer peer = participant.getPeer();
         queue(peer, event);
-    }
-
-    private void joinWithTimeout(final Peer peer, final long timeout_nanos, final Set<PeerReference> known_peers) throws ExecutionException, InterruptedException {
-
-        if (known_peers != null && !known_peers.isEmpty()) {
-
-            final Iterator<PeerReference> iterator = known_peers.iterator();
-            boolean successful = false;
-            try {
-                while (!Thread.currentThread().isInterrupted() && !successful && iterator.hasNext()) {
-                    final PeerReference reference = iterator.next();
-                    peer.join(reference).get();
-                    successful = true;
-                }
-            }
-            finally {
-
-                if (successful) {
-                    join_success_rate.mark();
-                }
-                else {
-                    join_failure_rate.mark();
-                }
-            }
-        }
     }
 
     private abstract class RunnableExperimentEvent implements Runnable, Delayed {
@@ -612,13 +598,52 @@ public class EventExecutor {
                         logger.warn("exposure of peer {} was unsuccessful", peer);
                     }
 
-                    joinWithTimeout(peer, join_event.getDurationInNanos(), join_event.getKnownPeerReferences());
+                    join(peer, join_event.getKnownPeerReferences());
                 }
             }
             catch (final Exception e) {
                 logger.warn("failed to expose peer {} on address {}", peer, peer.getAddress());
                 logger.error("failure occurred when executing join event", e);
             }
+        }
+
+        private CompletableFuture<Void> join(final Peer peer, final Set<PeerReference> known_members) {
+
+            assert known_members != null;
+
+            final CompletableFuture<Void> future_join = new CompletableFuture<>();
+            if (known_members.isEmpty()) {
+                future_join.complete(null);
+            }
+            else {
+                join(future_join, peer, known_members.iterator());
+            }
+
+            return future_join;
+        }
+
+        private void join(CompletableFuture<Void> future_join, final Peer peer, final Iterator<PeerReference> known_members) {
+
+            assert known_members.hasNext();
+
+            final PeerReference known_peer = known_members.next();
+            final CompletableFuture<Void> join_trial = peer.join(known_peer);
+
+            join_trial.whenComplete((success, error) -> {
+                if (join_trial.isCompletedExceptionally()) {
+                    if (known_members.hasNext()) {
+                        join(future_join, peer, known_members);
+                    }
+                    else {
+                        future_join.completeExceptionally(error);
+                        join_failure_rate.mark();
+                    }
+                }
+                else {
+                    future_join.complete(null); // void future.
+                    join_success_rate.mark();
+                }
+            });
         }
     }
 
