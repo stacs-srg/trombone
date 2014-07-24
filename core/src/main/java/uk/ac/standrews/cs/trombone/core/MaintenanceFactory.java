@@ -37,7 +37,7 @@ public class MaintenanceFactory implements Serializable, Named {
         return strategy;
     }
 
-    protected Maintenance maintain(Peer peer) {
+    protected Maintenance get(Peer peer) {
 
         return new Maintenance(peer, strategy, SCHEDULER);
     }

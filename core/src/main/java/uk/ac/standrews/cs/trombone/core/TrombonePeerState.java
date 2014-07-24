@@ -1,7 +1,6 @@
 package uk.ac.standrews.cs.trombone.core;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -11,12 +10,12 @@ import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.core.util.RelativeRingDistanceComparator;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class PeerState {
+public class TrombonePeerState implements RoutingState {
 
     private final Key local_key;
     private final ConcurrentSkipListMap<Key, InternalPeerReference> state;
 
-    public PeerState(final Key local_key) {
+    public TrombonePeerState(final Key local_key) {
 
         this.local_key = local_key;
         state = new ConcurrentSkipListMap<Key, InternalPeerReference>(new RelativeRingDistanceComparator(local_key));
@@ -54,6 +53,12 @@ public class PeerState {
     public PeerReference remove(PeerReference reference) {
 
         return state.remove(reference.getKey());
+    }
+
+    @Override
+    public PeerReference closest(final Key target) {
+
+        return ceilingReachable(target);
     }
 
     public PeerReference lower(final Key target) {
@@ -130,11 +135,6 @@ public class PeerState {
     public Collection<InternalPeerReference> getValues() {
 
         return state.values();
-    }
-
-    public Iterator<InternalPeerReference> descendingIterator() {
-
-        return state.descendingMap().values().iterator();
     }
 
     public List<InternalPeerReference> getInternalReferences() {

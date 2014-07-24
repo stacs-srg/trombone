@@ -22,6 +22,7 @@ import org.mashti.jetson.util.NamedThreadFactory;
 import org.mashti.jetson.util.ReflectionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.standrews.cs.trombone.core.rpc.FuturePeerResponse;
 import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
@@ -43,14 +44,13 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
         BOOTSTRAP.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
 
         CHANNEL_POOL.setMaxPooledObjectAgeInMillis(2_000);
-
     }
 
     static final Method[] DISPATCH = ReflectionUtil.checkAndSort(AsynchronousPeerRemote.class.getMethods());
 
     private final Peer peer;
     private final SyntheticDelay synthetic_delay;
-    private final PeerState peer_state;
+    private final RoutingState peer_state;
     private final PeerMetric peer_metric;
     private final InetAddress peer_address;
 
@@ -87,7 +87,7 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
         final InetSocketAddress address = reference.getAddress();
         final AsynchronousPeerRemote remote = get(address);
         final PeerClient handler = (PeerClient) Proxy.getInvocationHandler(remote);
-        handler.reference = peer_state.getInternalReference(reference);
+        handler.reference = reference;
 
         return remote;
     }
@@ -101,7 +101,7 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
     public class PeerClient extends Client {
 
         private final InetAddress client_address;
-        volatile InternalPeerReference reference;
+        volatile PeerReference reference;
 
         protected PeerClient(final InetSocketAddress address) {
 
@@ -130,10 +130,12 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
         @Override
         public FutureResponse<?> newFutureResponse(final Method method, final Object[] arguments) {
 
-            final FutureResponse<?> future_response = super.newFutureResponse(method, arguments);
+            final FuturePeerResponse<?> future_response = new FuturePeerResponse(reference, method, arguments);
+            future_response.setWrittenByteCountListener(written_byte_count_listener);
             future_response.whenCompleteAsync((Object result, Throwable error) -> {
                 if (!future_response.isCompletedExceptionally()) {
-                    reference.seen(true);
+
+                    reference.setReachable(true);
 
                     if (result instanceof PeerReference) {
                         peer.push((PeerReference) result);
@@ -148,10 +150,13 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
                     }
                 }
                 else {
-                    reference.seen(false);
+                    reference.setReachable(false);
                     peer_metric.notifyRPCError(error);
                     LOGGER.debug("failure occurred on future", error);
                 }
+
+                peer.push(reference);
+
             }, peer.getExecutor());
 
             return future_response;
@@ -160,9 +165,10 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
         @Override
         protected void beforeFlush(final Channel channel, final FutureResponse future_response) throws RPCException {
 
-            
-            channel.write(newFutureResponse(DisseminationStrategy.PUSH_SINGLE_METHOD, new Object[]{peer.getSelfReference()}));
-            
+            channel.write(newFutureResponse(DisseminationStrategy.PUSH_SINGLE_METHOD, new Object[] {
+                    peer.getSelfReference()
+            }));
+
             final DisseminationStrategy strategy = peer.getDisseminationStrategy();
             if (strategy != null) {
                 for (DisseminationStrategy.Action action : strategy) {

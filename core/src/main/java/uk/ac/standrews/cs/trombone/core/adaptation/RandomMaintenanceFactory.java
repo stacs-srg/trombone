@@ -19,7 +19,7 @@ public class RandomMaintenanceFactory extends EvolutionaryMaintenanceFactory {
     }
 
     @Override
-    protected Maintenance maintain(Peer peer) {
+    protected Maintenance get(Peer peer) {
 
         return new RandomMaintenance(peer, SCHEDULER, population_size, evolution_cycle_length, evolution_cycle_unit, clusterer, strategy_generator);
     }

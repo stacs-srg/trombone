@@ -19,10 +19,10 @@ public class Maintenance implements PropertyChangeListener {
 
     public static final Rate RECONFIGURATION_RATE = new Rate();
     private static final Logger LOGGER = LoggerFactory.getLogger(Maintenance.class);
-    private final Peer peer;
+    protected final Peer peer;
     protected final ScheduledExecutorService scheduler;
     private final AtomicReference<DisseminationStrategy> strategy;
-    private final NonOpportunisticDisseminator nonOpportunisticDisseminator;
+    private final Runnable nonOpportunisticDisseminator;
     private volatile boolean started;
     private ScheduledFuture<?> non_opp_maintenance;
 
@@ -31,8 +31,13 @@ public class Maintenance implements PropertyChangeListener {
         this.peer = peer;
         this.scheduler = scheduler;
         this.strategy = new AtomicReference<>(strategy);
-        nonOpportunisticDisseminator = new NonOpportunisticDisseminator();
+        nonOpportunisticDisseminator = newNonOpportunisticDisseminator();
         peer.addExposureChangeListener(this);
+    }
+
+    protected Runnable newNonOpportunisticDisseminator() {
+
+        return new NonOpportunisticDisseminator();
     }
 
     protected DisseminationStrategy getDisseminationStrategy() {
@@ -87,7 +92,7 @@ public class Maintenance implements PropertyChangeListener {
         return started;
     }
 
-    private class NonOpportunisticDisseminator implements Runnable {
+    protected class NonOpportunisticDisseminator implements Runnable {
 
         @Override
         public void run() {

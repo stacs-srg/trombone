@@ -49,7 +49,7 @@ import uk.ac.standrews.cs.trombone.core.MaintenanceFactory;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerMetric;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
-import uk.ac.standrews.cs.trombone.core.PeerState;
+import uk.ac.standrews.cs.trombone.core.RoutingState;
 import uk.ac.standrews.cs.trombone.core.adaptation.EvaluatedDisseminationStrategy;
 import uk.ac.standrews.cs.trombone.core.adaptation.EvolutionaryMaintenance;
 import uk.ac.standrews.cs.trombone.core.adaptation.EvolutionaryMaintenanceFactory;
@@ -114,10 +114,10 @@ public class EventExecutor {
     private final ThreadCpuUsageGauge thread_cpu_usage_gauge = new ThreadCpuUsageGauge();
     private final GarbageCollectorCpuUsageGauge gc_cpu_usage_gauge = new GarbageCollectorCpuUsageGauge();
     private final MemoryUsageGauge memory_usage_gauge = new MemoryUsageGauge();
-    private final Gauge event_executor_queue_size = new Gauge() {
+    private final Gauge<Integer> event_executor_queue_size = new Gauge<Integer>() {
 
         @Override
-        public Object get() {
+        public Integer get() {
 
             return task_executor.getQueue().size();
         }
@@ -131,7 +131,7 @@ public class EventExecutor {
             for (Participant participant : event_reader.getParticipants()) {
                 Peer peer = participant.getPeer();
                 if (peer.isExposed()) {
-                    final PeerState state = peer.getPeerState();
+                    final RoutingState state = peer.getPeerState();
                     number_of_reachable_state += state.stream().filter(reference -> reference.isReachable()).count();
                 }
             }
@@ -149,7 +149,7 @@ public class EventExecutor {
             for (Participant participant : event_reader.getParticipants()) {
                 Peer peer = participant.getPeer();
                 if (peer.isExposed()) {
-                    final PeerState state = peer.getPeerState();
+                    final RoutingState state = peer.getPeerState();
                     number_of_unreachable_state += state.stream().filter(reference -> !reference.isReachable()).count();
                 }
             }
@@ -487,7 +487,7 @@ public class EventExecutor {
                     }
                 }
                 catch (Throwable e) {
-                    LOGGER.error("failure occurred while queuing events", e);
+                    LOGGER.error("failure occurred while queuing events ", e);
                 }
                 finally {
                     LOGGER.info("finished queueing events");
@@ -598,7 +598,12 @@ public class EventExecutor {
                         logger.warn("exposure of peer {} was unsuccessful", peer);
                     }
 
-                    join(peer, join_event.getKnownPeerReferences());
+                    try {
+                        join(peer, join_event.getKnownPeerReferences()).get();
+                    }
+                    catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
             catch (final Exception e) {
@@ -636,6 +641,7 @@ public class EventExecutor {
                     }
                     else {
                         future_join.completeExceptionally(error);
+                        error.printStackTrace();
                         join_failure_rate.mark();
                     }
                 }

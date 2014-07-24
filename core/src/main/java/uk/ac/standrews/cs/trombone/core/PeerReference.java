@@ -67,8 +67,8 @@ public class PeerReference implements Comparable<PeerReference> {
         return key.compareTo(other.key);
     }
 
-    protected boolean setReachable(final boolean reachable) {
+    public void setReachable(final boolean reachable) {
 
-        return this.reachable.compareAndSet(!reachable, reachable);
+        this.reachable.set(reachable);
     }
 }

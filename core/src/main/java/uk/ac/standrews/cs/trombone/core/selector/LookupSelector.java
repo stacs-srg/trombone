@@ -18,7 +18,7 @@ public class LookupSelector extends Selector {
         super(targets.length, ReachabilityCriteria.REACHABLE);
         this.targets = targets;
     }
-
+    
     @Override
     public List<PeerReference> select(final Peer peer) {
 

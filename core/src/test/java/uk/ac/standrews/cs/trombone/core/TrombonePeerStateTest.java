@@ -11,14 +11,14 @@ import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.core.key.KeyProvider;
 
-public class PeerStateTest {
+public class TrombonePeerStateTest {
 
     private static final KeyProvider KEY_PROVIDER = new KeyProvider(Integer.SIZE, 74185263);
     public static final int STATE_SIZE = 1000;
-    private PeerState state;
+    private TrombonePeerState state;
     private Key local_key;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PeerStateTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TrombonePeerStateTest.class);
 
     @Before
     public void setUp() throws Exception {
@@ -26,7 +26,7 @@ public class PeerStateTest {
         local_key = KEY_PROVIDER.get();
         LOGGER.info("local key: {}", local_key);
 
-        state = new PeerState(local_key);
+        state = new TrombonePeerState(local_key);
 
         for (int i = 0; i < STATE_SIZE; i++) {
             state.add(new PeerReference(KEY_PROVIDER.get(), new InetSocketAddress(0)));

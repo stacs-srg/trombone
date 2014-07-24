@@ -20,7 +20,7 @@ import uk.ac.standrews.cs.trombone.core.selector.Self;
 public class SingleProcessPeerManager implements ApplicationManager {
 
     private static final KeyProvider KEY_PROVIDER = new KeyProvider(32, 894156);
-    private static final AttributeKey<Peer> PEER_KEY = new AttributeKey<Peer>();
+    private static final AttributeKey<Peer> PEER_KEY = new AttributeKey<>();
     private static final Random RANDOM = new Random(545454);
     private static final MaintenanceFactory MAINTENANCE = new MaintenanceFactory();
     private final Set<PeerReference> joined_peers = new ConcurrentSkipListSet<>();
@@ -37,7 +37,7 @@ public class SingleProcessPeerManager implements ApplicationManager {
         strategy.addAction(new DisseminationStrategy.Action(false, true, self, predecessor));
     }
 
-    private static final PeerConfiguration CONFIGURATION = new PeerConfiguration(MAINTENANCE, PeerFactory.NO_SYNTHETIC_DELAY);
+    private static final PeerConfiguration CONFIGURATION = new PeerConfiguration(MAINTENANCE);
 
     @Override
     public ApplicationState probeState(final ApplicationDescriptor descriptor) {

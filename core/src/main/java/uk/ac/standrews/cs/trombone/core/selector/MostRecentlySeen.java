@@ -1,10 +1,9 @@
 package uk.ac.standrews.cs.trombone.core.selector;
 
 import java.util.List;
-import java.util.stream.Collectors;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
-import uk.ac.standrews.cs.trombone.core.PeerState;
+import uk.ac.standrews.cs.trombone.core.RoutingState;
 import uk.ac.standrews.cs.trombone.core.util.InternalReferenceLastSeenComparator;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
@@ -21,8 +20,8 @@ public class MostRecentlySeen extends Selector {
     @Override
     public List<? extends PeerReference> select(final Peer peer) {
 
-        final PeerState state = peer.getPeerState();
-        return state.getInternalReferences().stream().sorted(INTERNAL_REFERENCE_LAST_SEEN_COMPARATOR).limit(size).collect(Collectors.toList());
+        final RoutingState state = peer.getPeerState();
+        return null; //state.getReferences().stream().sorted(INTERNAL_REFERENCE_LAST_SEEN_COMPARATOR).limit(size).collect(Collectors.toList());
     }
 
     @Override

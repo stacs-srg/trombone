@@ -10,6 +10,23 @@ import uk.ac.standrews.cs.trombone.core.util.Named;
  */
 public interface SyntheticDelay extends Serializable, Named {
 
+    SyntheticDelay ZERO = new SyntheticDelay() {
+
+        private static final long serialVersionUID = -6878108170239697600L;
+
+        @Override
+        public long get(final InetAddress from, final InetAddress to) {
+
+            return 0;
+        }
+
+        @Override
+        public String getName() {
+
+            return "none";
+        }
+    };
+
     /**
      * Gets the synthetic delay in {@link TimeUnit#NANOSECONDS}.
      *

@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.standrews.cs.trombone.core.InternalPeerReference;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 
@@ -24,9 +23,9 @@ public class Last extends Selector {
     @Override
     public List<PeerReference> select(final Peer peer) {
 
-        final List<InternalPeerReference> references = peer.getPeerState().getInternalReferences();
+        final List<PeerReference> references = peer.getPeerState().getReferences();
         Collections.reverse(references);
-        final Stream<InternalPeerReference> state_reverse_stream = references.stream();
+        final Stream<PeerReference> state_reverse_stream = references.stream();
         switch (reachability_criteria) {
             case REACHABLE:
                 return state_reverse_stream.filter(reference -> reference.isReachable()).limit(size).collect(Collectors.toList());

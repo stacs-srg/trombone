@@ -1,22 +1,20 @@
 package uk.ac.standrews.cs.trombone.core.adaptation.clustering;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.commons.math3.ml.clustering.CentroidCluster;
 import org.apache.commons.math3.ml.clustering.Clusterable;
 import org.apache.commons.math3.ml.clustering.Clusterer;
 
 /**
- * A clustering algorithm that constructs a {@link CentroidCluster} per each point.
+ * Clusters each given point into a {@link CentroidCluster} with the point as its center.
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public final class PerPointClusterer<Point extends Clusterable> extends Clusterer<Point> {
 
-    /**
-     * Build a new per point clusterer.
-     */
+    /** Constructs a new per point clusterer. */
     public PerPointClusterer() {
 
         super(null);
@@ -25,18 +23,19 @@ public final class PerPointClusterer<Point extends Clusterable> extends Clustere
     @Override
     public List<CentroidCluster<Point>> cluster(final Collection<Point> points) {
 
-        final List<CentroidCluster<Point>> clustering = new ArrayList<>(points.size());
-        for (Point point : points) {
-            final CentroidCluster<Point> cluster = new CentroidCluster<>(point);
-            cluster.addPoint(point);
-            clustering.add(cluster);
-        }
-        return clustering;
+        return points.stream().map(this :: toCentroidCluster).collect(Collectors.toList());
     }
 
     @Override
     protected double distance(final Clusterable one, final Clusterable other) {
 
         throw new UnsupportedOperationException();
+    }
+
+    private CentroidCluster<Point> toCentroidCluster(final Point point) {
+
+        final CentroidCluster<Point> cluster = new CentroidCluster<>(point);
+        cluster.addPoint(point);
+        return cluster;
     }
 }

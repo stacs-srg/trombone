@@ -90,7 +90,7 @@ public class BlubExperiment {
             LOGGER.info("{} repetitions of {} already exists, doing {} repetitions", existing_repetitions, scenario_name, required_repetitions);
 
             for (int i = 0; i < required_repetitions; i++) {
-                if (scenarios_with_repetitions.isEmpty()) { scenarios_with_repetitions.add(scenario); }
+                scenarios_with_repetitions.add(scenario);
             }
         }
 

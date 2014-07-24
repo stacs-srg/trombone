@@ -32,7 +32,7 @@ public final class Constants {
 
     public static final long SCENARIO_MASTER_SEED = 1413;
     public static final int NUMBER_OF_REPETITIONS = 5;
-    public static final int NETWORK_SIZE = 1_000;
+    public static final int NETWORK_SIZE = 1_0;
     public static final PFClustClusterer<EvaluatedDisseminationStrategy> PF_CLUST_CLUSTERER = new PFClustClusterer<>(SCENARIO_MASTER_SEED);
 
     public static final Duration EXPERIMENT_DURATION_52 = new Duration(52, TimeUnit.HOURS);

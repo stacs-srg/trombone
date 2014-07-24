@@ -126,7 +126,7 @@ public class BlubEventExecutionJob implements Job<String> {
 
     private static Scenario getScenarioByName(final String scenario_name) {
 
-        for (Scenario scenario : ScenarioBatches.STATIC_AND_ADAPTIVE_4H_SCENARIOS) {
+        for (Scenario scenario : ScenarioBatches.CHURN_RATE_SCENARIOS) {
             if (scenario.getName().equals(scenario_name)) {
                 return scenario;
             }

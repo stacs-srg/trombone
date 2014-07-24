@@ -14,6 +14,7 @@ import org.mashti.jetson.lean.LeanServerChannelInitializer;
 import org.mashti.jetson.util.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.standrews.cs.trombone.core.rpc.FuturePeerResponse;
 import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
 
 /**
@@ -72,7 +73,7 @@ public class PeerServerFactory extends ServerFactory<AsynchronousPeerRemote> {
     }
 
     static class MyServer extends Server {
-                                                            
+
         private final Peer peer;
 
         MyServer(final ServerBootstrap server_bootstrap, final Object service) {
@@ -82,10 +83,17 @@ public class PeerServerFactory extends ServerFactory<AsynchronousPeerRemote> {
         }
 
         @Override
-        protected void handle(final ChannelHandlerContext context, final FutureResponse future_response) {
+        protected void handle(final ChannelHandlerContext context, final FutureResponse<Object> future_response) {
 
             handling_rate.mark();
             peer.getPeerMetric().notifyServe(future_response.getMethod()); // record frequency of called methods
+
+            if (future_response instanceof FuturePeerResponse<?>) {
+                final FuturePeerResponse<?> future_peer_response = (FuturePeerResponse<?>) future_response;
+                final PeerReference correspondent = future_peer_response.getCorrespondent();
+                peer.push(correspondent);
+            }
+
             MyServer.super.handle(context, future_response);
             future_response.thenRunAsync(() -> {
                 handled_rate.mark();
