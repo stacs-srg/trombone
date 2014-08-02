@@ -1,5 +1,8 @@
 require.config(
     {
+        config: {
+            'waitSeconds': 30
+        },
         baseUrl: 'scripts',
         paths: {
             jquery: 'lib/jquery-1.11.0',

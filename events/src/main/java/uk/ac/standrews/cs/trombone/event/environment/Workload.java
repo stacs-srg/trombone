@@ -21,31 +21,40 @@ package uk.ac.standrews.cs.trombone.event.environment;
 
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.core.key.Key;
-import uk.ac.standrews.cs.trombone.core.key.KeyProvider;
-import uk.ac.standrews.cs.trombone.core.util.Copyable;
+import uk.ac.standrews.cs.trombone.core.key.KeySupplier;
 
 /**
  * Presents a synthetic pattern of a peer workload.
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class Workload implements Copyable {
+public class Workload {
 
     /** No workload. */
     public static final Workload NONE = new Workload(null, new ConstantIntervalGenerator(Duration.MAX_DURATION));
 
-    private final KeyProvider key_provider;
+    private final KeySupplier key_supplier;
     private final IntervalGenerator intervals;
+
+    /**
+     * Constructs a copy of the given {@code workload}
+     *
+     * @param workload the workload to copy
+     */
+    public Workload(Workload workload) {
+
+        this(workload.key_supplier, workload.intervals);
+    }
 
     /**
      * Instantiates a new workload pattern.
      *
-     * @param key_provider the provider of target lookup keys
+     * @param key_supplier the provider of target lookup keys
      * @param intervals the intervals between successive lookups
      */
-    public Workload(final KeyProvider key_provider, final IntervalGenerator intervals) {
+    public Workload(final KeySupplier key_supplier, final IntervalGenerator intervals) {
 
-        this.key_provider = key_provider;
+        this.key_supplier = key_supplier;
         this.intervals = intervals;
     }
 
@@ -54,9 +63,9 @@ public class Workload implements Copyable {
      *
      * @return the provider of target lookup keys
      */
-    public KeyProvider getKeyProvider() {
+    public KeySupplier getKeyProvider() {
 
-        return key_provider;
+        return key_supplier;
     }
 
     /**
@@ -88,22 +97,12 @@ public class Workload implements Copyable {
      */
     public Key getTargetKeyAt(final long time_nanos) {
 
-        return key_provider == null ? null : key_provider.get();
-    }
-
-    @Override
-    public Workload copy() {
-
-        return new Workload(key_provider == null ? null : key_provider.copy(), intervals.copy());
+        return key_supplier == null ? null : key_supplier.get();
     }
 
     @Override
     public String toString() {
 
-        final StringBuilder sb = new StringBuilder("Workload{");
-        sb.append("key_provider=").append(key_provider);
-        sb.append(", intervals=").append(intervals);
-        sb.append('}');
-        return sb.toString();
+        return "Workload{" + "key_provider=" + key_supplier + ", intervals=" + intervals + '}';
     }
 }

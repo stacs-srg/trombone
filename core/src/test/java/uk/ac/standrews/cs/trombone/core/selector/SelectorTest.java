@@ -8,7 +8,6 @@ import org.junit.Test;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.key.Key;
-import uk.ac.standrews.cs.trombone.core.util.NamingUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -31,7 +30,7 @@ public class SelectorTest {
                 private static final long serialVersionUID = -6385048910225591282L;
 
                 @Override
-                public List<? extends PeerReference> select(final Peer peer) {
+                public List<PeerReference> select(final Peer peer) {
 
                     return null;
                 }
@@ -46,7 +45,6 @@ public class SelectorTest {
             assertFalse(selector.isSingleton());
             assertEquals(size, selector.getSelectionSize());
             assertEquals(criteria, selector.getReachabilityCriteria());
-            assertEquals(NamingUtils.name(selector), selector.getName());
         }
     }
 

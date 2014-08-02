@@ -65,5 +65,5 @@ public interface AsynchronousPeerRemote {
      * @param target the key of which to get the successor
      * @return the future that will return the successor of the given {@code target} key in the local state of this peer
      */
-    CompletableFuture<PeerReference> nextHop(Key target);
+    CompletableFuture<NextHopReference> nextHop(Key target);
 }

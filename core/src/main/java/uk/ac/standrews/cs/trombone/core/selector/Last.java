@@ -31,7 +31,7 @@ public class Last extends Selector {
                 return state_reverse_stream.filter(reference -> reference.isReachable()).limit(size).collect(Collectors.toList());
             case UNREACHABLE:
                 return state_reverse_stream.filter(reference -> !reference.isReachable()).limit(size).collect(Collectors.toList());
-            case REACHABLE_OR_UNREACHABLE:
+            case ANY:
                 return state_reverse_stream.limit(size).collect(Collectors.toList());
             default:
                 LOGGER.warn("unknown reachability criteria {}", reachability_criteria);

@@ -19,6 +19,9 @@
 
 package uk.ac.standrews.cs.trombone.event;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,30 +38,47 @@ import org.json.JSONObject;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
 import uk.ac.standrews.cs.trombone.core.key.Key;
-import uk.ac.standrews.cs.trombone.core.key.KeyProvider;
-import uk.ac.standrews.cs.trombone.core.util.Copyable;
-import uk.ac.standrews.cs.trombone.core.util.Named;
+import uk.ac.standrews.cs.trombone.core.key.KeySupplier;
 import uk.ac.standrews.cs.trombone.event.environment.Churn;
 import uk.ac.standrews.cs.trombone.event.environment.Workload;
-import uk.ac.standrews.cs.trombone.event.provider.SequentialPortNumberProvider;
+import uk.ac.standrews.cs.trombone.event.util.SequentialPortNumberSupplier;
 
 /**
  * Presents an experiment scenario.
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class Scenario implements Named, Copyable {
+
+public class Scenario {
 
     private final AtomicInteger next_host_scenario_id = new AtomicInteger();
+    private final AtomicInteger next_host_index;
     private final String name;
     private final long master_seed;
     private final TreeSet<HostScenario> host_scenarios = new TreeSet<>();
     private final Map<Integer, String> host_name_indices = new TreeMap<>();
-    private final AtomicInteger next_host_index;
     private Duration experiment_duration;
     private Duration observation_interval;
-    private KeyProvider peer_key_provider;
+    private KeySupplier peer_key_supplier;
     private int lookup_retry_count;
+
+    /**
+     * Constructs a copy of the given scenario.
+     *
+     * @param scenario the scenario from which to construct a copy
+     */
+    public Scenario(Scenario scenario) {
+
+        this(scenario.name, scenario.master_seed);
+        scenario.setExperimentDuration(experiment_duration);
+        scenario.setObservationInterval(observation_interval);
+        scenario.setLookupRetryCount(lookup_retry_count);
+        scenario.setPeerKeyProvider(peer_key_supplier);
+        scenario.setObservationInterval(observation_interval);
+        for (HostScenario host_scenario : host_scenarios) {
+            scenario.addHost(host_scenario.getHostName(), host_scenario.getPeerCount(), host_scenario.getPort_number_provider(), host_scenario.getChurn(), host_scenario.getWorkload(), host_scenario.getConfiguration());
+        }
+    }
 
     /**
      * Instantiates a new Scenario.
@@ -73,25 +93,25 @@ public class Scenario implements Named, Copyable {
         next_host_index = new AtomicInteger(1);
     }
 
-    public synchronized void addHost(String host, Integer peer_count, SequentialPortNumberProvider port_number_provider, Churn churn, Workload workload, PeerConfiguration configuration) {
+    public synchronized void addHost(String host, Integer peer_count, SequentialPortNumberSupplier port_number_provider, Churn churn, Workload workload, PeerConfiguration configuration) {
 
         final int host_index = getHostIndex(host);
         host_scenarios.add(new HostScenario(host_index, peer_count, port_number_provider.copy(), churn, workload, configuration));
     }
 
-    @Override
-    public Scenario copy() {
+    public static void main(String[] args) throws IOException {
 
-        final Scenario copy = new Scenario(name, master_seed);
-        copy.setExperimentDuration(experiment_duration);
-        copy.setObservationInterval(observation_interval);
-        copy.setLookupRetryCount(lookup_retry_count);
-        copy.setPeerKeyProvider(peer_key_provider);
-        copy.setObservationInterval(observation_interval);
-        for (HostScenario host_scenario : host_scenarios) {
-            copy.addHost(host_scenario.getHostName(), host_scenario.getPeerCount(), host_scenario.getPort_number_provider(), host_scenario.getChurn(), host_scenario.getWorkload(), host_scenario.getConfiguration());
-        }
-        return copy;
+        final Scenario scenario = new Scenario("scenario", 123);
+
+        scenario.addHost("host1", 100, new SequentialPortNumberSupplier(4500), Churn.NONE, Workload.NONE, null);
+
+        new ObjectMapper(new JsonFactory()).writerWithDefaultPrettyPrinter()
+                .writeValue(System.out, scenario);
+    }
+
+    public String getName() {
+
+        return name;
     }
 
     public void substituteHostNames(Map<Integer, String> substitutes) {
@@ -170,20 +190,14 @@ public class Scenario implements Named, Copyable {
         return getExperimentDuration().getLength(TimeUnit.NANOSECONDS);
     }
 
-    @Override
-    public String getName() {
-
-        return name;
-    }
-
     public Supplier<Key> getPeerKeyProvider() {
 
-        return peer_key_provider;
+        return peer_key_supplier;
     }
 
-    public void setPeerKeyProvider(final KeyProvider peer_key_provider) {
+    public void setPeerKeyProvider(final KeySupplier peer_key_provider) {
 
-        this.peer_key_provider = peer_key_provider;
+        this.peer_key_supplier = peer_key_provider;
     }
 
     public long getMasterSeed() {
@@ -199,7 +213,7 @@ public class Scenario implements Named, Copyable {
         for (final HostScenario host_scenario : host_scenarios) {
             for (int i = 0; i < host_scenario.peer_count; i++) {
 
-                final Key peer_key = peer_key_provider.get();
+                final Key peer_key = peer_key_supplier.get();
                 final InetSocketAddress peer_address = new InetSocketAddress(host_scenario.getHostName(), host_scenario.getNextPort());
                 final Participant participant = new Participant(next_id, peer_key, peer_address, host_scenario.churn, host_scenario.workload, host_scenario.configuration);
                 participant.setHostIndex(host_scenario.host_index);
@@ -230,7 +244,7 @@ public class Scenario implements Named, Copyable {
     public class HostScenario implements Comparable<HostScenario> {
 
         private final int peer_count;
-        private final SequentialPortNumberProvider port_number_provider;
+        private final SequentialPortNumberSupplier port_number_provider;
         private final Churn churn;
         private final Workload workload;
         private final PeerConfiguration configuration;
@@ -247,7 +261,7 @@ public class Scenario implements Named, Copyable {
             return peer_count;
         }
 
-        public SequentialPortNumberProvider getPort_number_provider() {
+        public SequentialPortNumberSupplier getPort_number_provider() {
 
             return port_number_provider;
         }
@@ -267,13 +281,13 @@ public class Scenario implements Named, Copyable {
             return configuration;
         }
 
-        private HostScenario(Integer host_index, final int peer_count, final SequentialPortNumberProvider port_number_provider, final Churn churn, final Workload workload, final PeerConfiguration configuration) {
+        private HostScenario(Integer host_index, final int peer_count, final SequentialPortNumberSupplier port_number_provider, final Churn churn, final Workload workload, final PeerConfiguration configuration) {
 
             Objects.requireNonNull(host_index);
             Objects.requireNonNull(port_number_provider);
             Objects.requireNonNull(churn);
             Objects.requireNonNull(workload);
-            Objects.requireNonNull(configuration, "configuration must not be null");
+            //            Objects.requireNonNull(configuration, "configuration must not be null");
 
             id = next_host_scenario_id.incrementAndGet();
             this.host_index = host_index;

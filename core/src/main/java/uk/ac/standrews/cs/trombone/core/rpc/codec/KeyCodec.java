@@ -25,7 +25,7 @@ public class KeyCodec implements Codec {
         else {
             out.writeBoolean(false);
             final Key key = (Key) value;
-            final byte[] key_value = key.toByteArray();
+            final byte[] key_value = key.getValue().toByteArray();
             codecs.encodeAs(key_value, out, byte[].class);
         }
     }

@@ -55,10 +55,10 @@ public class KeyCodecTest {
         keys.add(Key.valueOf(Integer.MIN_VALUE));
         keys.add(Key.valueOf(random.nextInt()));
         keys.add(Key.valueOf(random.nextLong()));
-        
+
         for (Key key : keys) {
-            codec.encode(key, buffer, PeerCodecs.INSTANCE, Key.class);
-            assertEquals(key, codec.decode(buffer, PeerCodecs.INSTANCE, Key.class));
+            codec.encode(key, buffer, PeerCodecs.getInstance(), Key.class);
+            assertEquals(key, codec.decode(buffer, PeerCodecs.getInstance(), Key.class));
         }
     }
 

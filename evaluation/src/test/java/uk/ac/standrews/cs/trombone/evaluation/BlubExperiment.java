@@ -41,6 +41,7 @@ import uk.ac.standrews.cs.shabdiz.job.WorkerManager;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
+import uk.ac.standrews.cs.trombone.evaluation.scenarios.Batch1EffectOfChurn;
 import uk.ac.standrews.cs.trombone.evaluation.scenarios.Constants;
 import uk.ac.standrews.cs.trombone.evaluation.util.BlubCluster;
 import uk.ac.standrews.cs.trombone.evaluation.util.ExperimentWatcher;
@@ -51,7 +52,7 @@ import uk.ac.standrews.cs.trombone.event.Scenario;
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-@RunWith(Parallelized.class)
+@RunWith(ParallelParameterized.class)
 public class BlubExperiment {
 
     static final Path BLUB_NODE_RESULTS_HOME = Paths.get("/state", "partition1", "t3", "evaluation");
@@ -76,15 +77,18 @@ public class BlubExperiment {
     public ExperimentWatcher watcher = new ExperimentWatcher();
     private int required_host_count;
 
+    static final List<Scenario> SCENARIOS = Batch1EffectOfChurn.getInstance().get();
+
     @Parameterized.Parameters(name = "{index} scenario: {0}")
     public static Collection<Object[]> data() throws IOException {
 
         final List<Scenario> scenarios_with_repetitions = new ArrayList<>();
-
-        for (Scenario scenario : ScenarioBatches.CHURN_RATE_SCENARIOS) {
+        for (Scenario scenario : SCENARIOS) {
             final String scenario_name = scenario.getName();
             final Path repetitionsHome = ScenarioUtils.getScenarioRepetitionsHome(scenario_name);
-            int existing_repetitions = Files.exists(repetitionsHome) ? FileSystemUtils.getMatchingFiles(repetitionsHome, repetitionsHome.getFileSystem().getPathMatcher("glob:**/*.zip")).size() : 0;
+            int existing_repetitions = Files.exists(repetitionsHome) ? FileSystemUtils.getMatchingFiles(repetitionsHome, repetitionsHome.getFileSystem()
+                    .getPathMatcher("glob:**/*.zip"))
+                    .size() : 0;
 
             final int required_repetitions = Math.max(0, Constants.NUMBER_OF_REPETITIONS - existing_repetitions);
             LOGGER.info("{} repetitions of {} already exists, doing {} repetitions", existing_repetitions, scenario_name, required_repetitions);
@@ -310,7 +314,8 @@ public class BlubExperiment {
     private Integer getHostIndexByName(final String host_name) {
 
         for (Map.Entry<Integer, String> entry : host_indices.entrySet()) {
-            if (entry.getValue().equals(host_name)) {
+            if (entry.getValue()
+                    .equals(host_name)) {
                 return entry.getKey();
             }
         }

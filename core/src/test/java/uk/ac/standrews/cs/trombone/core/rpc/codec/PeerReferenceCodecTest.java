@@ -40,8 +40,8 @@ public class PeerReferenceCodecTest {
         final PeerReference[] keys = {null, new PeerReference(Key.valueOf(45), new InetSocketAddress(8541)), new PeerReference(Key.valueOf(333), new InetSocketAddress(85), false)};
 
         for (PeerReference key : keys) {
-            codec.encode(key, buffer, PeerCodecs.INSTANCE, PeerReference.class);
-            assertEquals(key, codec.decode(buffer, PeerCodecs.INSTANCE, PeerReference.class));
+            codec.encode(key, buffer, PeerCodecs.getInstance(), PeerReference.class);
+            assertEquals(key, codec.decode(buffer, PeerCodecs.getInstance(), PeerReference.class));
         }
     }
 

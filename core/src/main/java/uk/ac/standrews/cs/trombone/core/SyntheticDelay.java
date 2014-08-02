@@ -1,31 +1,19 @@
 package uk.ac.standrews.cs.trombone.core;
 
-import java.io.Serializable;
 import java.net.InetAddress;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
-import uk.ac.standrews.cs.trombone.core.util.Named;
 
 /**
+ * Generates a synthetic delay in {@link TimeUnit#NANOSECONDS nanoseconds} for a given pair of {@link InetAddress addresses}.
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface SyntheticDelay extends Serializable, Named {
+@FunctionalInterface
+public interface SyntheticDelay {
 
-    SyntheticDelay ZERO = new SyntheticDelay() {
-
-        private static final long serialVersionUID = -6878108170239697600L;
-
-        @Override
-        public long get(final InetAddress from, final InetAddress to) {
-
-            return 0;
-        }
-
-        @Override
-        public String getName() {
-
-            return "none";
-        }
-    };
+    /** Returns zero for any given pair of {@link InetAddress addresses}. */
+    SyntheticDelay ZERO = (from, to, random) -> 0L;
 
     /**
      * Gets the synthetic delay in {@link TimeUnit#NANOSECONDS}.
@@ -34,5 +22,6 @@ public interface SyntheticDelay extends Serializable, Named {
      * @param to the destination address
      * @return the synthetic delay in {@link TimeUnit#NANOSECONDS}
      */
-    long get(InetAddress from, InetAddress to);
+    long get(InetAddress from, InetAddress to, Random random);
+
 }

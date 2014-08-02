@@ -2,15 +2,13 @@ package uk.ac.standrews.cs.trombone.core.selector;
 
 import java.util.List;
 import java.util.Random;
-import uk.ac.standrews.cs.trombone.core.util.Named;
-import uk.ac.standrews.cs.trombone.core.util.NamingUtils;
 
 import static uk.ac.standrews.cs.trombone.core.selector.Selector.ReachabilityCriteria;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class SelectorFactory implements Named {
+public class SelectorFactory{
 
     private static final ReachabilityCriteria[] REACHABILITY_CRITERIA = ReachabilityCriteria.values();
     private static final int REACHABILITY_CRITERIA_LENGTH = REACHABILITY_CRITERIA.length;
@@ -26,12 +24,6 @@ public class SelectorFactory implements Named {
     public int getMaxSelectionSize() {
 
         return max_selection_size;
-    }
-
-    @Override
-    public String getName() {
-
-        return NamingUtils.name(this);
     }
 
     public Selector mutate(Selector selector, Random random) {

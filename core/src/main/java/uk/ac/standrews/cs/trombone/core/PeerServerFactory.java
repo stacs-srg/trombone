@@ -32,10 +32,6 @@ public class PeerServerFactory extends ServerFactory<AsynchronousPeerRemote> {
 
     static {
 
-        //        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
-        //            System.out.println("HANDLE " + (handling_rate.getRateAndReset() - handled_rate.getRateAndReset()));
-        //        }, 0, 10, TimeUnit.SECONDS);
-
         parent_event_loop = new NioEventLoopGroup(50, new NamedThreadFactory("server_parent_event_loop_"));
         child_event_loop = new NioEventLoopGroup(50, new NamedThreadFactory("server_child_event_loop_"));
 
@@ -46,7 +42,7 @@ public class PeerServerFactory extends ServerFactory<AsynchronousPeerRemote> {
         SERVER_BOOTSTRAP.childOption(ChannelOption.SO_KEEPALIVE, true);
         SERVER_BOOTSTRAP.childOption(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK, 32 * 1024);
         SERVER_BOOTSTRAP.childOption(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK, 8 * 1024);
-        SERVER_BOOTSTRAP.childHandler(new LeanServerChannelInitializer<AsynchronousPeerRemote>(AsynchronousPeerRemote.class, PeerCodecs.INSTANCE));
+        SERVER_BOOTSTRAP.childHandler(new LeanServerChannelInitializer<AsynchronousPeerRemote>(AsynchronousPeerRemote.class, PeerCodecs.getInstance()));
         SERVER_BOOTSTRAP.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
     }
 

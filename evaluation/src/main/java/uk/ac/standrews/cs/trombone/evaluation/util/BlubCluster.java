@@ -24,7 +24,7 @@ public final class BlubCluster {
     static final OpenSSHKeyFile SSH_KEY_FILE;
 
     static {
-        
+
         SSH_KEY_FILE = new OpenSSHKeyFile();
         SSH_KEY_FILE.init(new File(System.getProperty("user.home") + File.separator + ".ssh", "id_rsa"));
 

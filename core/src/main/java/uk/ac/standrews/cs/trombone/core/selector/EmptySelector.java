@@ -15,7 +15,7 @@ public final class EmptySelector extends Selector {
 
     private EmptySelector() {
 
-        super(0, ReachabilityCriteria.REACHABLE_OR_UNREACHABLE);
+        super(0, ReachabilityCriteria.ANY);
     }
 
     @Override

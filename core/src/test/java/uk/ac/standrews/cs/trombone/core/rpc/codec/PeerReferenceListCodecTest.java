@@ -57,8 +57,8 @@ public class PeerReferenceListCodecTest {
         for (PeerReference reference : references) {
             reference_list.add(reference);
         }
-        codec.encode(reference_list, buffer, PeerCodecs.INSTANCE, reference_list_type);
-        assertEquals(reference_list, codec.decode(buffer, PeerCodecs.INSTANCE, reference_list_type));
+        codec.encode(reference_list, buffer, PeerCodecs.getInstance(), reference_list_type);
+        assertEquals(reference_list, codec.decode(buffer, PeerCodecs.getInstance(), reference_list_type));
     }
 
     private static class SubPeerReference extends PeerReference {

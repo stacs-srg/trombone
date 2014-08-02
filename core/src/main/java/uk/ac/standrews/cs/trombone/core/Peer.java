@@ -8,9 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.function.BiFunction;
-import java.util.function.Function;
+import java.util.concurrent.ScheduledExecutorService;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomAdaptor;
 import org.mashti.jetson.Server;
@@ -18,7 +16,12 @@ import org.mashti.jetson.ServerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.core.key.Key;
+import uk.ac.standrews.cs.trombone.core.maintenance.Maintenance;
 import uk.ac.standrews.cs.trombone.core.selector.Selector;
+import uk.ac.standrews.cs.trombone.core.state.PeerState;
+import uk.ac.standrews.cs.trombone.core.strategy.JoinStrategy;
+import uk.ac.standrews.cs.trombone.core.strategy.LookupStrategy;
+import uk.ac.standrews.cs.trombone.core.strategy.NextHopStrategy;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class Peer implements AsynchronousPeerRemote {
@@ -26,10 +29,8 @@ public class Peer implements AsynchronousPeerRemote {
     private static final Logger LOGGER = LoggerFactory.getLogger(Peer.class);
     private static final String EXPOSURE_PROPERTY_NAME = "exposure";
     private static final ServerFactory<AsynchronousPeerRemote> SERVER_FACTORY = new PeerServerFactory();
-    private static final CompletableFuture<Void> DONE_VOID = CompletableFuture.completedFuture(null);
 
-    private final CompletableFuture<Key> future_key;
-    private final RoutingState state;
+    private final PeerState state;
     private final PeerClientFactory remote_factory;
     private final Key key;
     private final Server server;
@@ -37,15 +38,15 @@ public class Peer implements AsynchronousPeerRemote {
     private final PeerMetric metric;
     private final Maintenance maintenance;
     private final Random random;
+    private final ScheduledExecutorService executor;
     private volatile PeerReference self;
-    private final Function<PeerReference, CompletableFuture<Void>> join_strategy;
-    private final BiFunction<Key, Optional<PeerMetric.LookupMeasurement>, CompletableFuture<PeerReference>> lookup_strategy;
-    private final Function<Key, CompletableFuture<PeerReference>> next_hop_strategy;
+    private final JoinStrategy join_strategy;
+    private final LookupStrategy lookup_strategy;
+    private final NextHopStrategy next_hop_strategy;
 
     Peer(final InetSocketAddress address, final Key key, PeerConfiguration configuration) {
 
         this.key = key;
-        future_key = CompletableFuture.completedFuture(key);
         random = new RandomAdaptor(new MersenneTwister(key.longValue()));
         property_change_support = new PropertyChangeSupport(this);
         metric = new PeerMetric(configuration.isApplicationFeedbackEnabled());
@@ -56,8 +57,9 @@ public class Peer implements AsynchronousPeerRemote {
         remote_factory = new PeerClientFactory(this, configuration.getSyntheticDelay());
         refreshSelfReference();
 
+        executor = configuration.getExecutor();
         state = configuration.getPeerState(this);
-        maintenance = configuration.getMaintenanceFactory().get(this);
+        maintenance = configuration.getMaintenance(this);
         join_strategy = configuration.getJoinStrategy(this);
         lookup_strategy = configuration.getLookupStrategy(this);
         next_hop_strategy = configuration.getNextHopStrategy(this);
@@ -94,10 +96,10 @@ public class Peer implements AsynchronousPeerRemote {
     @Override
     public CompletableFuture<Key> getKey() {
 
-        return future_key;
+        return CompletableFuture.completedFuture(key);
     }
 
-    public Key getKeySync() {
+    public Key key() {
 
         return key;
     }
@@ -106,29 +108,28 @@ public class Peer implements AsynchronousPeerRemote {
     public CompletableFuture<Void> join(final PeerReference member) {
 
         return join_strategy.apply(member);
-
     }
 
     @Override
     public CompletableFuture<Void> push(final PeerReference reference) {
 
-        state.add(reference);
-        return DONE_VOID;
+        return CompletableFuture.runAsync(() -> state.add(reference), executor);
     }
 
     @Override
     public CompletableFuture<Void> push(final List<PeerReference> references) {
 
-        if (references != null) {
-            references.forEach(reference -> {state.add(reference);});
-        }
-        return DONE_VOID;
+        return CompletableFuture.runAsync(() -> {
+            if (references != null) {
+                references.forEach(state:: add);
+            }
+        }, executor);
     }
 
     @Override
     public CompletableFuture<List<PeerReference>> pull(final Selector selector) {
 
-        return CompletableFuture.completedFuture((List<PeerReference>) selector.select(this));
+        return CompletableFuture.supplyAsync(() -> selector.select(this), executor);
     }
 
     @Override
@@ -138,7 +139,7 @@ public class Peer implements AsynchronousPeerRemote {
     }
 
     @Override
-    public CompletableFuture<PeerReference> nextHop(final Key target) {
+    public CompletableFuture<NextHopReference> nextHop(final Key target) {
 
         return next_hop_strategy.apply(target);
     }
@@ -164,7 +165,7 @@ public class Peer implements AsynchronousPeerRemote {
         return server.getLocalSocketAddress();
     }
 
-    public RoutingState getPeerState() {
+    public PeerState getPeerState() {
 
         return state;
     }
@@ -208,15 +209,15 @@ public class Peer implements AsynchronousPeerRemote {
         return future_lookup_measurement;
     }
 
-    public Executor getExecutor() {
+    public ScheduledExecutorService getExecutor() {
 
-        return MaintenanceFactory.SCHEDULER;
+        return executor;
     }
 
     private void lookupWithRetryRecursively(final CompletableFuture<PeerMetric.LookupMeasurement> future_lookup_measurement, final Key target, final PeerMetric.LookupMeasurement measurement) {
 
         final CompletableFuture<PeerReference> lookup_try = lookup(target, Optional.of(measurement));
-        lookup_try.whenCompleteAsync((result, error) -> {
+        lookup_try.whenComplete((result, error) -> {
 
             measurement.incrementRetryCount();
 
@@ -233,15 +234,10 @@ public class Peer implements AsynchronousPeerRemote {
                 measurement.stop(result);
                 future_lookup_measurement.complete(measurement);
             }
-        }, getExecutor());
+        });
     }
 
-    public DisseminationStrategy getDisseminationStrategy() {
-
-        return maintenance.getDisseminationStrategy();
-    }
-
-    public Maintenance getPeerMaintainer() {
+    public Maintenance getMaintenance() {
 
         return maintenance;
     }
@@ -249,42 +245,6 @@ public class Peer implements AsynchronousPeerRemote {
     private CompletableFuture<PeerReference> lookup(final Key target, final Optional<PeerMetric.LookupMeasurement> optional_measurement) {
 
         return lookup_strategy.apply(target, optional_measurement);
-        //        final CompletableFuture<PeerReference> future_lookup = new CompletableFuture<>();
-        //        lookupHelper(future_lookup, target, self, nextHop(target), optional_measurement);
-        //        return future_lookup;
-    }
-
-    void lookupHelper(CompletableFuture<PeerReference> future_lookup, Key target, PeerReference current, CompletableFuture<PeerReference> next, Optional<PeerMetric.LookupMeasurement> measurement) {
-
-        next.whenCompleteAsync((next_hop, error) -> {
-
-            if (next.isCompletedExceptionally()) {
-                future_lookup.completeExceptionally(error);
-                current.setReachable(false);
-            }
-            else {
-
-                if (!current.equals(self) && measurement.isPresent()) {
-                    final PeerMetric.LookupMeasurement lookupMeasurement = measurement.get();
-                    lookupMeasurement.incrementHopCount();
-                    if (lookupMeasurement.getHopCount() >= 20) {
-                        future_lookup.complete(next_hop);
-                        return;
-                    }
-                }
-
-                if (current.equals(next_hop)) {
-                    future_lookup.complete(next_hop);
-                }
-                else {
-
-                    final AsynchronousPeerRemote next_hop_remote = getAsynchronousRemote(next_hop);
-                    lookupHelper(future_lookup, target, next_hop, next_hop_remote.nextHop(target), measurement);
-                }
-            }
-
-            push(current);
-        }, getExecutor());
     }
 
     private void refreshSelfReference() {

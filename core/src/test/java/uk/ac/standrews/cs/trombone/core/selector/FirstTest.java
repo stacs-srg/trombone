@@ -1,5 +1,6 @@
 package uk.ac.standrews.cs.trombone.core.selector;
 
+import java.net.InetSocketAddress;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -9,6 +10,7 @@ import org.junit.Test;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerFactory;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
+import uk.ac.standrews.cs.trombone.core.integration.SingleProcessPeerManager;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.core.util.RelativeRingDistanceComparator;
 
@@ -25,7 +27,7 @@ public class FirstTest extends SelectorTest {
     public void testSelect() throws Exception {
 
         final Key peer_key = Key.valueOf(RANDOM.nextLong());
-        Peer peer = PeerFactory.createPeer(peer_key);
+        Peer peer = PeerFactory.createPeer(new InetSocketAddress(0), peer_key, SingleProcessPeerManager.CONFIGURATION);
         final int reference_count = 100;
 
         final List<PeerReference> references = generateRandomPeerReferences(reference_count);
@@ -40,7 +42,7 @@ public class FirstTest extends SelectorTest {
         references.sort(c);
 
         for (int i = 0; i <= reference_count; i++) {
-            Assert.assertEquals(references.subList(0, i), new First(i, Selector.ReachabilityCriteria.REACHABLE_OR_UNREACHABLE).select(peer));
+            Assert.assertEquals(references.subList(0, i), new First(i, Selector.ReachabilityCriteria.ANY).select(peer));
         }
 
         final List<PeerReference> reachable_references = references.stream().filter(reference -> reference.isReachable()).collect(Collectors.toList());

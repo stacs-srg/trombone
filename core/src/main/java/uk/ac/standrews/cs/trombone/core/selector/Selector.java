@@ -5,18 +5,16 @@ import java.util.List;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.util.Copyable;
-import uk.ac.standrews.cs.trombone.core.util.Named;
-import uk.ac.standrews.cs.trombone.core.util.NamingUtils;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public abstract class Selector implements Serializable, Copyable, Named {
+public abstract class Selector implements Serializable, Copyable{
 
     private static final long serialVersionUID = -1994233167230411201L;
 
     public enum ReachabilityCriteria {
         REACHABLE,
         UNREACHABLE,
-        REACHABLE_OR_UNREACHABLE
+        ANY
     }
 
     protected int size;
@@ -28,16 +26,10 @@ public abstract class Selector implements Serializable, Copyable, Named {
         this.reachability_criteria = reachability_criteria;
     }
 
-    public abstract List<? extends PeerReference> select(Peer peer);
+    public abstract List<PeerReference> select(Peer peer);
 
     @Override
     public abstract Selector copy();
-
-    @Override
-    public String getName() {
-
-        return NamingUtils.name(this);
-    }
 
     public boolean isSingleton() {
 

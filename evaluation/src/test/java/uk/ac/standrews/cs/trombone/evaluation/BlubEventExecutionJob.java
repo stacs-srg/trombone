@@ -8,7 +8,6 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +48,8 @@ public class BlubEventExecutionJob implements Job<String> {
         this.scenario_name = scenario_name;
         this.host_index = host_index;
         this.host_indices = host_indices;
-        results_home_path = results_home.toAbsolutePath().toString();
+        results_home_path = results_home.toAbsolutePath()
+                .toString();
     }
 
     @Override
@@ -78,13 +78,15 @@ public class BlubEventExecutionJob implements Job<String> {
             event_executor.start();
 
             final Duration experiment_duration = event_executor.getExperimentDuration();
-            final Duration await_timeout = experiment_duration.convertTo(TimeUnit.MINUTES).add(new Duration(20, TimeUnit.MINUTES));
+            final Duration await_timeout = experiment_duration.convertTo(TimeUnit.MINUTES)
+                    .add(new Duration(20, TimeUnit.MINUTES));
 
             LOGGER.info("awaiting event execution completion with timeout {}...", await_timeout);
             event_executor.awaitCompletion(await_timeout.getLength(), await_timeout.getTimeUnit());
         }
         catch (Throwable e) {
-            LOGGER.error("experiment with scenario {} on host {} failed due to {}", scenario_name, InetAddress.getLocalHost().getHostName(), e);
+            LOGGER.error("experiment with scenario {} on host {} failed due to {}", scenario_name, InetAddress.getLocalHost()
+                    .getHostName(), e);
             LOGGER.error("experiment failure", e);
             failed = true;
         }
@@ -113,7 +115,8 @@ public class BlubEventExecutionJob implements Job<String> {
     private static Path getCompressedObservationsPath(final boolean failed, Path observations) {
 
         final String zip_name = observations.getFileName() + (failed ? "_FAILED" : "") + ".zip";
-        return observations.getParent().resolve(zip_name);
+        return observations.getParent()
+                .resolve(zip_name);
     }
 
     private static void copyLog(final Path observations) throws IOException {
@@ -126,13 +129,11 @@ public class BlubEventExecutionJob implements Job<String> {
 
     private static Scenario getScenarioByName(final String scenario_name) {
 
-        for (Scenario scenario : ScenarioBatches.CHURN_RATE_SCENARIOS) {
-            if (scenario.getName().equals(scenario_name)) {
-                return scenario;
-            }
-        }
-
-        throw new NoSuchElementException("cannot find scenario with name " + scenario_name);
+        return BlubExperiment.SCENARIOS.stream()
+                .filter(scenario -> scenario.getName()
+                        .equals(scenario_name))
+                .findFirst()
+                .get();
     }
 
     static synchronized Path newObservationsPath(final Path repetitions) {

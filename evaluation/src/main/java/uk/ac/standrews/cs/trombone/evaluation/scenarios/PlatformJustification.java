@@ -13,6 +13,6 @@ public class PlatformJustification extends Scenario {
         setExperimentDuration(Constants.EXPERIMENT_DURATION_4);
         setObservationInterval(Constants.OBSERVATION_INTERVAL);
         setLookupRetryCount(Constants.LOOKUP_RETRY_COUNT);
-        setPeerKeyProvider(Constants.PEER_KEY_PROVIDER.copy());
+        setPeerKeyProvider(Constants.PEER_KEY_PROVIDER.get());
     }
 }

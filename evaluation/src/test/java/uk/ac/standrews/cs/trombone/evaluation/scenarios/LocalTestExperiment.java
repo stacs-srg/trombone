@@ -6,7 +6,6 @@ import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.trombone.evaluation.ScenarioBatches;
 import uk.ac.standrews.cs.trombone.event.EventExecutor;
 import uk.ac.standrews.cs.trombone.event.EventQueue;
 import uk.ac.standrews.cs.trombone.event.Scenario;
@@ -19,9 +18,9 @@ public class LocalTestExperiment {
     @Test
     public void testExecution() throws Exception {
 
-        final Scenario scenario = ScenarioBatches.STATIC_AND_ADAPTIVE_4H_SCENARIOS.get(10);
-        System.out.println(scenario.getHostScenarios().first().getWorkload());
-        System.out.println(scenario.getHostScenarios().first().getConfiguration().getMaintenanceFactory());
+        final Scenario scenario = Batch1EffectOfChurn.getInstance()
+                .get()
+                .get(10);
         System.out.println(scenario.toJson());
         testExecution(scenario);
     }
@@ -33,8 +32,9 @@ public class LocalTestExperiment {
 
         final EventExecutor executor = new EventExecutor(new EventQueue(scenario, 1), observations_path);
         executor.start();
-        
-        final Duration timeout = executor.getExperimentDuration().add(new Duration(5, TimeUnit.MINUTES));
+
+        final Duration timeout = executor.getExperimentDuration()
+                .add(new Duration(5, TimeUnit.MINUTES));
         executor.awaitCompletion(timeout.getLength(), timeout.getTimeUnit());
         executor.shutdown();
 

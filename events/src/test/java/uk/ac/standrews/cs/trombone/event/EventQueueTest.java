@@ -7,13 +7,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.trombone.core.PeerFactory;
-import uk.ac.standrews.cs.trombone.core.key.KeyProvider;
+import uk.ac.standrews.cs.trombone.core.key.KeySupplier;
 import uk.ac.standrews.cs.trombone.event.environment.Churn;
 import uk.ac.standrews.cs.trombone.event.environment.ConstantIntervalGenerator;
-import uk.ac.standrews.cs.trombone.event.environment.FixedExponentialInterval;
+import uk.ac.standrews.cs.trombone.event.environment.ExponentialIntervalGenerator;
 import uk.ac.standrews.cs.trombone.event.environment.Workload;
-import uk.ac.standrews.cs.trombone.event.provider.SequentialPortNumberProvider;
+import uk.ac.standrews.cs.trombone.event.util.SequentialPortNumberSupplier;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -30,11 +29,11 @@ public class EventQueueTest {
         scenario.setExperimentDuration(new Duration(5, TimeUnit.MINUTES));
         scenario.setLookupRetryCount(5);
         scenario.setObservationInterval(new Duration(10, TimeUnit.SECONDS));
-        final KeyProvider peer_key_provider = new KeyProvider(32, scenario.getMasterSeed());
+        final KeySupplier peer_key_provider = new KeySupplier(scenario.getMasterSeed());
         scenario.setPeerKeyProvider(peer_key_provider);
-        final Churn churn = new Churn(new FixedExponentialInterval(new Duration(500, TimeUnit.MILLISECONDS), 123123), new FixedExponentialInterval(new Duration(500, TimeUnit.MILLISECONDS), 123123));
+        final Churn churn = new Churn(new ExponentialIntervalGenerator(new Duration(500, TimeUnit.MILLISECONDS), 123123), new ExponentialIntervalGenerator(new Duration(500, TimeUnit.MILLISECONDS), 123123));
         final Workload workload = new Workload(peer_key_provider, new ConstantIntervalGenerator(new Duration(500, TimeUnit.MILLISECONDS)));
-        scenario.addHost("localhost", 500, new SequentialPortNumberProvider(45000), churn, workload, PeerFactory.DEFAULT_PEER_CONFIGURATION);
+        scenario.addHost("localhost", 500, new SequentialPortNumberSupplier(45000), churn, workload, null);
 
         event_queue = new EventQueue(scenario, 1);
     }
@@ -51,7 +50,9 @@ public class EventQueueTest {
         final String substitute_host_name = "AAAAAA";
         substitutes.put(1, substitute_host_name);
         event_queue = new EventQueue(scenario, 1, substitutes);
-        assertEquals(substitute_host_name, event_queue.next().getSource().getHostName());
+        assertEquals(substitute_host_name, event_queue.next()
+                .getSource()
+                .getHostName());
     }
 
     @Test

@@ -9,7 +9,7 @@ import org.mashti.gauge.Metric;
 import org.mashti.gauge.Rate;
 import org.mashti.gauge.Timer;
 import org.mashti.jetson.WrittenByteCountListener;
-import uk.ac.standrews.cs.trombone.core.adaptation.EnvironmentSnapshot;
+import uk.ac.standrews.cs.trombone.core.maintenance.EnvironmentSnapshot;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class PeerMetric implements Metric, WrittenByteCountListener {

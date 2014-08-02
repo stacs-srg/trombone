@@ -20,19 +20,23 @@
 package uk.ac.standrews.cs.trombone.event.environment;
 
 import java.util.concurrent.TimeUnit;
-import uk.ac.standrews.cs.trombone.core.util.Probability;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.trombone.core.util.Copyable;
+import uk.ac.standrews.cs.trombone.core.util.Probability;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class Churn implements Copyable {
+public class Churn {
 
     public static final Churn NONE = new Churn(new ConstantIntervalGenerator(Duration.MAX_DURATION), new ConstantIntervalGenerator(new Duration(0, TimeUnit.SECONDS)));
 
     private final IntervalGenerator session_lengths;
     private final IntervalGenerator downtimes;
+
+    public Churn(Churn churn) {
+
+        this(churn.session_lengths, churn.downtimes);
+    }
 
     public Churn(final IntervalGenerator session_lengths, final IntervalGenerator downtimes) {
 
@@ -81,18 +85,8 @@ public class Churn implements Copyable {
     }
 
     @Override
-    public Churn copy() {
-
-        return new Churn(session_lengths.copy(), downtimes.copy());
-    }
-
-    @Override
     public String toString() {
 
-        final StringBuilder sb = new StringBuilder("Churn{");
-        sb.append("session_lengths=").append(session_lengths);
-        sb.append(", downtimes=").append(downtimes);
-        sb.append('}');
-        return sb.toString();
+        return "Churn{" + "session_lengths=" + session_lengths + ", downtimes=" + downtimes + '}';
     }
 }

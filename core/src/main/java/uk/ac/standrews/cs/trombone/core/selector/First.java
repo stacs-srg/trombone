@@ -5,7 +5,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.standrews.cs.trombone.core.InternalPeerReference;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 
@@ -23,14 +22,14 @@ public class First extends Selector {
     @Override
     public List<PeerReference> select(final Peer peer) {
 
-        final Stream<InternalPeerReference> state_stream = peer.getPeerState().stream();
+        final Stream<PeerReference> state_stream = peer.getPeerState().stream();
         
         switch (reachability_criteria) {
             case REACHABLE:
                 return state_stream.filter(reference -> reference.isReachable()).limit(size).collect(Collectors.toList());
             case UNREACHABLE:
                 return state_stream.filter(reference -> !reference.isReachable()).limit(size).collect(Collectors.toList());
-            case REACHABLE_OR_UNREACHABLE:
+            case ANY:
                 return state_stream.limit(size).collect(Collectors.toList());
             default:
                 LOGGER.warn("unknown reachability criteria {}", reachability_criteria);

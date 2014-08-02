@@ -51,7 +51,7 @@ public class EventQueue implements Iterator<Event> {
     public EventQueue(Scenario scenario, int host_index, final Map<Integer, String> substitute_host_indices) {
 
         this.host_index = host_index;
-        this.scenario = scenario.copy();
+        this.scenario = new Scenario(scenario);
         this.scenario.substituteHostNames(substitute_host_indices);
         events = new LinkedBlockingQueue<>(BUFFERED_EVENTS);
 
@@ -62,18 +62,20 @@ public class EventQueue implements Iterator<Event> {
 
         init(this.scenario);
 
-        generator_task = Executors.newSingleThreadExecutor().submit(new Callable<Void>() {
+        generator_task = Executors.newSingleThreadExecutor()
+                .submit(new Callable<Void>() {
 
-            @Override
-            public Void call() throws Exception {
+                    @Override
+                    public Void call() throws Exception {
 
-                while (!Thread.currentThread().isInterrupted() && !event_generators.isEmpty()) {
+                        while (!Thread.currentThread()
+                                .isInterrupted() && !event_generators.isEmpty()) {
 
-                    nextEvent();
-                }
-                return null;
-            }
-        });
+                            nextEvent();
+                        }
+                        return null;
+                    }
+                });
 
         while (generator_task.isDone() || events.remainingCapacity() != 0) {
 
@@ -108,7 +110,8 @@ public class EventQueue implements Iterator<Event> {
 
     void put(final Event event) throws InterruptedException {
 
-        final int host_index = event.getSource().getHostIndex();
+        final int host_index = event.getSource()
+                .getHostIndex();
         if (this.host_index == host_index) {
             events.put(event);
         }
@@ -164,7 +167,9 @@ public class EventQueue implements Iterator<Event> {
 
             final JoinEvent join_event = (JoinEvent) event;
             final Set<Participant> known_peers = pickRandomly(MAX_JOIN_KNOWN_PEERS, alive_peers.values());
-            final Set<PeerReference> references = known_peers.stream().map(Participant:: getReference).collect(Collectors.toSet());
+            final Set<PeerReference> references = known_peers.stream()
+                    .map(Participant:: getReference)
+                    .collect(Collectors.toSet());
             join_event.setKnownPeerReferences(references);
             alive_peers.put(peer_key, participant);
         }
@@ -181,7 +186,8 @@ public class EventQueue implements Iterator<Event> {
             if (expected_result == null) {
                 expected_result = alive_peers.firstEntry();
             }
-            lookupEvent.setExpectedResult(expected_result.getValue().getReference());
+            lookupEvent.setExpectedResult(expected_result.getValue()
+                    .getReference());
         }
 
         put(event);

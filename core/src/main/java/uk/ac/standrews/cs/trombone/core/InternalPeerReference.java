@@ -16,7 +16,7 @@ public class InternalPeerReference extends PeerReference {
         super(key, address);
     }
 
-    InternalPeerReference(final PeerReference reference) {
+    public InternalPeerReference(final PeerReference reference) {
 
         super(reference.getKey(), reference.getAddress(), reference.isReachable());
     }
@@ -41,14 +41,14 @@ public class InternalPeerReference extends PeerReference {
         return last_seen.get();
     }
 
-    boolean seen(boolean reachable) {
+    void seen(boolean reachable) {
 
         final long now = System.currentTimeMillis();
         last_seen.set(now);
         if (!isContactedBefore()) {
             first_seen.compareAndSet(NEVER_SEEN, now);
         }
-        return setReachable(reachable);
+        setReachable(reachable);
     }
 
 }

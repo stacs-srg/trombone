@@ -9,8 +9,6 @@ import java.nio.file.Path;
 import java.util.Collection;
 import org.mashti.sina.distribution.statistic.Statistics;
 import org.supercsv.cellprocessor.ift.CellProcessor;
-import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.trombone.evaluation.scenarios.Constants;
 
 import static uk.ac.standrews.cs.trombone.evaluation.analysis.AnalyticsUtil.DOUBLE_PROCESSOR;
 import static uk.ac.standrews.cs.trombone.evaluation.analysis.AnalyticsUtil.LONG_PROCESSOR;
@@ -22,25 +20,12 @@ public abstract class XYCsvAnalyzer {
 
     private final String name;
     protected final Collection<Path> csv_repetitions;
-    private Duration report_interval;
     protected Collection<Statistics[]> rows_statistics;
 
     private XYCsvAnalyzer(String name, Collection<Path> csv_repetitions) {
 
         this.name = name;
         this.csv_repetitions = csv_repetitions;
-        report_interval = Constants.OBSERVATION_INTERVAL;
-    }
-
-
-    public void setReportInterval(final Duration report_interval) {
-
-        this.report_interval = report_interval;
-    }
-
-    public Duration getReportInterval() {
-
-        return report_interval;
     }
 
     public String getName() {
@@ -114,11 +99,8 @@ public abstract class XYCsvAnalyzer {
         protected CellProcessor[] getCellProcessors() {
 
             return new CellProcessor[] {
-                    RELATIVE_TIME_IN_SECONDS_PROCESSOR, LONG_PROCESSOR, DOUBLE_PROCESSOR,
-                    DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR,
-                    DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR,
-                    DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR,
-                    DOUBLE_PROCESSOR, DOUBLE_PROCESSOR
+                    RELATIVE_TIME_IN_SECONDS_PROCESSOR, LONG_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR,
+                    DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR, DOUBLE_PROCESSOR
             };
         }
 
@@ -141,15 +123,10 @@ public abstract class XYCsvAnalyzer {
         protected CellProcessor[] getCellProcessors() {
 
             return new CellProcessor[] {
-                    RELATIVE_TIME_IN_SECONDS_PROCESSOR, LONG_PROCESSOR,
-                    NANOSECONDS_TO_MILLISECONDS_PROCESSOR, NANOSECONDS_TO_MILLISECONDS_PROCESSOR,
-                    NANOSECONDS_TO_MILLISECONDS_PROCESSOR, NANOSECONDS_TO_MILLISECONDS_PROCESSOR,
-                    NANOSECONDS_TO_MILLISECONDS_PROCESSOR, NANOSECONDS_TO_MILLISECONDS_PROCESSOR,
-                    NANOSECONDS_TO_MILLISECONDS_PROCESSOR, NANOSECONDS_TO_MILLISECONDS_PROCESSOR,
-                    NANOSECONDS_TO_MILLISECONDS_PROCESSOR, NANOSECONDS_TO_MILLISECONDS_PROCESSOR,
-                    NANOSECONDS_TO_MILLISECONDS_PROCESSOR, NANOSECONDS_TO_MILLISECONDS_PROCESSOR,
-                    NANOSECONDS_TO_MILLISECONDS_PROCESSOR, NANOSECONDS_TO_MILLISECONDS_PROCESSOR,
-                    NANOSECONDS_TO_MILLISECONDS_PROCESSOR, null
+                    RELATIVE_TIME_IN_SECONDS_PROCESSOR, LONG_PROCESSOR, NANOSECONDS_TO_MILLISECONDS_PROCESSOR, NANOSECONDS_TO_MILLISECONDS_PROCESSOR, NANOSECONDS_TO_MILLISECONDS_PROCESSOR,
+                    NANOSECONDS_TO_MILLISECONDS_PROCESSOR, NANOSECONDS_TO_MILLISECONDS_PROCESSOR, NANOSECONDS_TO_MILLISECONDS_PROCESSOR, NANOSECONDS_TO_MILLISECONDS_PROCESSOR,
+                    NANOSECONDS_TO_MILLISECONDS_PROCESSOR, NANOSECONDS_TO_MILLISECONDS_PROCESSOR, NANOSECONDS_TO_MILLISECONDS_PROCESSOR, NANOSECONDS_TO_MILLISECONDS_PROCESSOR,
+                    NANOSECONDS_TO_MILLISECONDS_PROCESSOR, NANOSECONDS_TO_MILLISECONDS_PROCESSOR, NANOSECONDS_TO_MILLISECONDS_PROCESSOR, NANOSECONDS_TO_MILLISECONDS_PROCESSOR, null
             };
         }
 

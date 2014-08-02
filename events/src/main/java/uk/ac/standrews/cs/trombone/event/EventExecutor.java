@@ -1,7 +1,5 @@
 package uk.ac.standrews.cs.trombone.event;
 
-import com.google.common.collect.HashMultiset;
-import com.google.common.collect.Multiset;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -25,34 +23,20 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.math3.stat.descriptive.SynchronizedDescriptiveStatistics;
 import org.json.JSONObject;
-import org.mashti.gauge.Counter;
-import org.mashti.gauge.Gauge;
 import org.mashti.gauge.MetricRegistry;
-import org.mashti.gauge.Rate;
-import org.mashti.gauge.Sampler;
 import org.mashti.gauge.Timer;
-import org.mashti.gauge.jvm.GarbageCollectorCpuUsageGauge;
-import org.mashti.gauge.jvm.MemoryUsageGauge;
-import org.mashti.gauge.jvm.SystemLoadAverageGauge;
-import org.mashti.gauge.jvm.ThreadCountGauge;
-import org.mashti.gauge.jvm.ThreadCpuUsageGauge;
 import org.mashti.gauge.reporter.CsvReporter;
 import org.mashti.jetson.util.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.trombone.core.DisseminationStrategy;
-import uk.ac.standrews.cs.trombone.core.Maintenance;
-import uk.ac.standrews.cs.trombone.core.MaintenanceFactory;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerMetric;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
-import uk.ac.standrews.cs.trombone.core.RoutingState;
-import uk.ac.standrews.cs.trombone.core.adaptation.EvaluatedDisseminationStrategy;
-import uk.ac.standrews.cs.trombone.core.adaptation.EvolutionaryMaintenance;
-import uk.ac.standrews.cs.trombone.core.adaptation.EvolutionaryMaintenanceFactory;
+import uk.ac.standrews.cs.trombone.core.maintenance.EvaluatedDisseminationStrategy;
+import uk.ac.standrews.cs.trombone.core.maintenance.EvolutionaryMaintenance;
+import uk.ac.standrews.cs.trombone.core.maintenance.Maintenance;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class EventExecutor {
@@ -60,188 +44,19 @@ public class EventExecutor {
     private static final int MAX_BUFFERED_EVENTS = 3_000;
     private static final Logger LOGGER = LoggerFactory.getLogger(EventExecutor.class);
 
-    private final Rate lookup_execution_rate = new Rate();
-    private final Rate lookup_failure_rate = new Rate();
-    private final Sampler lookup_failure_hop_count_sampler = new Sampler();
-    private final Sampler lookup_failure_retry_count_sampler = new Sampler();
-    private final Timer lookup_failure_delay_timer = new Timer();
-    private final Rate lookup_correctness_rate = new Rate();
-    private final Sampler lookup_correctness_hop_count_sampler = new Sampler();
-    private final Sampler lookup_correctness_retry_count_sampler = new Sampler();
-    private final Timer lookup_correctness_delay_timer = new Timer();
-    private final Rate lookup_incorrectness_rate = new Rate();
-    private final Sampler lookup_incorrectness_hop_count_sampler = new Sampler();
-    private final Sampler lookup_incorrectness_retry_count_sampler = new Sampler();
-    private final Timer lookup_incorrectness_delay_timer = new Timer();
-    private final Counter available_peer_counter = new Counter();
-    private final Rate peer_arrival_rate = new Rate();
-    private final Rate peer_departure_rate = new Rate();
-    private final Sampler event_execution_lag_sampler = new Sampler();
-    private final Timer event_execution_duration_timer = new Timer();
-    private final Rate event_scheduling_rate = new Rate();
-    private final Rate event_completion_rate = new Rate();
-    private final DelayQueue<RunnableExperimentEvent> runnable_events;
+    final DelayQueue<RunnableExperimentEvent> runnable_events;
     private final ExecutorService task_populator;
     private final ExecutorService task_scheduler;
-    private final ThreadPoolExecutor task_executor;
+    final ThreadPoolExecutor task_executor;
     private final Semaphore load_balancer;
-    private final EventQueue event_reader;
+    final EventQueue event_reader;
     private final Path observations_home;
     private final MetricRegistry metric_registry;
     private final CsvReporter csv_reporter;
-    private final Rate join_failure_rate = new Rate();
-    private final Rate join_success_rate = new Rate();
-
-    private final Gauge<Double> lookup_correctness_ratio = new Gauge<Double>() {
-
-        @Override
-        public Double get() {
-
-            return (double) lookup_correctness_rate.getCount() / lookup_execution_rate.getCount();
-        }
-    };
-    private final Gauge<Double> sent_bytes_per_alive_peer_per_second_gauge = new Gauge<Double>() {
-
-        @Override
-        public Double get() {
-
-            final long available_peer_count = available_peer_counter.get();
-            return available_peer_count != 0 ? PeerMetric.getGlobalSentBytesRate().getRate() / available_peer_count : 0;
-        }
-    };
-    private final ThreadCountGauge thread_count_gauge = new ThreadCountGauge();
-    private final SystemLoadAverageGauge system_load_average_gauge = new SystemLoadAverageGauge();
-    private final ThreadCpuUsageGauge thread_cpu_usage_gauge = new ThreadCpuUsageGauge();
-    private final GarbageCollectorCpuUsageGauge gc_cpu_usage_gauge = new GarbageCollectorCpuUsageGauge();
-    private final MemoryUsageGauge memory_usage_gauge = new MemoryUsageGauge();
-    private final Gauge<Integer> event_executor_queue_size = new Gauge<Integer>() {
-
-        @Override
-        public Integer get() {
-
-            return task_executor.getQueue().size();
-        }
-    };
-    private final Gauge reachable_state_size_per_alive_peer_gauge = new Gauge() {
-
-        @Override
-        public Object get() {
-
-            double number_of_reachable_state = 0;
-            for (Participant participant : event_reader.getParticipants()) {
-                Peer peer = participant.getPeer();
-                if (peer.isExposed()) {
-                    final RoutingState state = peer.getPeerState();
-                    number_of_reachable_state += state.stream().filter(reference -> reference.isReachable()).count();
-                }
-            }
-
-            final long available_peer_count = available_peer_counter.get();
-            return available_peer_count != 0 ? number_of_reachable_state / available_peer_count : 0;
-        }
-    };
-    private final Gauge unreachable_state_size_per_alive_peer_gauge = new Gauge() {
-
-        @Override
-        public Object get() {
-
-            double number_of_unreachable_state = 0;
-            for (Participant participant : event_reader.getParticipants()) {
-                Peer peer = participant.getPeer();
-                if (peer.isExposed()) {
-                    final RoutingState state = peer.getPeerState();
-                    number_of_unreachable_state += state.stream().filter(reference -> !reference.isReachable()).count();
-                }
-            }
-
-            final long available_peer_count = available_peer_counter.get();
-            return available_peer_count != 0 ? number_of_unreachable_state / available_peer_count : 0;
-        }
-    };
-
-    private final Sampler strategy_uniformity_sampler = new Sampler() {
-
-        @Override
-        protected SynchronizedDescriptiveStatistics get() {
-
-            final HashMultiset<DisseminationStrategy> strategies = HashMultiset.create();
-            for (Participant participant : event_reader.getParticipants()) {
-                Peer peer = participant.getPeer();
-                if (peer.isExposed()) {
-                    strategies.add(peer.getDisseminationStrategy());
-                }
-            }
-            final SynchronizedDescriptiveStatistics statistics = new SynchronizedDescriptiveStatistics(10000);
-            for (Multiset.Entry<DisseminationStrategy> entry : strategies.entrySet()) {
-                statistics.addValue(entry.getCount());
-            }
-            return statistics;
-        }
-
-        @Override
-        public SynchronizedDescriptiveStatistics getAndReset() {
-
-            return get();
-        }
-
-        @Override
-        public void update(final double sample) {
-
-            LOGGER.warn("update is unsupported by this sampler");
-        }
-    };
-
-    private final Sampler generated_strategy_uniformity_sampler = new Sampler() {
-
-        @Override
-        protected SynchronizedDescriptiveStatistics get() {
-
-            final HashMultiset<DisseminationStrategy> strategies = HashMultiset.create();
-            for (Participant participant : event_reader.getParticipants()) {
-                Peer peer = participant.getPeer();
-                if (peer.isExposed()) {
-
-                    final Maintenance maintainer = peer.getPeerMaintainer();
-                    if (maintainer instanceof EvolutionaryMaintenance) {
-                        EvolutionaryMaintenance evolutionary_maintainer = (EvolutionaryMaintenance) maintainer;
-
-                        for (EvaluatedDisseminationStrategy evaluated_strategy : evolutionary_maintainer.getEvaluatedStrategies()) {
-                            strategies.add(evaluated_strategy.getStrategy());
-                        }
-                    }
-                }
-            }
-            final SynchronizedDescriptiveStatistics statistics = new SynchronizedDescriptiveStatistics(10000);
-            for (Multiset.Entry<DisseminationStrategy> entry : strategies.entrySet()) {
-                statistics.addValue(entry.getCount());
-            }
-            return statistics;
-        }
-
-        @Override
-        public SynchronizedDescriptiveStatistics getAndReset() {
-
-            return get();
-        }
-
-        @Override
-        public void update(final double sample) {
-
-            LOGGER.warn("update is unsupported by this sampler");
-        }
-    };
-
-    private final Gauge<Integer> queue_size_gauge = new Gauge<Integer>() {
-
-        @Override
-        public Integer get() {
-
-            return runnable_events.size();
-        }
-    };
     private final Future<Void> task_populator_future;
     private final JSONObject scenario_properties;
     private final int lookup_retry_count;
+    private final TromboneMetricSet metric_set;
     private Future<Void> task_scheduler_future;
     private long start_time;
 
@@ -258,50 +73,8 @@ public class EventExecutor {
         scenario_properties = reader.getScenario();
         lookup_retry_count = getLookupRetryCount();
         metric_registry = new MetricRegistry("test");
-        metric_registry.register("lookup_correctness_ratio", lookup_correctness_ratio);
-        metric_registry.register("lookup_execution_rate", lookup_execution_rate);
-        metric_registry.register("lookup_failure_rate", lookup_failure_rate);
-        metric_registry.register("lookup_failure_hop_count_sampler", lookup_failure_hop_count_sampler);
-        metric_registry.register("lookup_failure_retry_count_sampler", lookup_failure_retry_count_sampler);
-        metric_registry.register("lookup_failure_delay_timer", lookup_failure_delay_timer);
-        metric_registry.register("lookup_correctness_rate", lookup_correctness_rate);
-        metric_registry.register("lookup_correctness_hop_count_sampler", lookup_correctness_hop_count_sampler);
-        metric_registry.register("lookup_correctness_retry_count_sampler", lookup_correctness_retry_count_sampler);
-        metric_registry.register("lookup_correctness_delay_timer", lookup_correctness_delay_timer);
-        metric_registry.register("lookup_incorrectness_rate", lookup_incorrectness_rate);
-        metric_registry.register("lookup_incorrectness_hop_count_sampler", lookup_incorrectness_hop_count_sampler);
-        metric_registry.register("lookup_incorrectness_retry_count_sampler", lookup_incorrectness_retry_count_sampler);
-        metric_registry.register("lookup_incorrectness_delay_timer", lookup_incorrectness_delay_timer);
-        metric_registry.register("available_peer_counter", available_peer_counter);
-        metric_registry.register("peer_arrival_rate", peer_arrival_rate);
-        metric_registry.register("peer_departure_rate", peer_departure_rate);
-        metric_registry.register("sent_bytes_per_alive_peer_per_second_gauge", sent_bytes_per_alive_peer_per_second_gauge);
-        metric_registry.register("sent_bytes_rate", PeerMetric.getGlobalSentBytesRate());
-        metric_registry.register("event_executor_queue_size", event_executor_queue_size);
-        metric_registry.register("event_execution_lag_sampler", event_execution_lag_sampler);
-        metric_registry.register("event_execution_duration_timer", event_execution_duration_timer);
-        metric_registry.register("event_scheduling_rate", event_scheduling_rate);
-        metric_registry.register("event_completion_rate", event_completion_rate);
-        metric_registry.register("join_failure_rate", join_failure_rate);
-        metric_registry.register("join_success_rate", join_success_rate);
-        metric_registry.register("queue_size_gauge", queue_size_gauge);
-        metric_registry.register("reachable_state_size_per_alive_peer_gauge", reachable_state_size_per_alive_peer_gauge);
-        metric_registry.register("unreachable_state_size_per_alive_peer_gauge", unreachable_state_size_per_alive_peer_gauge);
-        metric_registry.register("thread_count_gauge", thread_count_gauge);
-        metric_registry.register("system_load_average_gauge", system_load_average_gauge);
-        metric_registry.register("thread_cpu_usage_gauge", thread_cpu_usage_gauge);
-        metric_registry.register("gc_cpu_usage_gauge", gc_cpu_usage_gauge);
-        metric_registry.register("memory_usage_gauge", memory_usage_gauge);
-        metric_registry.register("evolutionary_maintenance_cluster_count_sampler", EvolutionaryMaintenanceFactory.CLUSTER_COUNT_SAMPLER);
-        metric_registry.register("evolutionary_maintenance_cluster_size_sampler", EvolutionaryMaintenanceFactory.CLUSTER_SIZE_SAMPLER);
-        metric_registry.register("evolutionary_maintenance_fitness_sampler", EvolutionaryMaintenanceFactory.FITNESS_SAMPLER);
-        metric_registry.register("evolutionary_maintenance_normalized_fitness_sampler", EvolutionaryMaintenanceFactory.NORMALIZED_FITNESS_SAMPLER);
-        metric_registry.register("evolutionary_maintenance_weighted_fitness_sampler", EvolutionaryMaintenanceFactory.WEIGHTED_FITNESS_SAMPLER);
-        metric_registry.register("rpc_error_rate", PeerMetric.getGlobalRPCErrorRate());
-        metric_registry.register("reconfiguration_rate", Maintenance.RECONFIGURATION_RATE);
-        metric_registry.register("strategy_action_size_sampler", EvolutionaryMaintenanceFactory.STRATEGY_ACTION_SIZE_SAMPLER);
-        metric_registry.register("strategy_uniformity_sampler", strategy_uniformity_sampler);
-        metric_registry.register("generated_strategy_uniformity_sampler", generated_strategy_uniformity_sampler);
+        metric_set = new TromboneMetricSet(this);
+        metric_registry.registerAll(metric_set);
 
         csv_reporter = new CsvReporter(metric_registry, observations_home);
         task_populator_future = startTaskQueuePopulator();
@@ -345,7 +118,8 @@ public class EventExecutor {
                     csv_reporter.start(observation_interval.getLength(), observation_interval.getTimeUnit());
                     try {
                         CompletableFuture<Void> previous_future = null;
-                        while (!Thread.currentThread().isInterrupted() && !task_populator_future.isDone() || !runnable_events.isEmpty()) {
+                        while (!Thread.currentThread()
+                                .isInterrupted() && !task_populator_future.isDone() || !runnable_events.isEmpty()) {
                             final RunnableExperimentEvent runnable = runnable_events.take();
 
                             if (previous_future == null) {
@@ -357,7 +131,7 @@ public class EventExecutor {
 
                             //                            task_executor.execute(runnable);
 
-                            event_scheduling_rate.mark();
+                            metric_set.event_scheduling_rate.mark();
                             load_balancer.release();
                         }
                     }
@@ -389,10 +163,11 @@ public class EventExecutor {
 
         for (Participant participant : event_reader.getParticipants()) {
             final Peer peer = participant.getPeer();
-            final Maintenance maintenance = peer.getPeerMaintainer();
+            final Maintenance maintenance = peer.getMaintenance();
             if (maintenance instanceof EvolutionaryMaintenance) {
                 EvolutionaryMaintenance evolutionary_maintainer = (EvolutionaryMaintenance) maintenance;
-                node_strategies.put(peer.getKey().toString(), evolutionary_maintainer.getEvaluatedStrategies());
+                node_strategies.put(peer.getKey()
+                        .toString(), evolutionary_maintainer.getEvaluatedStrategies());
             }
 
             try {
@@ -405,7 +180,8 @@ public class EventExecutor {
 
         final JSONObject strategies_json = new JSONObject(node_strategies);
         try {
-            FileUtils.write(observations_home.resolve("evaluated_strategies_per_peer.json").toFile(), strategies_json.toString(4), StandardCharsets.UTF_8, false);
+            FileUtils.write(observations_home.resolve("evaluated_strategies_per_peer.json")
+                    .toFile(), strategies_json.toString(4), StandardCharsets.UTF_8, false);
         }
         catch (Exception e) {
             LOGGER.error("failed to save evaluated strategies per peer", e);
@@ -413,7 +189,8 @@ public class EventExecutor {
         }
 
         LOGGER.info("shutting down maintenance scheduler...");
-        MaintenanceFactory.SCHEDULER.shutdownNow();
+        //TODO fix
+        //MaintenanceFactory.SCHEDULER.shutdownNow();
         //        LOGGER.info("shutting down peer client factory...");
         //        PeerClientFactory.shutdownPeerClientFactory();
         //        LOGGER.info("shutting down peer server factory...");
@@ -480,7 +257,8 @@ public class EventExecutor {
             public Void call() throws Exception {
 
                 try {
-                    while (!Thread.currentThread().isInterrupted() && event_reader.hasNext()) {
+                    while (!Thread.currentThread()
+                            .isInterrupted() && event_reader.hasNext()) {
 
                         load_balancer.acquire();
                         queueNextEvent();
@@ -554,14 +332,14 @@ public class EventExecutor {
         @Override
         public final void run() {
 
-            event_execution_lag_sampler.update(getCurrentTimeInNanos() - event.getTimeInNanos());
-            final Timer.Time time = event_execution_duration_timer.time();
+            metric_set.event_execution_lag_sampler.update(getCurrentTimeInNanos() - event.getTimeInNanos());
+            final Timer.Time time = metric_set.event_execution_duration_timer.time();
             try {
                 handleEvent();
             }
             finally {
                 time.stop();
-                event_completion_rate.mark();
+                metric_set.event_completion_rate.mark();
             }
         }
 
@@ -591,8 +369,8 @@ public class EventExecutor {
                 if (!peer.isExposed()) {
                     final boolean successfully_exposed = peer.expose();
                     if (successfully_exposed) {
-                        peer_arrival_rate.mark();
-                        available_peer_counter.increment();
+                        metric_set.peer_arrival_rate.mark();
+                        metric_set.available_peer_counter.increment();
                     }
                     else {
                         logger.warn("exposure of peer {} was unsuccessful", peer);
@@ -642,12 +420,12 @@ public class EventExecutor {
                     else {
                         future_join.completeExceptionally(error);
                         error.printStackTrace();
-                        join_failure_rate.mark();
+                        metric_set.join_failure_rate.mark();
                     }
                 }
                 else {
                     future_join.complete(null); // void future.
-                    join_success_rate.mark();
+                    metric_set.join_success_rate.mark();
                 }
             });
         }
@@ -668,8 +446,8 @@ public class EventExecutor {
             try {
                 final boolean successfully_unexposed = peer.unexpose();
                 if (successfully_unexposed) {
-                    peer_departure_rate.mark();
-                    available_peer_counter.decrement();
+                    metric_set.peer_departure_rate.mark();
+                    metric_set.available_peer_counter.decrement();
                 }
                 else {
                     logger.trace("un-exposure of peer {} was unsuccessful typically because it was already unexposed", peer);
@@ -698,35 +476,37 @@ public class EventExecutor {
             try {
 
                 final PeerReference expected_result = event.getExpectedResult();
-                final PeerMetric.LookupMeasurement measurement = peer.lookupWithRetry(event.getTarget(), lookup_retry_count, expected_result).get();
+                final PeerMetric.LookupMeasurement measurement = peer.lookupWithRetry(event.getTarget(), lookup_retry_count, expected_result)
+                        .get();
                 final long hop_count = measurement.getHopCount();
                 final long retry_count = measurement.getRetryCount();
                 final long duration_in_nanos = measurement.getDurationInNanos();
 
                 if (measurement.isDoneInError()) {
-                    lookup_failure_rate.mark();
-                    lookup_failure_hop_count_sampler.update(hop_count);
-                    lookup_failure_retry_count_sampler.update(retry_count);
-                    lookup_failure_delay_timer.update(duration_in_nanos, TimeUnit.NANOSECONDS);
+                    metric_set.lookup_failure_rate.mark();
+                    metric_set.lookup_failure_hop_count_sampler.update(hop_count);
+                    metric_set.lookup_failure_retry_count_sampler.update(retry_count);
+                    metric_set.lookup_failure_delay_timer.update(duration_in_nanos, TimeUnit.NANOSECONDS);
                 }
-                else if (measurement.getResult().equals(expected_result)) {
-                    lookup_correctness_rate.mark();
-                    lookup_correctness_hop_count_sampler.update(hop_count);
-                    lookup_correctness_retry_count_sampler.update(retry_count);
-                    lookup_correctness_delay_timer.update(duration_in_nanos, TimeUnit.NANOSECONDS);
+                else if (measurement.getResult()
+                        .equals(expected_result)) {
+                    metric_set.lookup_correctness_rate.mark();
+                    metric_set.lookup_correctness_hop_count_sampler.update(hop_count);
+                    metric_set.lookup_correctness_retry_count_sampler.update(retry_count);
+                    metric_set.lookup_correctness_delay_timer.update(duration_in_nanos, TimeUnit.NANOSECONDS);
                 }
                 else {
-                    lookup_incorrectness_rate.mark();
-                    lookup_incorrectness_hop_count_sampler.update(hop_count);
-                    lookup_incorrectness_retry_count_sampler.update(retry_count);
-                    lookup_incorrectness_delay_timer.update(duration_in_nanos, TimeUnit.NANOSECONDS);
+                    metric_set.lookup_incorrectness_rate.mark();
+                    metric_set.lookup_incorrectness_hop_count_sampler.update(hop_count);
+                    metric_set.lookup_incorrectness_retry_count_sampler.update(retry_count);
+                    metric_set.lookup_incorrectness_delay_timer.update(duration_in_nanos, TimeUnit.NANOSECONDS);
                 }
             }
             catch (final Throwable e) {
                 logger.error("failure occurred when executing lookup", e);
             }
             finally {
-                lookup_execution_rate.mark();
+                metric_set.lookup_execution_rate.mark();
             }
         }
     }
@@ -751,28 +531,30 @@ public class EventExecutor {
 
                 final boolean looked_up = error == null;
                 if (looked_up) {
-                    lookup_execution_rate.mark();
+                    metric_set.lookup_execution_rate.mark();
                     final long hop_count = measurement.getHopCount();
                     final long retry_count = measurement.getRetryCount();
                     final long duration_in_nanos = measurement.getDurationInNanos();
 
                     if (measurement.isDoneInError()) {
-                        lookup_failure_rate.mark();
-                        lookup_failure_hop_count_sampler.update(hop_count);
-                        lookup_failure_retry_count_sampler.update(retry_count);
-                        lookup_failure_delay_timer.update(duration_in_nanos, TimeUnit.NANOSECONDS);
+                        metric_set.lookup_failure_rate.mark();
+                        metric_set.lookup_failure_hop_count_sampler.update(hop_count);
+                        metric_set.lookup_failure_retry_count_sampler.update(retry_count);
+                        metric_set.lookup_failure_delay_timer.update(duration_in_nanos, TimeUnit.NANOSECONDS);
                     }
-                    else if (measurement.getResult().equals(expected_result)) {
-                        lookup_correctness_rate.mark();
-                        lookup_correctness_hop_count_sampler.update(hop_count);
-                        lookup_correctness_retry_count_sampler.update(retry_count);
-                        lookup_correctness_delay_timer.update(duration_in_nanos, TimeUnit.NANOSECONDS);
+                    else if (measurement.getResult()
+                            .getKey()
+                            .equals(expected_result.getKey())) {
+                        metric_set.lookup_correctness_rate.mark();
+                        metric_set.lookup_correctness_hop_count_sampler.update(hop_count);
+                        metric_set.lookup_correctness_retry_count_sampler.update(retry_count);
+                        metric_set.lookup_correctness_delay_timer.update(duration_in_nanos, TimeUnit.NANOSECONDS);
                     }
                     else {
-                        lookup_incorrectness_rate.mark();
-                        lookup_incorrectness_hop_count_sampler.update(hop_count);
-                        lookup_incorrectness_retry_count_sampler.update(retry_count);
-                        lookup_incorrectness_delay_timer.update(duration_in_nanos, TimeUnit.NANOSECONDS);
+                        metric_set.lookup_incorrectness_rate.mark();
+                        metric_set.lookup_incorrectness_hop_count_sampler.update(hop_count);
+                        metric_set.lookup_incorrectness_retry_count_sampler.update(retry_count);
+                        metric_set.lookup_incorrectness_delay_timer.update(duration_in_nanos, TimeUnit.NANOSECONDS);
                     }
                 }
                 else {

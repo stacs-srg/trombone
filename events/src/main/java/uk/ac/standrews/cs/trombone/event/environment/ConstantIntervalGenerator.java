@@ -2,19 +2,18 @@ package uk.ac.standrews.cs.trombone.event.environment;
 
 import java.util.concurrent.TimeUnit;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.trombone.core.util.Named;
-import uk.ac.standrews.cs.trombone.core.util.NamingUtils;
 
 /**
  * The type Constant interval generator.
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class ConstantIntervalGenerator implements IntervalGenerator, Named {
+public class ConstantIntervalGenerator implements IntervalGenerator{
 
     private final long constant_interval_nanos;
     private final Duration constant_interval;
 
+    
     /**
      * Instantiates a new constant interval generator.
      *
@@ -58,9 +57,4 @@ public class ConstantIntervalGenerator implements IntervalGenerator, Named {
         return sb.toString();
     }
 
-    @Override
-    public String getName() {
-
-        return NamingUtils.name(this);
-    }
 }
