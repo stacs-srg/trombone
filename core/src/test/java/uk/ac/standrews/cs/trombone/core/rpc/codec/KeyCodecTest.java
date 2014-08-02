@@ -2,13 +2,14 @@ package uk.ac.standrews.cs.trombone.core.rpc.codec;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import org.junit.Before;
 import org.junit.Test;
+import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
 import uk.ac.standrews.cs.trombone.core.key.Key;
+import uk.ac.standrews.cs.trombone.core.key.KeySupplier;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -16,6 +17,10 @@ import static org.junit.Assert.assertTrue;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class KeyCodecTest {
+
+    static {
+        System.setProperty(PeerConfiguration.PEER_KEY_LENGTH_SYSTEM_PROPERTY, "128");
+    }
 
     private KeyCodec codec;
     private ByteBuf buffer;
@@ -43,9 +48,10 @@ public class KeyCodecTest {
 
         final List<Key> keys = new ArrayList<>();
 
+        final KeySupplier keySupplier = new KeySupplier(444);
+
         for (int i = 0; i < 1000; i++) {
-            keys.add(Key.valueOf(new BigInteger(random.nextInt(255) + 1, random)));
-            keys.add(Key.valueOf(random.nextLong()));
+            keys.add(keySupplier.get());
         }
 
         keys.add(null);

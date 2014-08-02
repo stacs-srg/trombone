@@ -102,21 +102,21 @@ public class PeerTest {
     public void testPush() throws Exception {
 
         final PeerReference reference = generateRandomReference();
-        peer.push(reference);
+        peer.push(reference).get();
         assertEquals(reference, configuration.peer_state_added);
 
-        peer.push((PeerReference) null);
+        peer.push((PeerReference) null).get();
         assertNull(configuration.peer_state_added);
 
         List<PeerReference> references = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
             references.add(generateRandomReference());
         }
-        peer.push(references);
+        peer.push(references).get();
         final PeerReference last = references.get(references.size() - 1);
         assertEquals(last, configuration.peer_state_added);
 
-        peer.push((List<PeerReference>) null);
+        peer.push((List<PeerReference>) null).get();
         assertEquals(last, configuration.peer_state_added);
 
     }

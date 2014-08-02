@@ -70,13 +70,13 @@ public class Scenario {
     public Scenario(Scenario scenario) {
 
         this(scenario.name, scenario.master_seed);
-        scenario.setExperimentDuration(experiment_duration);
-        scenario.setObservationInterval(observation_interval);
-        scenario.setLookupRetryCount(lookup_retry_count);
-        scenario.setPeerKeyProvider(peer_key_supplier);
-        scenario.setObservationInterval(observation_interval);
-        for (HostScenario host_scenario : host_scenarios) {
-            scenario.addHost(host_scenario.getHostName(), host_scenario.getPeerCount(), host_scenario.getPort_number_provider(), host_scenario.getChurn(), host_scenario.getWorkload(), host_scenario.getConfiguration());
+        experiment_duration = scenario.experiment_duration;
+        observation_interval = scenario.observation_interval;
+        lookup_retry_count = scenario.lookup_retry_count;
+        peer_key_supplier = scenario.peer_key_supplier;
+        observation_interval = scenario.observation_interval;
+        for (HostScenario host_scenario : scenario.host_scenarios) {
+            addHost(host_scenario.getHostName(), host_scenario.getPeerCount(), host_scenario.getPort_number_provider(), host_scenario.getChurn(), host_scenario.getWorkload(), host_scenario.getConfiguration());
         }
     }
 

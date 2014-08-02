@@ -10,7 +10,7 @@ import org.junit.Test;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerFactory;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
-import uk.ac.standrews.cs.trombone.core.integration.SingleProcessPeerManager;
+import uk.ac.standrews.cs.trombone.core.integration.LookupCorrectnessTest;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.core.util.RelativeRingDistanceComparator;
 
@@ -27,18 +27,18 @@ public class FirstTest extends SelectorTest {
     public void testSelect() throws Exception {
 
         final Key peer_key = Key.valueOf(RANDOM.nextLong());
-        Peer peer = PeerFactory.createPeer(new InetSocketAddress(0), peer_key, SingleProcessPeerManager.CONFIGURATION);
+        Peer peer = PeerFactory.createPeer(new InetSocketAddress(0), peer_key, LookupCorrectnessTest.TROMBONE_CONFIGURATION);
         final int reference_count = 100;
 
         final List<PeerReference> references = generateRandomPeerReferences(reference_count);
-        peer.push(references);
+        peer.push(references).get();
 
         final RelativeRingDistanceComparator comparator = new RelativeRingDistanceComparator(peer_key);
         final Comparator<PeerReference> c = (one, other) -> {
 
             return comparator.compare(one.getKey(), other.getKey());
         };
-        
+
         references.sort(c);
 
         for (int i = 0; i <= reference_count; i++) {

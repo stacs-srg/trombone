@@ -34,7 +34,6 @@ public class EventQueueTest {
         final Churn churn = new Churn(new ExponentialIntervalGenerator(new Duration(500, TimeUnit.MILLISECONDS), 123123), new ExponentialIntervalGenerator(new Duration(500, TimeUnit.MILLISECONDS), 123123));
         final Workload workload = new Workload(peer_key_provider, new ConstantIntervalGenerator(new Duration(500, TimeUnit.MILLISECONDS)));
         scenario.addHost("localhost", 500, new SequentialPortNumberSupplier(45000), churn, workload, null);
-
         event_queue = new EventQueue(scenario, 1);
     }
 

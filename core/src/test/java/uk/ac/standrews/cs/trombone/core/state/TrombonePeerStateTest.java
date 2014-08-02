@@ -16,7 +16,7 @@ import uk.ac.standrews.cs.trombone.core.key.KeySupplier;
 public class TrombonePeerStateTest {
 
     private static final KeySupplier KEY_PROVIDER = new KeySupplier(74185263);
-    public static final int STATE_SIZE = 1000;
+    public static final int STATE_SIZE = 100;
     private TrombonePeerState state;
     private Key local_key;
 

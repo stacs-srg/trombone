@@ -52,7 +52,7 @@ public class TestPeerConfiguration implements PeerConfiguration {
             public boolean add(final PeerReference reference) {
 
                 peer_state_added = reference;
-                return false;
+                return true;
             }
 
             @Override

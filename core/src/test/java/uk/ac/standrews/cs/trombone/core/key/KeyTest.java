@@ -20,7 +20,7 @@ import static uk.ac.standrews.cs.trombone.core.key.RingArithmeticTest.TEST_KEYS;
 public class KeyTest {
 
     static {
-        System.setProperty(PeerConfiguration.PEER_KEY_LENGTH_SYSTEM_PROPERTY, "64");
+        System.setProperty(PeerConfiguration.PEER_KEY_LENGTH_SYSTEM_PROPERTY, "128");
     }
 
     private static final Key ZERO_KEY = RingArithmeticTest.ZERO_KEY;
@@ -266,7 +266,7 @@ public class KeyTest {
     public void testByteValue() throws Exception {
 
         for (int i = 0; i < 1000; i++) {
-            final BigInteger big_integer = BigInteger.valueOf(Math.abs(random.nextLong()));
+            final BigInteger big_integer = BigInteger.valueOf(Math.abs(random.nextInt()));
             final Key key = new Key(big_integer);
 
             assertEquals(big_integer.byteValue(), key.byteValue());
