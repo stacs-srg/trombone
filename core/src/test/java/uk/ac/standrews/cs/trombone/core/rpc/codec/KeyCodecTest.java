@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Random;
 import org.junit.Before;
 import org.junit.Test;
-import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
 import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.core.key.KeySupplier;
 
@@ -18,9 +17,6 @@ import static org.junit.Assert.assertTrue;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class KeyCodecTest {
 
-    static {
-        System.setProperty(PeerConfiguration.PEER_KEY_LENGTH_SYSTEM_PROPERTY, "128");
-    }
 
     private KeyCodec codec;
     private ByteBuf buffer;
@@ -55,12 +51,6 @@ public class KeyCodecTest {
         }
 
         keys.add(null);
-        keys.add(Key.valueOf(Long.MAX_VALUE));
-        keys.add(Key.valueOf(Long.MIN_VALUE));
-        keys.add(Key.valueOf(Integer.MAX_VALUE));
-        keys.add(Key.valueOf(Integer.MIN_VALUE));
-        keys.add(Key.valueOf(random.nextInt()));
-        keys.add(Key.valueOf(random.nextLong()));
 
         for (Key key : keys) {
             codec.encode(key, buffer, PeerCodecs.getInstance(), Key.class);
