@@ -41,7 +41,7 @@ import uk.ac.standrews.cs.shabdiz.job.WorkerManager;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.trombone.evaluation.scenarios.Batch1EffectOfChurn;
+import uk.ac.standrews.cs.trombone.evaluation.scenarios.Batch3EffectOfTrainingDuration;
 import uk.ac.standrews.cs.trombone.evaluation.scenarios.Constants;
 import uk.ac.standrews.cs.trombone.evaluation.util.BlubCluster;
 import uk.ac.standrews.cs.trombone.evaluation.util.ExperimentWatcher;
@@ -77,7 +77,8 @@ public class BlubExperiment {
     public ExperimentWatcher watcher = new ExperimentWatcher();
     private int required_host_count;
 
-    static final List<Scenario> SCENARIOS = Batch1EffectOfChurn.getInstance().get();
+    static final List<Scenario> SCENARIOS = Batch3EffectOfTrainingDuration.getInstance()
+            .get();
 
     @Parameterized.Parameters(name = "{index} scenario: {0}")
     public static Collection<Object[]> data() throws IOException {
