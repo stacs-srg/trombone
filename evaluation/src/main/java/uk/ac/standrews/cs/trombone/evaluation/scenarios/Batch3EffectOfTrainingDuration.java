@@ -37,7 +37,6 @@ public class Batch3EffectOfTrainingDuration implements ScenarioBatch {
         scenarios.add(new BaseScenario(getName() + ++i, Constants.CHURN_30_MIN, Constants.WORKLOAD_10_SEC, Constants.TROMBONE_ADAPTIVE_RANDOM_16, Constants.EXPERIMENT_DURATION_20));
 
         return scenarios;
-
     }
 
     @Override
