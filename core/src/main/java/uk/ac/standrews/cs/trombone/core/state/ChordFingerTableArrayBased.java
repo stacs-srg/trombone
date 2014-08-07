@@ -11,8 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
-import uk.ac.standrews.cs.trombone.core.key.Key;
-import uk.ac.standrews.cs.trombone.core.key.RingArithmetic;
+import uk.ac.standrews.cs.trombone.core.Key;
 
 /**
  * Chord Finger table implementation using array.
@@ -110,7 +109,7 @@ public class ChordFingerTableArrayBased implements ChordFingerTable {
 
             if (finger != null) {
                 final Key finger_key = finger.getKey();
-                if (!finger_key.equals(local_key) && RingArithmetic.inRingOrder(local_key, finger_key, target)) { return finger; }
+                if (!finger_key.equals(local_key) && Key.inRingOrder(local_key, finger_key, target)) { return finger; }
             }
         }
 

@@ -28,10 +28,9 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.core.AsynchronousPeerRemote;
+import uk.ac.standrews.cs.trombone.core.Key;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
-import uk.ac.standrews.cs.trombone.core.key.Key;
-import uk.ac.standrews.cs.trombone.core.key.RingArithmetic;
 import uk.ac.standrews.cs.trombone.core.selector.ChordPredecessorSelector;
 import uk.ac.standrews.cs.trombone.core.selector.ChordSuccessorListSelector;
 import uk.ac.standrews.cs.trombone.core.state.ChordFingerTable;
@@ -55,7 +54,7 @@ public class ChordMaintenance extends Maintenance {
     private final ScheduledExecutorService executor;
     private CompletableFuture<Void> future;
 
-    public ChordMaintenance(final Peer peer, long interval, TimeUnit interval_unit) {
+    ChordMaintenance(final Peer peer, long interval, TimeUnit interval_unit) {
 
         super(peer, interval, interval_unit);
         state = (ChordPeerState) peer.getPeerState();
@@ -158,7 +157,7 @@ public class ChordMaintenance extends Maintenance {
             final Key potential_successor_key = potential_successor.getKey();
 
             // Check whether the potential successor's key lies in this node's current successor's key range, and the potential successor is not the current successor.
-            if (!potential_successor_key.equals(successor_key) && RingArithmetic.inSegment(local_key, potential_successor_key, successor_key)) {
+            if (!potential_successor_key.equals(successor_key) && Key.inSegment(local_key, potential_successor_key, successor_key)) {
                 return state.setSuccessor(potential_successor);
             }
             return false;

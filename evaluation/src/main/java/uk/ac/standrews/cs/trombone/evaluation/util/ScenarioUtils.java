@@ -1,5 +1,8 @@
 package uk.ac.standrews.cs.trombone.evaluation.util;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,6 +29,14 @@ public final class ScenarioUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ScenarioUtils.class);
     private static final Path RESULTS_HOME = Paths.get("results");
+
+    private static final JsonFactory JSON_FACTORY = new JsonFactory();
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper(JSON_FACTORY);
+
+    static {
+        OBJECT_MAPPER.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        OBJECT_MAPPER.registerModule(new TromboneEvaluationModule());
+    }
 
     private ScenarioUtils() {
 
@@ -63,15 +74,17 @@ public final class ScenarioUtils {
 
     public static void saveScenarioAsJson(Scenario scenario, Path directory) throws IOException {
 
-        final JSONObject scenario_json = new JSONObject(scenario);
+        final String scenario_json = OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
+                .writeValueAsString(scenario);
         final Path json_path = directory.resolve("scenario.json");
-        Files.write(json_path, scenario_json.toString(4).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
+        Files.write(json_path, scenario_json.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
     }
 
     public static JSONObject readScenarioAsJson(Path directory) throws IOException {
 
         final Path json_path = directory.resolve("scenario.json");
-        final String scenario_json_string = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(json_path))).toString();
+        final String scenario_json_string = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(json_path)))
+                .toString();
         return new JSONObject(scenario_json_string);
     }
 
@@ -89,16 +102,17 @@ public final class ScenarioUtils {
         Files.walkFileTree(path, new FileVisitor<Path>() {
 
             @Override
-            public FileVisitResult preVisitDirectory(final Path directory, final BasicFileAttributes attrs) {
+            public FileVisitResult preVisitDirectory(final Path directory, final BasicFileAttributes attributes) {
 
                 return FileVisitResult.CONTINUE;
             }
 
             @Override
-            public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+            public FileVisitResult visitFile(final Path file, final BasicFileAttributes attributes) throws IOException {
 
                 LOGGER.debug(" compressing {}", file);
-                out.putNextEntry(new ZipEntry(path.relativize(file).toString()));
+                out.putNextEntry(new ZipEntry(path.relativize(file)
+                        .toString()));
 
                 try (final InputStream in = Files.newInputStream(file, StandardOpenOption.READ)) {
                     int read;

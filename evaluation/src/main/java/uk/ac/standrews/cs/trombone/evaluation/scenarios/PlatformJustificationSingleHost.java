@@ -8,6 +8,6 @@ public class PlatformJustificationSingleHost extends PlatformJustification {
     public PlatformJustificationSingleHost(int host_count) {
 
         super(PlatformJustificationSingleHost.class.getSimpleName() + host_count);
-        addHost("compute-0-0.local", host_count, Constants.PORT_NUMBER_PROVIDER.copy(), Constants.NO_CHURN, Constants.WORKLOAD_10_SEC, Constants.NO_MAINTENANCE_CONFIGURATION);
+        addHost("compute-0-0.local", host_count, Constants.PORT_NUMBER_PROVIDER, Constants.NO_CHURN, Constants.WORKLOAD_10_SEC, Constants.NO_MAINTENANCE_CONFIGURATION);
     }
 }

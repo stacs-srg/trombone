@@ -71,12 +71,6 @@ public class ExponentialIntervalGenerator implements IntervalGenerator {
     }
 
     @Override
-    public ExponentialIntervalGenerator copy() {
-
-        return new ExponentialIntervalGenerator(mean, seed);
-    }
-
-    @Override
     public String toString() {
 
         return "ExponentialIntervalGenerator{" + "mean=" + mean + ", seed=" + seed + '}';

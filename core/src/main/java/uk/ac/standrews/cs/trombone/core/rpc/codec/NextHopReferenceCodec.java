@@ -8,7 +8,7 @@ import org.mashti.jetson.lean.codec.Codec;
 import org.mashti.jetson.lean.codec.Codecs;
 import uk.ac.standrews.cs.trombone.core.NextHopReference;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
-import uk.ac.standrews.cs.trombone.core.key.Key;
+import uk.ac.standrews.cs.trombone.core.Key;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class NextHopReferenceCodec implements Codec {

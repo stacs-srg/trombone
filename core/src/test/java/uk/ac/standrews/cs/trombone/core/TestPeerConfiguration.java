@@ -5,9 +5,10 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Stream;
-import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.core.maintenance.Maintenance;
+import uk.ac.standrews.cs.trombone.core.maintenance.MaintenanceFactory;
 import uk.ac.standrews.cs.trombone.core.state.PeerState;
+import uk.ac.standrews.cs.trombone.core.state.PeerStateFactory;
 import uk.ac.standrews.cs.trombone.core.strategy.JoinStrategy;
 import uk.ac.standrews.cs.trombone.core.strategy.LookupStrategy;
 import uk.ac.standrews.cs.trombone.core.strategy.NextHopStrategy;
@@ -36,17 +37,22 @@ public class TestPeerConfiguration implements PeerConfiguration {
     volatile int lookup_strategy_lookup_call;
 
     @Override
-    public Maintenance getMaintenance(final Peer peer) {
+    public MaintenanceFactory getMaintenance() {
 
-        maintenance_peer = peer;
-        return maintenance;
+        return peer -> {
+            maintenance_peer = peer;
+            return maintenance;
+        };
     }
 
     @Override
-    public PeerState getPeerState(final Peer peer) {
+    public PeerStateFactory getPeerState() {
 
-        peer_state_peer = peer;
-        return new PeerState() {
+        return peer -> new PeerState() {
+
+            {
+                peer_state_peer = peer;
+            }
 
             @Override
             public boolean add(final PeerReference reference) {
@@ -106,15 +112,14 @@ public class TestPeerConfiguration implements PeerConfiguration {
     }
 
     @Override
-    public JoinStrategy getJoinStrategy(final Peer peer) {
-
-        join_strategy_peer = peer;
+    public JoinStrategy getJoinStrategy() {
 
         return new JoinStrategy() {
 
             @Override
-            public CompletableFuture<Void> apply(final PeerReference member) {
+            public CompletableFuture<Void> join(final Peer peer, final PeerReference member) {
 
+                join_strategy_peer = peer;
                 join_strategy_member = member;
 
                 return join_strategy_result;
@@ -123,15 +128,14 @@ public class TestPeerConfiguration implements PeerConfiguration {
     }
 
     @Override
-    public LookupStrategy getLookupStrategy(final Peer peer) {
-
-        lookup_strategy_peer = peer;
+    public LookupStrategy getLookupStrategy() {
 
         return new LookupStrategy() {
 
             @Override
-            public CompletableFuture<PeerReference> apply(final Key target, final Optional<PeerMetric.LookupMeasurement> measurement) {
+            public CompletableFuture<PeerReference> lookup(Peer peer, final Key target, final Optional<PeerMetric.LookupMeasurement> measurement) {
 
+                lookup_strategy_peer = peer;
                 lookup_strategy_target = target;
                 lookup_strategy_measurement = measurement;
                 lookup_strategy_lookup_call++;
@@ -142,16 +146,16 @@ public class TestPeerConfiguration implements PeerConfiguration {
     }
 
     @Override
-    public NextHopStrategy getNextHopStrategy(final Peer peer) {
-
-        next_hop_strategy_peer = peer;
+    public NextHopStrategy getNextHopStrategy() {
 
         return new NextHopStrategy() {
 
             @Override
-            public CompletableFuture<NextHopReference> apply(final Key target) {
+            public CompletableFuture<NextHopReference> nextHop(Peer local, final Key target) {
 
+                next_hop_strategy_peer = local;
                 next_hop_strategy_target = target;
+
                 return next_hop_result;
             }
         };

@@ -17,7 +17,7 @@ public class StrategicMaintenance extends Maintenance {
     private static final Logger LOGGER = LoggerFactory.getLogger(StrategicMaintenance.class);
     private final AtomicReference<DisseminationStrategy> strategy;
 
-    public StrategicMaintenance(Peer peer, DisseminationStrategy strategy, long interval, TimeUnit interval_unit) {
+    StrategicMaintenance(Peer peer, DisseminationStrategy strategy, long interval, TimeUnit interval_unit) {
 
         super(peer, interval, interval_unit);
         this.strategy = new AtomicReference<>(strategy);

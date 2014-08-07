@@ -3,6 +3,8 @@ package uk.ac.standrews.cs.trombone.core.state;
 import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
+import java.util.function.Supplier;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,12 +12,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.core.InternalPeerReference;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
-import uk.ac.standrews.cs.trombone.core.key.Key;
-import uk.ac.standrews.cs.trombone.core.key.KeySupplier;
+import uk.ac.standrews.cs.trombone.core.Key;
 
 public class TrombonePeerStateTest {
 
-    private static final KeySupplier KEY_PROVIDER = new KeySupplier(74185263);
+    private static final Random RANDOM = new Random(87542);
+    private static final Supplier<Key> KEY_PROVIDER = () -> Key.valueOf(RANDOM.nextLong());
     public static final int STATE_SIZE = 100;
     private TrombonePeerState state;
     private Key local_key;
@@ -44,8 +46,10 @@ public class TrombonePeerStateTest {
         Assert.assertTrue(state.inLocalKeyRange(local_key));
         Assert.assertFalse(state.inLocalKeyRange(local_key.next()));
 
-        final Key first_key = state.first().getKey();
-        final Key last_key = state.last().getKey();
+        final Key first_key = state.first()
+                .getKey();
+        final Key last_key = state.last()
+                .getKey();
 
         LOGGER.info("first key {}", first_key);
         LOGGER.info("last key {}", last_key);
@@ -67,14 +71,20 @@ public class TrombonePeerStateTest {
 
     @Test
     public void testLower() throws Exception {
-        final Key[] next = {state.last().getKey().next()};
+
+        final Key[] next = {
+                state.last()
+                        .getKey()
+                        .next()
+        };
 
         final List<InternalPeerReference> references = state.getInternalReferences();
         Collections.reverse(references);
 
         references.forEach(reference -> {
             final PeerReference lower = state.lower(next[0]);
-            if (next[0].equals(state.first().getKey())) {
+            if (next[0].equals(state.first()
+                    .getKey())) {
                 Assert.assertNull(lower);
             }
             else {
@@ -82,24 +92,27 @@ public class TrombonePeerStateTest {
                 next[0] = lower.getKey();
             }
         });
-        
+
     }
 
     @Test
     public void testHigher() throws Exception {
+
         final Key[] next = {local_key};
 
-        state.stream().forEach(reference -> {
-            final PeerReference higher = state.higher(next[0]);
-            if (next[0].equals(state.last().getKey())) {
-                Assert.assertNull(higher);
-            }
-            else {
-                Assert.assertEquals(reference, higher);
-                next[0] = higher.getKey();
-            }
-        });
-        
+        state.stream()
+                .forEach(reference -> {
+                    final PeerReference higher = state.higher(next[0]);
+                    if (next[0].equals(state.last()
+                            .getKey())) {
+                        Assert.assertNull(higher);
+                    }
+                    else {
+                        Assert.assertEquals(reference, higher);
+                        next[0] = higher.getKey();
+                    }
+                });
+
     }
 
     @Test

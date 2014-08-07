@@ -2,10 +2,9 @@ package uk.ac.standrews.cs.trombone.event.util;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
-import uk.ac.standrews.cs.trombone.core.util.Copyable;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class SequentialPortNumberSupplier implements Supplier<Integer>, Copyable{
+public class SequentialPortNumberSupplier implements Supplier<Integer> {
 
     private final int start;
     private final AtomicInteger next_port;
@@ -33,11 +32,4 @@ public class SequentialPortNumberSupplier implements Supplier<Integer>, Copyable
 
         return "SequentialPortNumberProvider{" + "start=" + start + '}';
     }
-
-    @Override
-    public SequentialPortNumberSupplier copy() {
-
-        return new SequentialPortNumberSupplier(start);
-    }
-
 }

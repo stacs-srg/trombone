@@ -1,11 +1,13 @@
-package uk.ac.standrews.cs.trombone.core.key;
+package uk.ac.standrews.cs.trombone.core;
 
 import java.math.BigInteger;
-import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
 
 import static java.math.BigInteger.ONE;
 
-/** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
+/**
+ * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
 public class Key extends Number implements Comparable<Key> {
 
     private static final long serialVersionUID = -9022058863275074475L;
@@ -34,11 +36,55 @@ public class Key extends Number implements Comparable<Key> {
         }
         else if (value.compareTo(MIN_KEY_VALUE) < 0) {
 
-            this.value = value.remainder(KEYSPACE_SIZE).add(KEYSPACE_SIZE);
+            this.value = value.remainder(KEYSPACE_SIZE)
+                    .add(KEYSPACE_SIZE);
         }
         else {
             this.value = value;
         }
+    }
+
+    /**
+     * Tests whether three keys lie in ring order using {@link #ringDistanceFurther(Key, Key, Key)}.
+     *
+     * @param k1 the first key
+     * @param k2 the second key
+     * @param k3 the third key
+     * @return true if, when traversing the key space in increasing key direction from k1, and allowing for wrap-around at zero, k3 is not encountered before k2
+     */
+    public static boolean inRingOrder(final Key k1, final Key k2, final Key k3) {
+
+        // If the first and last keys are the same then the keys are in order regardless of the second.
+        return k1.equals(k3) || !ringDistanceFurther(k1, k2, k3);
+    }
+
+    /**
+     * Tests whether a key lies within a specified half-open ring segment using {@link #inRingOrder(Key, Key, Key)}.
+     *
+     * @param k1 the key after which the segment starts
+     * @param k2 the key being tested
+     * @param k3 the key at which the segment ends
+     * @return true if k2 lies within the key segment starting after k1 and ending at k3
+     */
+    public static boolean inSegment(final Key k1, final Key k2, final Key k3) {
+
+        // If k1 = k3 then the segment is the whole ring so it doesn't matter what k2 is.
+        // Otherwise, if k1 = k2 then the target lies just before the segment.
+        return k1.equals(k3) || !k1.equals(k2) && inRingOrder(k1, k2, k3);
+    }
+
+    /**
+     * Tests whether the second key is further from the first in ring distance than the third is from the first.
+     *
+     * @param k1 the first key
+     * @param k2 the second key
+     * @param k3 the third key
+     * @return true if the ring distance from k1 to k2 is greater than the ring distance from k1 to k3
+     */
+    public static boolean ringDistanceFurther(final Key k1, final Key k2, final Key k3) {
+
+        // If the first and last keys are the same then the keys are in order regardless of the second.
+        return k1.compareRingDistance(k2, k3) > 0;
     }
 
     public static Key valueOf(long value) {
@@ -101,7 +147,8 @@ public class Key extends Number implements Comparable<Key> {
      */
     public BigInteger ringDistance(final Key other) {
 
-        final BigInteger distance = other.getValue().subtract(value);
+        final BigInteger distance = other.getValue()
+                .subtract(value);
         return distance.compareTo(MIN_KEY_VALUE) < 0 ? distance.add(KEYSPACE_SIZE) : distance;
     }
 

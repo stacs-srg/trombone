@@ -6,10 +6,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
@@ -17,35 +15,25 @@ import uk.ac.standrews.cs.shabdiz.ApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
 import uk.ac.standrews.cs.trombone.core.AsynchronousPeerRemote;
+import uk.ac.standrews.cs.trombone.core.ChordConfiguration;
+import uk.ac.standrews.cs.trombone.core.Key;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
 import uk.ac.standrews.cs.trombone.core.PeerFactory;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
-import uk.ac.standrews.cs.trombone.core.key.Key;
-import uk.ac.standrews.cs.trombone.core.key.KeySupplier;
-import uk.ac.standrews.cs.trombone.core.maintenance.ChordMaintenance;
 import uk.ac.standrews.cs.trombone.core.maintenance.DisseminationStrategy;
-import uk.ac.standrews.cs.trombone.core.maintenance.Maintenance;
 import uk.ac.standrews.cs.trombone.core.selector.First;
 import uk.ac.standrews.cs.trombone.core.selector.Last;
 import uk.ac.standrews.cs.trombone.core.selector.Selector;
 import uk.ac.standrews.cs.trombone.core.selector.Self;
-import uk.ac.standrews.cs.trombone.core.state.ChordPeerState;
-import uk.ac.standrews.cs.trombone.core.state.PeerState;
-import uk.ac.standrews.cs.trombone.core.strategy.ChordJoinStrategy;
-import uk.ac.standrews.cs.trombone.core.strategy.ChordLookupStrategy;
-import uk.ac.standrews.cs.trombone.core.strategy.ChordNextHopStrategy;
-import uk.ac.standrews.cs.trombone.core.strategy.JoinStrategy;
-import uk.ac.standrews.cs.trombone.core.strategy.LookupStrategy;
-import uk.ac.standrews.cs.trombone.core.strategy.NextHopStrategy;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class SingleProcessPeerManager implements ApplicationManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SingleProcessPeerManager.class);
-    private static final KeySupplier KEY_PROVIDER = new KeySupplier(894156);
     private static final AttributeKey<Peer> PEER_KEY = new AttributeKey<>();
     private static final Random RANDOM = new Random(545454);
+    private static final Supplier<Key> KEY_PROVIDER = () -> Key.valueOf(RANDOM.nextLong());
     private final Set<PeerReference> joined_peers = new ConcurrentSkipListSet<>();
     public static final DisseminationStrategy STRATEGY = new DisseminationStrategy();
 
@@ -60,46 +48,7 @@ public class SingleProcessPeerManager implements ApplicationManager {
         STRATEGY.addAction(new DisseminationStrategy.Action(false, true, self, predecessor));
     }
 
-    public static final ScheduledThreadPoolExecutor EXECUTOR_SERVICE = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(100);
-
-    public static final PeerConfiguration CONFIGURATION = new PeerConfiguration() {
-
-        @Override
-        public Maintenance getMaintenance(final Peer peer) {
-
-            return new ChordMaintenance(peer, 3, TimeUnit.SECONDS);
-        }
-
-        @Override
-        public PeerState getPeerState(final Peer peer) {
-
-            return new ChordPeerState(peer, 8, Key.TWO, 10);
-        }
-
-        @Override
-        public JoinStrategy getJoinStrategy(final Peer peer) {
-
-            return new ChordJoinStrategy(peer);
-        }
-
-        @Override
-        public LookupStrategy getLookupStrategy(final Peer peer) {
-
-            return new ChordLookupStrategy(peer);
-        }
-
-        @Override
-        public NextHopStrategy getNextHopStrategy(final Peer peer) {
-
-            return new ChordNextHopStrategy(peer);
-        }
-
-        @Override
-        public ScheduledExecutorService getExecutor() {
-
-            return EXECUTOR_SERVICE;
-        }
-    };
+    public static final PeerConfiguration CONFIGURATION = new ChordConfiguration(8, Key.TWO, 10, 3, TimeUnit.SECONDS, 100);
 
     Peer getPeer(ApplicationDescriptor descriptor) {
 

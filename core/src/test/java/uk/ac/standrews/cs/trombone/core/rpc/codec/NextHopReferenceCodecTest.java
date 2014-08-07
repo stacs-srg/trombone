@@ -7,7 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 import uk.ac.standrews.cs.trombone.core.NextHopReference;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
-import uk.ac.standrews.cs.trombone.core.key.Key;
+import uk.ac.standrews.cs.trombone.core.Key;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

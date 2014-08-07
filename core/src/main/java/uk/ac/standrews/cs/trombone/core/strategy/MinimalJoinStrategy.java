@@ -9,15 +9,8 @@ import uk.ac.standrews.cs.trombone.core.PeerReference;
  */
 public class MinimalJoinStrategy implements JoinStrategy {
 
-    private final Peer local;
-
-    public MinimalJoinStrategy(Peer local) {
-
-        this.local = local;
-    }
-
     @Override
-    public CompletableFuture<Void> apply(final PeerReference reference) {
+    public CompletableFuture<Void> join(Peer local, final PeerReference reference) {
 
         return local.push(reference);
     }

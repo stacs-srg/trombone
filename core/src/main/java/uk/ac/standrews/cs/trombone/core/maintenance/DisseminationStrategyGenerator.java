@@ -25,7 +25,7 @@ public class DisseminationStrategyGenerator {
         SELECTORS.add(EmptySelector.INSTANCE);
         SELECTORS.add(new First(1, Selector.ReachabilityCriteria.ANY));
         SELECTORS.add(new Last(1, Selector.ReachabilityCriteria.ANY));
-        //        SELECTORS.add(new MostRecentlySeen(1, Selector.ReachabilityCriteria.REACHABLE_OR_UNREACHABLE));
+        //                SELECTORS.add(new MostRecentlySeen(1, Selector.ReachabilityCriteria.ANY));
         SELECTORS.add(new RandomSelector(1, Selector.ReachabilityCriteria.ANY));
         SELECTORS.add(Self.INSTANCE);
     }

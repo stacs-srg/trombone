@@ -11,8 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
-import uk.ac.standrews.cs.trombone.core.key.Key;
-import uk.ac.standrews.cs.trombone.core.key.RingArithmetic;
+import uk.ac.standrews.cs.trombone.core.Key;
 import uk.ac.standrews.cs.trombone.core.util.RelativeRingDistanceComparator;
 
 /**
@@ -103,7 +102,7 @@ public class ChordFingerTableMapBased implements ChordFingerTable {
         return descending_fingers.stream()
                 .filter(finger -> {
                     final Key finger_key = finger.getKey();
-                    return !finger_key.equals(local_key) && RingArithmetic.inRingOrder(local_key, finger_key, target);
+                    return !finger_key.equals(local_key) && Key.inRingOrder(local_key, finger_key, target);
                 })
                 .findFirst()
                 .get();

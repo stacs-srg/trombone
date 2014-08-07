@@ -1,16 +1,17 @@
-package uk.ac.standrews.cs.trombone.core.key;
+package uk.ac.standrews.cs.trombone.event.environment;
 
 import java.util.Random;
 import java.util.function.Supplier;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomAdaptor;
+import uk.ac.standrews.cs.trombone.core.Key;
 
 /**
  * Supplies random deterministic {@link Key keys}.
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class KeySupplier implements Supplier<Key> {
+public class RandomKeySupplier implements Supplier<Key> {
 
     protected final long seed;
     protected final Random random;
@@ -20,12 +21,12 @@ public class KeySupplier implements Supplier<Key> {
      *
      * @param key_factory the factory of which to construct a copy
      */
-    public KeySupplier(KeySupplier key_factory) {
+    public RandomKeySupplier(RandomKeySupplier key_factory) {
 
         this(key_factory.seed);
     }
 
-    public KeySupplier(long seed) {
+    public RandomKeySupplier(long seed) {
 
         this.seed = seed;
 

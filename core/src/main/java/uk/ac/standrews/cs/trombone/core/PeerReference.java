@@ -2,7 +2,6 @@ package uk.ac.standrews.cs.trombone.core;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
-import uk.ac.standrews.cs.trombone.core.key.Key;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class PeerReference implements Comparable<PeerReference> {

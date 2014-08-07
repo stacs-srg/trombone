@@ -15,7 +15,6 @@ import org.mashti.jetson.Server;
 import org.mashti.jetson.ServerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.core.maintenance.Maintenance;
 import uk.ac.standrews.cs.trombone.core.selector.Selector;
 import uk.ac.standrews.cs.trombone.core.state.PeerState;
@@ -58,11 +57,11 @@ public class Peer implements AsynchronousPeerRemote {
         refreshSelfReference();
 
         executor = configuration.getExecutor();
-        state = configuration.getPeerState(this);
-        maintenance = configuration.getMaintenance(this);
-        join_strategy = configuration.getJoinStrategy(this);
-        lookup_strategy = configuration.getLookupStrategy(this);
-        next_hop_strategy = configuration.getNextHopStrategy(this);
+        state = configuration.getPeerState().apply(this);
+        maintenance = configuration.getMaintenance().apply(this);
+        join_strategy = configuration.getJoinStrategy();
+        lookup_strategy = configuration.getLookupStrategy();
+        next_hop_strategy = configuration.getNextHopStrategy();
 
     }
 
@@ -107,7 +106,7 @@ public class Peer implements AsynchronousPeerRemote {
     @Override
     public CompletableFuture<Void> join(final PeerReference member) {
 
-        return join_strategy.apply(member);
+        return join_strategy.join(this, member);
     }
 
     @Override
@@ -141,7 +140,7 @@ public class Peer implements AsynchronousPeerRemote {
     @Override
     public CompletableFuture<NextHopReference> nextHop(final Key target) {
 
-        return next_hop_strategy.apply(target);
+        return next_hop_strategy.nextHop(this, target);
     }
 
     @Override
@@ -231,8 +230,8 @@ public class Peer implements AsynchronousPeerRemote {
                 }
             }
             else {
-                measurement.stop(result);
                 future_lookup_measurement.complete(measurement);
+                measurement.stop(result);
             }
         });
     }
@@ -244,7 +243,7 @@ public class Peer implements AsynchronousPeerRemote {
 
     private CompletableFuture<PeerReference> lookup(final Key target, final Optional<PeerMetric.LookupMeasurement> optional_measurement) {
 
-        return lookup_strategy.apply(target, optional_measurement);
+        return lookup_strategy.lookup(this, target, optional_measurement);
     }
 
     private void refreshSelfReference() {

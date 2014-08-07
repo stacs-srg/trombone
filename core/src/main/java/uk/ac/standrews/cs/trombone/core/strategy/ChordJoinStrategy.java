@@ -14,19 +14,13 @@ import uk.ac.standrews.cs.trombone.core.state.PeerState;
 public class ChordJoinStrategy implements JoinStrategy {
 
     public static final CompletableFuture<Void> DONE = CompletableFuture.completedFuture(null);
-    private final Peer local;
-    private final PeerState local_state;
-
-    public ChordJoinStrategy(Peer local) {
-
-        this.local = local;
-        local_state = local.getPeerState();
-    }
 
     @Override
-    public CompletableFuture<Void> apply(final PeerReference member) {
+    public CompletableFuture<Void> join(final Peer local, final PeerReference member) {
 
+        final PeerState local_state = local.getPeerState();
         final PeerReference self = local.getSelfReference();
+
         if (!self.equals(member)) {
 
             return local.getAsynchronousRemote(member)

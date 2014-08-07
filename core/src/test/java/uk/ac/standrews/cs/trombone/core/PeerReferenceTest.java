@@ -1,10 +1,10 @@
 package uk.ac.standrews.cs.trombone.core;
 
 import java.net.InetSocketAddress;
+import java.util.Random;
+import java.util.function.Supplier;
 import org.junit.Assert;
 import org.junit.Test;
-import uk.ac.standrews.cs.trombone.core.key.Key;
-import uk.ac.standrews.cs.trombone.core.key.KeySupplier;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -12,7 +12,8 @@ import static org.junit.Assert.assertTrue;
 
 public class PeerReferenceTest {
 
-    private final KeySupplier key_provider = new KeySupplier( 441112);
+    private final Random random = new Random(52165);
+    private final Supplier<Key> key_provider = () -> Key.valueOf(random.nextLong());
 
     @Test
     public void testIsReachable() throws Exception {

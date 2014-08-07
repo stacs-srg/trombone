@@ -7,10 +7,9 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Stream;
 import uk.ac.standrews.cs.trombone.core.InternalPeerReference;
+import uk.ac.standrews.cs.trombone.core.Key;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
-import uk.ac.standrews.cs.trombone.core.key.Key;
-import uk.ac.standrews.cs.trombone.core.key.RingArithmetic;
 import uk.ac.standrews.cs.trombone.core.util.RelativeRingDistanceComparator;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
@@ -19,12 +18,12 @@ public class TrombonePeerState implements PeerState {
     private final Key local_key;
     private final ConcurrentSkipListMap<Key, InternalPeerReference> state;
 
-    public TrombonePeerState(final Peer local) {
+    TrombonePeerState(final Peer local) {
 
         this(local.key());
     }
 
-    public TrombonePeerState(final Key local_key) {
+    TrombonePeerState(final Key local_key) {
 
         this.local_key = local_key;
         state = new ConcurrentSkipListMap<Key, InternalPeerReference>(new RelativeRingDistanceComparator(local_key));
@@ -41,7 +40,7 @@ public class TrombonePeerState implements PeerState {
     public boolean inLocalKeyRange(Key target) {
 
         final PeerReference last_reachable = lastReachable();
-        return last_reachable == null || RingArithmetic.inSegment(last_reachable.getKey(), target, local_key);
+        return last_reachable == null || Key.inSegment(last_reachable.getKey(), target, local_key);
     }
 
     @Override

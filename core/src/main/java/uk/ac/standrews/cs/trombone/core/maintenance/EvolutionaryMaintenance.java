@@ -33,7 +33,6 @@ public class EvolutionaryMaintenance extends StrategicMaintenance {
     public static final Sampler STRATEGY_ACTION_SIZE_SAMPLER = new Sampler();
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EvolutionaryMaintenance.class);
-    public static final TerminationCondition NO_TERMINATION_CONDITION = null;
     protected final Random random;
     protected final PeerMetric metric;
     protected final List<EvaluatedDisseminationStrategy> evaluated_strategies;
@@ -51,14 +50,9 @@ public class EvolutionaryMaintenance extends StrategicMaintenance {
     private static final Comparator<EvaluatedDisseminationStrategy> ASCENDING_FITNESS_COMPARATOR = Comparator.reverseOrder();
     private TerminationCondition termination_condition;
 
-    public EvolutionaryMaintenance(final Peer peer, int population_size, int elite_count, Probability mutation_probability, long evolution_cycle_length, TimeUnit evolution_cycle_unit, Clusterer<EvaluatedDisseminationStrategy> clusterer, DisseminationStrategyGenerator strategy_generator) {
+    EvolutionaryMaintenance(final Peer peer, int population_size, int elite_count, Probability mutation_probability, long evolution_cycle_length, TimeUnit evolution_cycle_unit, Clusterer<EvaluatedDisseminationStrategy> clusterer, DisseminationStrategyGenerator strategy_generator, TerminationCondition termination_condition, long interval, TimeUnit interval_unit) {
 
-        this(peer, population_size, elite_count, mutation_probability, evolution_cycle_length, evolution_cycle_unit, clusterer, strategy_generator, NO_TERMINATION_CONDITION);
-    }
-
-    public EvolutionaryMaintenance(final Peer peer, int population_size, int elite_count, Probability mutation_probability, long evolution_cycle_length, TimeUnit evolution_cycle_unit, Clusterer<EvaluatedDisseminationStrategy> clusterer, DisseminationStrategyGenerator strategy_generator, TerminationCondition termination_condition) {
-
-        super(peer, null, 3, TimeUnit.SECONDS);
+        super(peer, null, interval, interval_unit);
         this.population_size = population_size;
         this.elite_count = elite_count;
         this.mutation_probability = mutation_probability;
@@ -196,7 +190,8 @@ public class EvolutionaryMaintenance extends StrategicMaintenance {
 
     protected EvaluatedDisseminationStrategy mostFit(final List<EvaluatedDisseminationStrategy> current_cluster_points) {
 
-        final Optional<EvaluatedDisseminationStrategy> max_fitness = current_cluster_points.stream().max(ASCENDING_FITNESS_COMPARATOR);
+        final Optional<EvaluatedDisseminationStrategy> max_fitness = current_cluster_points.stream()
+                .max(ASCENDING_FITNESS_COMPARATOR);
         return !max_fitness.isPresent() ? null : max_fitness.get();
     }
 
@@ -262,14 +257,16 @@ public class EvolutionaryMaintenance extends StrategicMaintenance {
     private DisseminationStrategy select(final TreeMap<Double, EvaluatedDisseminationStrategy> normalized_evaluated_strategies) {
 
         final double dice = random.nextDouble();
-        final EvaluatedDisseminationStrategy selected = normalized_evaluated_strategies.ceilingEntry(dice).getValue();
+        final EvaluatedDisseminationStrategy selected = normalized_evaluated_strategies.ceilingEntry(dice)
+                .getValue();
         assert selected != null;
         return selected.getStrategy();
     }
 
     protected EvaluatedDisseminationStrategy leastFit(final List<EvaluatedDisseminationStrategy> current_cluster_points) {
 
-        final Optional<EvaluatedDisseminationStrategy> min_fitness = current_cluster_points.stream().min(ASCENDING_FITNESS_COMPARATOR);
+        final Optional<EvaluatedDisseminationStrategy> min_fitness = current_cluster_points.stream()
+                .min(ASCENDING_FITNESS_COMPARATOR);
         return !min_fitness.isPresent() ? null : min_fitness.get();
     }
 

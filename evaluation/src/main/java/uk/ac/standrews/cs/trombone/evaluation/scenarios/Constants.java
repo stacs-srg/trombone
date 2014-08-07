@@ -6,28 +6,26 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import org.apache.commons.math3.ml.clustering.Clusterer;
 import org.apache.commons.math3.ml.clustering.KMeansPlusPlusClusterer;
 import org.apache.commons.math3.ml.distance.EuclideanDistance;
 import org.apache.commons.math3.random.MersenneTwister;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.trombone.core.Peer;
+import uk.ac.standrews.cs.trombone.core.Key;
 import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
-import uk.ac.standrews.cs.trombone.core.key.Key;
-import uk.ac.standrews.cs.trombone.core.key.KeySupplier;
-import uk.ac.standrews.cs.trombone.core.maintenance.ChordMaintenance;
+import uk.ac.standrews.cs.trombone.core.maintenance.ChordMaintenanceFactory;
 import uk.ac.standrews.cs.trombone.core.maintenance.DisseminationStrategyGenerator;
 import uk.ac.standrews.cs.trombone.core.maintenance.EvaluatedDisseminationStrategy;
 import uk.ac.standrews.cs.trombone.core.maintenance.EvolutionaryMaintenance;
-import uk.ac.standrews.cs.trombone.core.maintenance.Maintenance;
+import uk.ac.standrews.cs.trombone.core.maintenance.EvolutionaryMaintenanceFactory;
+import uk.ac.standrews.cs.trombone.core.maintenance.MaintenanceFactory;
 import uk.ac.standrews.cs.trombone.core.maintenance.PerPointClusterer;
-import uk.ac.standrews.cs.trombone.core.maintenance.RandomMaintenance;
-import uk.ac.standrews.cs.trombone.core.maintenance.StrategicMaintenance;
+import uk.ac.standrews.cs.trombone.core.maintenance.RandomMaintenanceFactory;
+import uk.ac.standrews.cs.trombone.core.maintenance.StrategicMaintenanceFactory;
 import uk.ac.standrews.cs.trombone.core.maintenance.pfclust.PFClustClusterer;
-import uk.ac.standrews.cs.trombone.core.state.ChordPeerState;
-import uk.ac.standrews.cs.trombone.core.state.TrombonePeerState;
+import uk.ac.standrews.cs.trombone.core.state.ChordPeerStateFactory;
+import uk.ac.standrews.cs.trombone.core.state.TrombonePeerStateFactory;
 import uk.ac.standrews.cs.trombone.core.strategy.ChordJoinStrategy;
 import uk.ac.standrews.cs.trombone.core.strategy.ChordLookupStrategy;
 import uk.ac.standrews.cs.trombone.core.strategy.ChordNextHopStrategy;
@@ -39,6 +37,7 @@ import uk.ac.standrews.cs.trombone.event.environment.Churn;
 import uk.ac.standrews.cs.trombone.event.environment.ExponentialIntervalGenerator;
 import uk.ac.standrews.cs.trombone.event.environment.IntervalGenerator;
 import uk.ac.standrews.cs.trombone.event.environment.OscillatingExponentialInterval;
+import uk.ac.standrews.cs.trombone.event.environment.RandomKeySupplier;
 import uk.ac.standrews.cs.trombone.event.environment.Workload;
 import uk.ac.standrews.cs.trombone.event.util.SequentialPortNumberSupplier;
 
@@ -84,55 +83,13 @@ public final class Constants {
     public static final EvolutionaryMaintenance.ElapsedTimeTerminationCondition TERMINATION_CONDITION_4 = new EvolutionaryMaintenance.ElapsedTimeTerminationCondition(4, TimeUnit.HOURS);
     public static final EvolutionaryMaintenance.ElapsedTimeTerminationCondition TERMINATION_CONDITION_2 = new EvolutionaryMaintenance.ElapsedTimeTerminationCondition(2, TimeUnit.HOURS);
 
-    public static final Function<Peer, EvolutionaryMaintenance> EVOLUTIONARY_MAINTENANCE_PFCLUST_10_30_SEC = peer -> new EvolutionaryMaintenance(peer, 10, 2, MUTATION_PROBABILITY, 30, TimeUnit.SECONDS, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(5, 3));
-    public static final Function<Peer, EvolutionaryMaintenance> EVOLUTIONARY_MAINTENANCE_PFCLUST_10_1_MIN = peer -> new EvolutionaryMaintenance(peer, 10, 2, MUTATION_PROBABILITY, 1, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(5, 3));
-    public static final Function<Peer, EvolutionaryMaintenance> EVOLUTIONARY_MAINTENANCE_PFCLUST_10_4_MIN = peer -> new EvolutionaryMaintenance(peer, 10, 2, MUTATION_PROBABILITY, 4, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(5, 3));
-    public static final Function<Peer, EvolutionaryMaintenance> EVOLUTIONARY_MAINTENANCE_PFCLUST_10_8_MIN = peer -> new EvolutionaryMaintenance(peer, 10, 2, MUTATION_PROBABILITY, 8, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(5, 3));
-    public static final Function<Peer, EvolutionaryMaintenance> EVOLUTIONARY_MAINTENANCE_PFCLUST_10 = peer -> new EvolutionaryMaintenance(peer, 10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(5, 3));
-    public static final Function<Peer, EvolutionaryMaintenance> EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_48_HOURS = peer -> new EvolutionaryMaintenance(peer, 10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(5, 3), TERMINATION_CONDITION_48);
-    public static final Function<Peer, EvolutionaryMaintenance> EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_10_HOURS = peer -> new EvolutionaryMaintenance(peer, 10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(5, 3), TERMINATION_CONDITION_10);
-    public static final Function<Peer, EvolutionaryMaintenance> EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_8_HOURS = peer -> new EvolutionaryMaintenance(peer, 10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(5, 3), TERMINATION_CONDITION_8);
-    public static final Function<Peer, EvolutionaryMaintenance> EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_6_HOURS = peer -> new EvolutionaryMaintenance(peer, 10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(5, 3), TERMINATION_CONDITION_6);
-    public static final Function<Peer, EvolutionaryMaintenance> EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_4_HOURS = peer -> new EvolutionaryMaintenance(peer, 10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(5, 3), TERMINATION_CONDITION_4);
-    public static final Function<Peer, EvolutionaryMaintenance> EVOLUTIONARY_MAINTENANCE_PFCLUST_10_STOP_AFTER_2_HOURS = peer -> new EvolutionaryMaintenance(peer, 10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(5, 3), TERMINATION_CONDITION_2);
-    public static final Function<Peer, EvolutionaryMaintenance> EVOLUTIONARY_MAINTENANCE_PFCLUST_10_7_5 = peer -> new EvolutionaryMaintenance(peer, 10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(7, 5));
-    public static final Function<Peer, EvolutionaryMaintenance> EVOLUTIONARY_MAINTENANCE_PFCLUST_10_9_7 = peer -> new EvolutionaryMaintenance(peer, 10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(9, 7));
-    public static final Function<Peer, EvolutionaryMaintenance> EVOLUTIONARY_MAINTENANCE_PFCLUST_10_11_9 = peer -> new EvolutionaryMaintenance(peer, 10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(11, 9));
-    public static final Function<Peer, EvolutionaryMaintenance> EVOLUTIONARY_MAINTENANCE_PFCLUST_10_13_11 = peer -> new EvolutionaryMaintenance(peer, 10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(13, 11));
-    public static final Function<Peer, EvolutionaryMaintenance> EVOLUTIONARY_MAINTENANCE_PFCLUST_10_15_13 = peer -> new EvolutionaryMaintenance(peer, 10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(15, 13));
-    public static final Function<Peer, EvolutionaryMaintenance> EVOLUTIONARY_MAINTENANCE_PFCLUST_10_17_15 = peer -> new EvolutionaryMaintenance(peer, 10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(17, 15));
-    public static final Function<Peer, RandomMaintenance> RANDOM_MAINTENANCE_10_7_5 = peer -> new RandomMaintenance(peer, 10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(7, 5));
-    public static final Function<Peer, RandomMaintenance> RANDOM_MAINTENANCE_10_9_7 = peer -> new RandomMaintenance(peer, 10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(9, 7));
-    public static final Function<Peer, RandomMaintenance> RANDOM_MAINTENANCE_10_11_9 = peer -> new RandomMaintenance(peer, 10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(11, 9));
-    public static final Function<Peer, RandomMaintenance> RANDOM_MAINTENANCE_10_13_11 = peer -> new RandomMaintenance(peer, 10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(13, 11));
-    public static final Function<Peer, RandomMaintenance> RANDOM_MAINTENANCE_10_15_13 = peer -> new RandomMaintenance(peer, 10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(15, 13));
-    public static final Function<Peer, RandomMaintenance> RANDOM_MAINTENANCE_10_17_15 = peer -> new RandomMaintenance(peer, 10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(17, 15));
-    public static final Function<Peer, RandomMaintenance> RANDOM_MAINTENANCE_10_30_SEC = peer -> new RandomMaintenance(peer, 10, 30, TimeUnit.SECONDS, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(5, 3));
-    public static final Function<Peer, RandomMaintenance> RANDOM_MAINTENANCE_10_1_MIN = peer -> new RandomMaintenance(peer, 10, 1, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(5, 3));
-    public static final Function<Peer, RandomMaintenance> RANDOM_MAINTENANCE_10_4_MIN = peer -> new RandomMaintenance(peer, 10, 4, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(5, 3));
-    public static final Function<Peer, RandomMaintenance> RANDOM_MAINTENANCE_10_8_MIN = peer -> new RandomMaintenance(peer, 10, 8, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(5, 3));
-    public static final Function<Peer, RandomMaintenance> RANDOM_MAINTENANCE_10 = peer -> new RandomMaintenance(peer, 10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(5, 3));
-    public static final Function<Peer, RandomMaintenance> RANDOM_MAINTENANCE_10_STOP_AFTER_48_HOURS = peer -> new RandomMaintenance(peer, 10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(5, 3), TERMINATION_CONDITION_48);
-    public static final Function<Peer, RandomMaintenance> RANDOM_MAINTENANCE_10_STOP_AFTER_10_HOURS = peer -> new RandomMaintenance(peer, 10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(5, 3), TERMINATION_CONDITION_10);
-    public static final Function<Peer, RandomMaintenance> RANDOM_MAINTENANCE_10_STOP_AFTER_8_HOURS = peer -> new RandomMaintenance(peer, 10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(5, 3), TERMINATION_CONDITION_8);
-    public static final Function<Peer, RandomMaintenance> RANDOM_MAINTENANCE_10_STOP_AFTER_6_HOURS = peer -> new RandomMaintenance(peer, 10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(5, 3), TERMINATION_CONDITION_6);
-    public static final Function<Peer, RandomMaintenance> RANDOM_MAINTENANCE_10_STOP_AFTER_4_HOURS = peer -> new RandomMaintenance(peer, 10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(5, 3), TERMINATION_CONDITION_4);
-    public static final Function<Peer, RandomMaintenance> RANDOM_MAINTENANCE_10_STOP_AFTER_2_HOURS = peer -> new RandomMaintenance(peer, 10, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(5, 3), TERMINATION_CONDITION_2);
-
-    public static final Function<Peer, EvolutionaryMaintenance> EVOLUTIONARY_MAINTENANCE_PFCLUST_20 = peer -> new EvolutionaryMaintenance(peer, 20, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(5, 3));
-    public static final Function<Peer, EvolutionaryMaintenance> EVOLUTIONARY_MAINTENANCE_PFCLUST_30 = peer -> new EvolutionaryMaintenance(peer, 30, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(5, 3));
-    public static final Function<Peer, EvolutionaryMaintenance> EVOLUTIONARY_MAINTENANCE_PFCLUST_40 = peer -> new EvolutionaryMaintenance(peer, 40, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(5, 3));
-    public static final Function<Peer, EvolutionaryMaintenance> EVOLUTIONARY_MAINTENANCE_PFCLUST_50 = peer -> new EvolutionaryMaintenance(peer, 50, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PF_CLUST_CLUSTERER, new DisseminationStrategyGenerator(5, 3));
-    public static final Function<Peer, EvolutionaryMaintenance> EVOLUTIONARY_MAINTENANCE_KMEAN_PLUS_PLUS_10 = peer -> new EvolutionaryMaintenance(peer, 10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, new KMeansPlusPlusClusterer<EvaluatedDisseminationStrategy>(5, 100, new EuclideanDistance(), new MersenneTwister(852)), new DisseminationStrategyGenerator(5, 3));
-    public static final Function<Peer, EvolutionaryMaintenance> EVOLUTIONARY_MAINTENANCE_PER_POINT_CLUSTER_10 = peer -> new EvolutionaryMaintenance(peer, 10, 2, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, new PerPointClusterer<EvaluatedDisseminationStrategy>(), new DisseminationStrategyGenerator(5, 3));
-
     public static final UniformSyntheticDelay BLUB_UNIFORMLY_DISTRIBUTED_SYNTHETIC_DELAY = new UniformSyntheticDelay(233763, 866279);
     public static final int ACTIVE_MAINTENANCE_INTERVAL_MILLIS = 1_500;
 
     public static final SequentialPortNumberSupplier PORT_NUMBER_PROVIDER = new SequentialPortNumberSupplier(64000);
 
-    public static final KeySupplier TARGET_KEY_PROVIDER = new KeySupplier(SEED);
-    public static final Supplier<KeySupplier> PEER_KEY_PROVIDER = () -> new KeySupplier(SEED);
+    public static final RandomKeySupplier TARGET_KEY_PROVIDER = new RandomKeySupplier(SEED);
+    public static final Supplier<RandomKeySupplier> PEER_KEY_PROVIDER = () -> new RandomKeySupplier(SEED);
 
     public static final Duration DURATION_1_SEC = new Duration(1, TimeUnit.SECONDS);
     public static final Duration DURATION_10_SEC = new Duration(10, TimeUnit.SECONDS);
@@ -179,7 +136,7 @@ public final class Constants {
 
     public static final PeerConfiguration NO_MAINTENANCE_CONFIGURATION = null;// new PeerConfiguration(NO_MAINTENANCE, BLUB_UNIFORMLY_DISTRIBUTED_SYNTHETIC_DELAY);
 
-    private static final Function<Peer, Maintenance> NO_MAINTENANCE = peer -> null;
+    private static final MaintenanceFactory NO_MAINTENANCE = peer -> null;
     public static final ScheduledExecutorService SCHEDULED_EXECUTOR_SERVICE = Executors.newScheduledThreadPool(300);
     private static final PeerConfiguration.Builder BASE_BUILDER = new PeerConfiguration.Builder().enableApplicationFeedback(false)
             .syntheticDelay(BLUB_UNIFORMLY_DISTRIBUTED_SYNTHETIC_DELAY)
@@ -191,99 +148,214 @@ public final class Constants {
     private static final TimeUnit MAINTENANCE_INTERVAL_UNIT = TimeUnit.SECONDS;
     private static final BigInteger INTER_FINGER_RATIO = Key.TWO;
 
-    public static final PeerConfiguration CHORD = new PeerConfiguration.Builder(BASE_BUILDER).peerState(peer -> new ChordPeerState(peer, FINGER_TABLE_SIZE, INTER_FINGER_RATIO, SUCCESSOR_LIST_SIZE))
-            .joinStrategy(peer -> new ChordJoinStrategy(peer))
-            .nextHopStrategy(peer -> new ChordNextHopStrategy(peer))
-            .lookupStrategy(peer -> new ChordLookupStrategy(peer))
-            .maintenance(peer -> new ChordMaintenance(peer, MAINTENANCE_INTERVAL, MAINTENANCE_INTERVAL_UNIT))
+    public static final PeerConfiguration CHORD = new PeerConfiguration.Builder(BASE_BUILDER).peerState(new ChordPeerStateFactory(FINGER_TABLE_SIZE, INTER_FINGER_RATIO, SUCCESSOR_LIST_SIZE))
+            .joinStrategy(new ChordJoinStrategy())
+            .nextHopStrategy(new ChordNextHopStrategy())
+            .lookupStrategy(new ChordLookupStrategy())
+            .maintenance(new ChordMaintenanceFactory(MAINTENANCE_INTERVAL, MAINTENANCE_INTERVAL_UNIT))
             .build();
 
-    private static final PeerConfiguration.Builder BASE_TROMBONE_CONFIGURATION = new PeerConfiguration.Builder(BASE_BUILDER).peerState(peer -> new TrombonePeerState(peer))
-            .joinStrategy(peer -> new MinimalJoinStrategy(peer))
-            .nextHopStrategy(peer -> new TromboneNextHopStrategy(peer))
-            .lookupStrategy(peer -> new ChordLookupStrategy(peer));
+    private static final PeerConfiguration.Builder BASE_TROMBONE_CONFIGURATION = new PeerConfiguration.Builder(BASE_BUILDER).peerState(new TrombonePeerStateFactory())
+            .joinStrategy(new MinimalJoinStrategy())
+            .nextHopStrategy(new TromboneNextHopStrategy())
+            .lookupStrategy(new ChordLookupStrategy());
 
-    private static final Function<Peer, Maintenance> PERIODIC_STABILIZATION = peer -> new StrategicMaintenance(peer, new StrongStabilization(), MAINTENANCE_INTERVAL, MAINTENANCE_INTERVAL_UNIT);
+    private static final MaintenanceFactory PERIODIC_STABILIZATION = new StrategicMaintenanceFactory(new StrongStabilization(), MAINTENANCE_INTERVAL, MAINTENANCE_INTERVAL_UNIT);
     private static final Clusterer<EvaluatedDisseminationStrategy> PFCLUST_CLUSTERER = new PFClustClusterer<>(4121);
     private static final Clusterer<EvaluatedDisseminationStrategy> K_MEANS_PLUS_PLUS_CLUSTERER = new KMeansPlusPlusClusterer<>(5, 100, new EuclideanDistance(), new MersenneTwister(852));
     private static final Clusterer<EvaluatedDisseminationStrategy> PER_POINT_CLUSTERER = new PerPointClusterer<>();
     private static final DisseminationStrategyGenerator STRATEGY_GENERATOR = new DisseminationStrategyGenerator(10, 5);
     private static final int POPULATION_SIZE = 10;
-    private static final Function<Peer, Maintenance> EVOLUTIONARY_MAINTENANCE = peer -> new EvolutionaryMaintenance(peer, POPULATION_SIZE, 1, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PFCLUST_CLUSTERER, STRATEGY_GENERATOR);
-    private static final Function<Peer, Maintenance> EVOLUTIONARY_MAINTENANCE_STOP_AFTER_2 = peer -> new EvolutionaryMaintenance(peer, POPULATION_SIZE, 1, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PFCLUST_CLUSTERER, STRATEGY_GENERATOR, TERMINATION_CONDITION_2);
-    private static final Function<Peer, Maintenance> EVOLUTIONARY_MAINTENANCE_STOP_AFTER_4 = peer -> new EvolutionaryMaintenance(peer, POPULATION_SIZE, 1, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PFCLUST_CLUSTERER, STRATEGY_GENERATOR, TERMINATION_CONDITION_4);
-    private static final Function<Peer, Maintenance> EVOLUTIONARY_MAINTENANCE_STOP_AFTER_8 = peer -> new EvolutionaryMaintenance(peer, POPULATION_SIZE, 1, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PFCLUST_CLUSTERER, STRATEGY_GENERATOR, TERMINATION_CONDITION_8);
-    private static final Function<Peer, Maintenance> EVOLUTIONARY_MAINTENANCE_STOP_AFTER_16 = peer -> new EvolutionaryMaintenance(peer, POPULATION_SIZE, 1, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, PFCLUST_CLUSTERER, STRATEGY_GENERATOR, TERMINATION_CONDITION_16);
 
-    private static final Function<Peer, Maintenance> EVOLUTIONARY_MAINTENANCE_KMEAN = peer -> new EvolutionaryMaintenance(peer, POPULATION_SIZE, 1, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, K_MEANS_PLUS_PLUS_CLUSTERER, STRATEGY_GENERATOR);
-    private static final Function<Peer, Maintenance> EVOLUTIONARY_MAINTENANCE_KMEAN_STOP_AFTER_2  = peer -> new EvolutionaryMaintenance(peer, POPULATION_SIZE, 1, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, K_MEANS_PLUS_PLUS_CLUSTERER, STRATEGY_GENERATOR, TERMINATION_CONDITION_2 );
-    private static final Function<Peer, Maintenance> EVOLUTIONARY_MAINTENANCE_KMEAN_STOP_AFTER_4  = peer -> new EvolutionaryMaintenance(peer, POPULATION_SIZE, 1, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, K_MEANS_PLUS_PLUS_CLUSTERER, STRATEGY_GENERATOR, TERMINATION_CONDITION_4 );
-    private static final Function<Peer, Maintenance> EVOLUTIONARY_MAINTENANCE_KMEAN_STOP_AFTER_8  = peer -> new EvolutionaryMaintenance(peer, POPULATION_SIZE, 1, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, K_MEANS_PLUS_PLUS_CLUSTERER, STRATEGY_GENERATOR, TERMINATION_CONDITION_8 );
-    private static final Function<Peer, Maintenance> EVOLUTIONARY_MAINTENANCE_KMEAN_STOP_AFTER_16 = peer -> new EvolutionaryMaintenance(peer, POPULATION_SIZE, 1, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, K_MEANS_PLUS_PLUS_CLUSTERER, STRATEGY_GENERATOR, TERMINATION_CONDITION_16);
-    private static final Function<Peer, Maintenance> EVOLUTIONARY_MAINTENANCE_PER_POINT = peer -> new EvolutionaryMaintenance(peer, POPULATION_SIZE, 1, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, K_MEANS_PLUS_PLUS_CLUSTERER, STRATEGY_GENERATOR);
-    private static final Function<Peer, Maintenance> EVOLUTIONARY_MAINTENANCE_PER_POINT_STOP_AFTER_2  = peer -> new EvolutionaryMaintenance(peer, POPULATION_SIZE, 1, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, K_MEANS_PLUS_PLUS_CLUSTERER, STRATEGY_GENERATOR, TERMINATION_CONDITION_2 );
-    private static final Function<Peer, Maintenance> EVOLUTIONARY_MAINTENANCE_PER_POINT_STOP_AFTER_4  = peer -> new EvolutionaryMaintenance(peer, POPULATION_SIZE, 1, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, K_MEANS_PLUS_PLUS_CLUSTERER, STRATEGY_GENERATOR, TERMINATION_CONDITION_4 );
-    private static final Function<Peer, Maintenance> EVOLUTIONARY_MAINTENANCE_PER_POINT_STOP_AFTER_8  = peer -> new EvolutionaryMaintenance(peer, POPULATION_SIZE, 1, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, K_MEANS_PLUS_PLUS_CLUSTERER, STRATEGY_GENERATOR, TERMINATION_CONDITION_8 );
-    private static final Function<Peer, Maintenance> EVOLUTIONARY_MAINTENANCE_PER_POINT_STOP_AFTER_16 = peer -> new EvolutionaryMaintenance(peer, POPULATION_SIZE, 1, MUTATION_PROBABILITY, 2, TimeUnit.MINUTES, K_MEANS_PLUS_PLUS_CLUSTERER, STRATEGY_GENERATOR, TERMINATION_CONDITION_16);
+    private static final EvolutionaryMaintenanceFactory.Builder BASE_EVOLUTIONARY_MAINTENANCE_FACTORY_BUILDER = EvolutionaryMaintenanceFactory.builder()
+            .populationSize(POPULATION_SIZE)
+            .eliteCount(1)
+            .mutationProbability(MUTATION_PROBABILITY)
+            .evaluationDuration(2, TimeUnit.MINUTES)
+            .clusterer(PFCLUST_CLUSTERER)
+            .disseminationStrategyGenerator(STRATEGY_GENERATOR);
 
-    private static final Function<Peer, Maintenance> RANDOM_MAINTENANCE = peer -> new RandomMaintenance(peer, POPULATION_SIZE, 2, TimeUnit.MINUTES, PFCLUST_CLUSTERER, STRATEGY_GENERATOR);
-    private static final Function<Peer, Maintenance> RANDOM_MAINTENANCE_STOP_AFTER_2 = peer -> new RandomMaintenance(peer, POPULATION_SIZE, 2, TimeUnit.MINUTES, PFCLUST_CLUSTERER, STRATEGY_GENERATOR,  TERMINATION_CONDITION_2);
-    private static final Function<Peer, Maintenance> RANDOM_MAINTENANCE_STOP_AFTER_4 = peer -> new RandomMaintenance(peer, POPULATION_SIZE, 2, TimeUnit.MINUTES, PFCLUST_CLUSTERER, STRATEGY_GENERATOR,  TERMINATION_CONDITION_4);
-    private static final Function<Peer, Maintenance> RANDOM_MAINTENANCE_STOP_AFTER_8 = peer -> new RandomMaintenance(peer, POPULATION_SIZE, 2, TimeUnit.MINUTES, PFCLUST_CLUSTERER, STRATEGY_GENERATOR,  TERMINATION_CONDITION_8);
-    private static final Function<Peer, Maintenance> RANDOM_MAINTENANCE_STOP_AFTER_16 = peer -> new RandomMaintenance(peer, POPULATION_SIZE, 2, TimeUnit.MINUTES, PFCLUST_CLUSTERER, STRATEGY_GENERATOR, TERMINATION_CONDITION_16);
+    private static final MaintenanceFactory EVOLUTIONARY_MAINTENANCE = EvolutionaryMaintenanceFactory.builder(BASE_EVOLUTIONARY_MAINTENANCE_FACTORY_BUILDER)
+            .build();
 
-    private static final Function<Peer, Maintenance> RANDOM_MAINTENANCE_KMEAN = peer -> new RandomMaintenance(peer, POPULATION_SIZE, 2, TimeUnit.MINUTES, K_MEANS_PLUS_PLUS_CLUSTERER, STRATEGY_GENERATOR);
-    private static final Function<Peer, Maintenance> RANDOM_MAINTENANCE_KMEAN_STOP_AFTER_2  = peer -> new RandomMaintenance(peer, POPULATION_SIZE, 2, TimeUnit.MINUTES, K_MEANS_PLUS_PLUS_CLUSTERER, STRATEGY_GENERATOR, TERMINATION_CONDITION_2);
-    private static final Function<Peer, Maintenance> RANDOM_MAINTENANCE_KMEAN_STOP_AFTER_4  = peer -> new RandomMaintenance(peer, POPULATION_SIZE, 2, TimeUnit.MINUTES, K_MEANS_PLUS_PLUS_CLUSTERER, STRATEGY_GENERATOR, TERMINATION_CONDITION_4);
-    private static final Function<Peer, Maintenance> RANDOM_MAINTENANCE_KMEAN_STOP_AFTER_8  = peer -> new RandomMaintenance(peer, POPULATION_SIZE, 2, TimeUnit.MINUTES, K_MEANS_PLUS_PLUS_CLUSTERER, STRATEGY_GENERATOR, TERMINATION_CONDITION_8);
-    private static final Function<Peer, Maintenance> RANDOM_MAINTENANCE_KMEAN_STOP_AFTER_16 = peer -> new RandomMaintenance(peer, POPULATION_SIZE, 2, TimeUnit.MINUTES, K_MEANS_PLUS_PLUS_CLUSTERER, STRATEGY_GENERATOR, TERMINATION_CONDITION_16);
+    private static final MaintenanceFactory EVOLUTIONARY_MAINTENANCE_STOP_AFTER_2 = EvolutionaryMaintenanceFactory.builder(BASE_EVOLUTIONARY_MAINTENANCE_FACTORY_BUILDER)
+            .terminationCondition(TERMINATION_CONDITION_2)
+            .build();
+    private static final MaintenanceFactory EVOLUTIONARY_MAINTENANCE_STOP_AFTER_4 = EvolutionaryMaintenanceFactory.builder(BASE_EVOLUTIONARY_MAINTENANCE_FACTORY_BUILDER)
+            .terminationCondition(TERMINATION_CONDITION_4)
+            .build();
+    private static final MaintenanceFactory EVOLUTIONARY_MAINTENANCE_STOP_AFTER_8 = EvolutionaryMaintenanceFactory.builder(BASE_EVOLUTIONARY_MAINTENANCE_FACTORY_BUILDER)
+            .terminationCondition(TERMINATION_CONDITION_8)
+            .build();
+    private static final MaintenanceFactory EVOLUTIONARY_MAINTENANCE_STOP_AFTER_16 = EvolutionaryMaintenanceFactory.builder(BASE_EVOLUTIONARY_MAINTENANCE_FACTORY_BUILDER)
+            .terminationCondition(TERMINATION_CONDITION_16)
+            .build();
 
-    private static final Function<Peer, Maintenance> RANDOM_MAINTENANCE_PER_POINT = peer -> new RandomMaintenance(peer, POPULATION_SIZE, 2, TimeUnit.MINUTES, PER_POINT_CLUSTERER, STRATEGY_GENERATOR);
-    private static final Function<Peer, Maintenance> RANDOM_MAINTENANCE_PER_POINT_STOP_AFTER_2  = peer -> new RandomMaintenance(peer, POPULATION_SIZE, 2, TimeUnit.MINUTES, PER_POINT_CLUSTERER, STRATEGY_GENERATOR, TERMINATION_CONDITION_2 );
-    private static final Function<Peer, Maintenance> RANDOM_MAINTENANCE_PER_POINT_STOP_AFTER_4  = peer -> new RandomMaintenance(peer, POPULATION_SIZE, 2, TimeUnit.MINUTES, PER_POINT_CLUSTERER, STRATEGY_GENERATOR, TERMINATION_CONDITION_4 );
-    private static final Function<Peer, Maintenance> RANDOM_MAINTENANCE_PER_POINT_STOP_AFTER_8  = peer -> new RandomMaintenance(peer, POPULATION_SIZE, 2, TimeUnit.MINUTES, PER_POINT_CLUSTERER, STRATEGY_GENERATOR, TERMINATION_CONDITION_8 );
-    private static final Function<Peer, Maintenance> RANDOM_MAINTENANCE_PER_POINT_STOP_AFTER_16 = peer -> new RandomMaintenance(peer, POPULATION_SIZE, 2, TimeUnit.MINUTES, PER_POINT_CLUSTERER, STRATEGY_GENERATOR, TERMINATION_CONDITION_16);
+    public static final EvolutionaryMaintenanceFactory.Builder EVOLUTIONARY_KMEAN_CLUSTERER = EvolutionaryMaintenanceFactory.builder(BASE_EVOLUTIONARY_MAINTENANCE_FACTORY_BUILDER)
+            .clusterer(K_MEANS_PLUS_PLUS_CLUSTERER);
+    private static final MaintenanceFactory EVOLUTIONARY_MAINTENANCE_KMEAN = EvolutionaryMaintenanceFactory.builder(EVOLUTIONARY_KMEAN_CLUSTERER)
+            .build();
+    private static final MaintenanceFactory EVOLUTIONARY_MAINTENANCE_KMEAN_STOP_AFTER_2 = EvolutionaryMaintenanceFactory.builder(EVOLUTIONARY_KMEAN_CLUSTERER)
+            .terminationCondition(TERMINATION_CONDITION_2)
+            .build();
+    private static final MaintenanceFactory EVOLUTIONARY_MAINTENANCE_KMEAN_STOP_AFTER_4 = EvolutionaryMaintenanceFactory.builder(EVOLUTIONARY_KMEAN_CLUSTERER)
+            .terminationCondition(TERMINATION_CONDITION_4)
+            .build();
+    private static final MaintenanceFactory EVOLUTIONARY_MAINTENANCE_KMEAN_STOP_AFTER_8 = EvolutionaryMaintenanceFactory.builder(EVOLUTIONARY_KMEAN_CLUSTERER)
+            .terminationCondition(TERMINATION_CONDITION_8)
+            .build();
+    private static final MaintenanceFactory EVOLUTIONARY_MAINTENANCE_KMEAN_STOP_AFTER_16 = EvolutionaryMaintenanceFactory.builder(EVOLUTIONARY_KMEAN_CLUSTERER)
+            .terminationCondition(TERMINATION_CONDITION_16)
+            .build();
+
+    public static final EvolutionaryMaintenanceFactory.Builder EVOLUTIONARY_PER_POINT_CLUSTERER = EvolutionaryMaintenanceFactory.builder(BASE_EVOLUTIONARY_MAINTENANCE_FACTORY_BUILDER)
+            .clusterer(PER_POINT_CLUSTERER);
+
+    private static final MaintenanceFactory EVOLUTIONARY_MAINTENANCE_PER_POINT = EvolutionaryMaintenanceFactory.builder(EVOLUTIONARY_PER_POINT_CLUSTERER)
+            .build();
+    private static final MaintenanceFactory EVOLUTIONARY_MAINTENANCE_PER_POINT_STOP_AFTER_2 = EvolutionaryMaintenanceFactory.builder(EVOLUTIONARY_PER_POINT_CLUSTERER)
+            .terminationCondition(TERMINATION_CONDITION_2)
+            .build();
+    private static final MaintenanceFactory EVOLUTIONARY_MAINTENANCE_PER_POINT_STOP_AFTER_4 = EvolutionaryMaintenanceFactory.builder(EVOLUTIONARY_PER_POINT_CLUSTERER)
+            .terminationCondition(TERMINATION_CONDITION_4)
+            .build();
+    private static final MaintenanceFactory EVOLUTIONARY_MAINTENANCE_PER_POINT_STOP_AFTER_8 = EvolutionaryMaintenanceFactory.builder(EVOLUTIONARY_PER_POINT_CLUSTERER)
+            .terminationCondition(TERMINATION_CONDITION_8)
+            .build();
+    private static final MaintenanceFactory EVOLUTIONARY_MAINTENANCE_PER_POINT_STOP_AFTER_16 = EvolutionaryMaintenanceFactory.builder(EVOLUTIONARY_PER_POINT_CLUSTERER)
+            .terminationCondition(TERMINATION_CONDITION_16)
+            .build();
+
+    private static final RandomMaintenanceFactory.Builder BASE_RANDOM_MAINTENANCE_FACTORY_BUILDER = RandomMaintenanceFactory.builder()
+            .populationSize(POPULATION_SIZE)
+            .evaluationDuration(2, TimeUnit.MINUTES)
+            .clusterer(PFCLUST_CLUSTERER)
+            .disseminationStrategyGenerator(STRATEGY_GENERATOR);
+
+    private static final MaintenanceFactory RANDOM_MAINTENANCE = RandomMaintenanceFactory.builder(BASE_RANDOM_MAINTENANCE_FACTORY_BUILDER)
+            .build();
+    private static final MaintenanceFactory RANDOM_MAINTENANCE_STOP_AFTER_2 = RandomMaintenanceFactory.builder(BASE_RANDOM_MAINTENANCE_FACTORY_BUILDER)
+            .terminationCondition(TERMINATION_CONDITION_2)
+            .build();
+    private static final MaintenanceFactory RANDOM_MAINTENANCE_STOP_AFTER_4 = RandomMaintenanceFactory.builder(BASE_RANDOM_MAINTENANCE_FACTORY_BUILDER)
+            .terminationCondition(TERMINATION_CONDITION_4)
+            .build();
+    private static final MaintenanceFactory RANDOM_MAINTENANCE_STOP_AFTER_8 = RandomMaintenanceFactory.builder(BASE_RANDOM_MAINTENANCE_FACTORY_BUILDER)
+            .terminationCondition(TERMINATION_CONDITION_8)
+            .build();
+    private static final MaintenanceFactory RANDOM_MAINTENANCE_STOP_AFTER_16 = RandomMaintenanceFactory.builder(BASE_RANDOM_MAINTENANCE_FACTORY_BUILDER)
+            .terminationCondition(TERMINATION_CONDITION_16)
+            .build();
+
+    private static final MaintenanceFactory RANDOM_MAINTENANCE_KMEAN = RandomMaintenanceFactory.builder(BASE_RANDOM_MAINTENANCE_FACTORY_BUILDER)
+            .clusterer(K_MEANS_PLUS_PLUS_CLUSTERER)
+            .build();
+    private static final MaintenanceFactory RANDOM_MAINTENANCE_KMEAN_STOP_AFTER_2 = RandomMaintenanceFactory.builder(BASE_RANDOM_MAINTENANCE_FACTORY_BUILDER)
+            .clusterer(K_MEANS_PLUS_PLUS_CLUSTERER)
+            .terminationCondition(TERMINATION_CONDITION_2)
+            .build();
+    private static final MaintenanceFactory RANDOM_MAINTENANCE_KMEAN_STOP_AFTER_4 = RandomMaintenanceFactory.builder(BASE_RANDOM_MAINTENANCE_FACTORY_BUILDER)
+            .clusterer(K_MEANS_PLUS_PLUS_CLUSTERER)
+            .terminationCondition(TERMINATION_CONDITION_4)
+            .build();
+    private static final MaintenanceFactory RANDOM_MAINTENANCE_KMEAN_STOP_AFTER_8 = RandomMaintenanceFactory.builder(BASE_RANDOM_MAINTENANCE_FACTORY_BUILDER)
+            .clusterer(K_MEANS_PLUS_PLUS_CLUSTERER)
+            .terminationCondition(TERMINATION_CONDITION_8)
+            .build();
+    private static final MaintenanceFactory RANDOM_MAINTENANCE_KMEAN_STOP_AFTER_16 = RandomMaintenanceFactory.builder(BASE_RANDOM_MAINTENANCE_FACTORY_BUILDER)
+            .clusterer(K_MEANS_PLUS_PLUS_CLUSTERER)
+            .terminationCondition(TERMINATION_CONDITION_16)
+            .build();
+
+    private static final MaintenanceFactory RANDOM_MAINTENANCE_PER_POINT = RandomMaintenanceFactory.builder(BASE_RANDOM_MAINTENANCE_FACTORY_BUILDER)
+            .clusterer(PER_POINT_CLUSTERER)
+            .build();
+    private static final MaintenanceFactory RANDOM_MAINTENANCE_PER_POINT_STOP_AFTER_2 = RandomMaintenanceFactory.builder(BASE_RANDOM_MAINTENANCE_FACTORY_BUILDER)
+            .clusterer(PER_POINT_CLUSTERER)
+            .terminationCondition(TERMINATION_CONDITION_2)
+            .build();
+    private static final MaintenanceFactory RANDOM_MAINTENANCE_PER_POINT_STOP_AFTER_4 = RandomMaintenanceFactory.builder(BASE_RANDOM_MAINTENANCE_FACTORY_BUILDER)
+            .clusterer(PER_POINT_CLUSTERER)
+            .terminationCondition(TERMINATION_CONDITION_4)
+            .build();
+    private static final MaintenanceFactory RANDOM_MAINTENANCE_PER_POINT_STOP_AFTER_8 = RandomMaintenanceFactory.builder(BASE_RANDOM_MAINTENANCE_FACTORY_BUILDER)
+            .clusterer(PER_POINT_CLUSTERER)
+            .terminationCondition(TERMINATION_CONDITION_8)
+            .build();
+    private static final MaintenanceFactory RANDOM_MAINTENANCE_PER_POINT_STOP_AFTER_16 = RandomMaintenanceFactory.builder(BASE_RANDOM_MAINTENANCE_FACTORY_BUILDER)
+            .clusterer(PER_POINT_CLUSTERER)
+            .terminationCondition(TERMINATION_CONDITION_16)
+            .build();
 
     public static final PeerConfiguration TROMBONE_NO_MAINTENANCE = BASE_TROMBONE_CONFIGURATION.maintenance(NO_MAINTENANCE)
             .build();
 
     public static final PeerConfiguration TROMBONE_STABILISATION = BASE_TROMBONE_CONFIGURATION.maintenance(PERIODIC_STABILIZATION)
             .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE)             .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_2 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_STOP_AFTER_2)             .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_4 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_STOP_AFTER_4)            .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_8 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_STOP_AFTER_8)             .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_16 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_STOP_AFTER_16)             .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_2 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_STOP_AFTER_2)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_4 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_STOP_AFTER_4)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_8 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_STOP_AFTER_8)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_16 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_STOP_AFTER_16)
+            .build();
 
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_KMEAN = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_KMEAN)               .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_KMEAN_2  = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_KMEAN_STOP_AFTER_2 )               .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_KMEAN_4  = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_KMEAN_STOP_AFTER_4 )               .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_KMEAN_8  = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_KMEAN_STOP_AFTER_8 )               .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_KMEAN_16 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_KMEAN_STOP_AFTER_16)               .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_PER_POINT = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_PER_POINT)            .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_PER_POINT_2  = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_PER_POINT_STOP_AFTER_2 )            .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_PER_POINT_4  = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_PER_POINT_STOP_AFTER_4 )            .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_PER_POINT_8  = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_PER_POINT_STOP_AFTER_8 )            .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_PER_POINT_16 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_PER_POINT_STOP_AFTER_16)            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_KMEAN = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_KMEAN)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_KMEAN_2 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_KMEAN_STOP_AFTER_2)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_KMEAN_4 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_KMEAN_STOP_AFTER_4)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_KMEAN_8 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_KMEAN_STOP_AFTER_8)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_KMEAN_16 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_KMEAN_STOP_AFTER_16)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_PER_POINT = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_PER_POINT)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_PER_POINT_2 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_PER_POINT_STOP_AFTER_2)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_PER_POINT_4 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_PER_POINT_STOP_AFTER_4)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_PER_POINT_8 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_PER_POINT_STOP_AFTER_8)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_PER_POINT_16 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_PER_POINT_STOP_AFTER_16)
+            .build();
 
     public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE)
             .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_2 = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_STOP_AFTER_2)            .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_4 = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_STOP_AFTER_4)             .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_8 = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_STOP_AFTER_8)              .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_16 = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_STOP_AFTER_16)              .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_2 = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_STOP_AFTER_2)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_4 = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_STOP_AFTER_4)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_8 = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_STOP_AFTER_8)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_16 = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_STOP_AFTER_16)
+            .build();
 
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_KMEAN = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_KMEAN)               .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_KMEAN_2   = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_KMEAN_STOP_AFTER_2 )               .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_KMEAN_4   = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_KMEAN_STOP_AFTER_4 )               .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_KMEAN_8   = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_KMEAN_STOP_AFTER_8 )               .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_KMEAN_16  = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_KMEAN_STOP_AFTER_16)               .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_KMEAN = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_KMEAN)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_KMEAN_2 = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_KMEAN_STOP_AFTER_2)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_KMEAN_4 = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_KMEAN_STOP_AFTER_4)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_KMEAN_8 = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_KMEAN_STOP_AFTER_8)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_KMEAN_16 = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_KMEAN_STOP_AFTER_16)
+            .build();
 
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_PER_POINT = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_PER_POINT)             .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_PER_POINT_2  = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_PER_POINT_STOP_AFTER_2 )             .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_PER_POINT_4  = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_PER_POINT_STOP_AFTER_4 )             .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_PER_POINT_8  = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_PER_POINT_STOP_AFTER_8 )             .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_PER_POINT_16 = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_PER_POINT_STOP_AFTER_16)             .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_PER_POINT = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_PER_POINT)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_PER_POINT_2 = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_PER_POINT_STOP_AFTER_2)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_PER_POINT_4 = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_PER_POINT_STOP_AFTER_4)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_PER_POINT_8 = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_PER_POINT_STOP_AFTER_8)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_PER_POINT_16 = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_PER_POINT_STOP_AFTER_16)
+            .build();
 
     static final PeerConfiguration[] PEER_CONFIGURATIONS = {
             CHORD, TROMBONE_NO_MAINTENANCE, TROMBONE_STABILISATION, TROMBONE_ADAPTIVE_GA, TROMBONE_ADAPTIVE_RANDOM

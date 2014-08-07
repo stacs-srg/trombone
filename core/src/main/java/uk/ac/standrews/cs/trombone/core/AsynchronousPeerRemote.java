@@ -2,7 +2,6 @@ package uk.ac.standrews.cs.trombone.core;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.core.selector.Selector;
 
 /**

@@ -17,12 +17,11 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomAdaptor;
-import org.json.JSONObject;
 import org.mashti.gauge.Rate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.standrews.cs.trombone.core.Key;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
-import uk.ac.standrews.cs.trombone.core.key.Key;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
@@ -103,9 +102,10 @@ public class EventQueue implements Iterator<Event> {
         }
     }
 
-    public JSONObject getScenario() {
+    public Scenario getScenario() {
 
-        return new JSONObject(scenario);
+        //TODO implement unmodifiable version
+        return scenario;
     }
 
     void put(final Event event) throws InterruptedException {

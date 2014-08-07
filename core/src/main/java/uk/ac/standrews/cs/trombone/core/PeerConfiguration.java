@@ -1,10 +1,9 @@
 package uk.ac.standrews.cs.trombone.core;
 
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.function.Function;
 import java.util.function.Supplier;
-import uk.ac.standrews.cs.trombone.core.maintenance.Maintenance;
-import uk.ac.standrews.cs.trombone.core.state.PeerState;
+import uk.ac.standrews.cs.trombone.core.maintenance.MaintenanceFactory;
+import uk.ac.standrews.cs.trombone.core.state.PeerStateFactory;
 import uk.ac.standrews.cs.trombone.core.strategy.JoinStrategy;
 import uk.ac.standrews.cs.trombone.core.strategy.LookupStrategy;
 import uk.ac.standrews.cs.trombone.core.strategy.NextHopStrategy;
@@ -27,15 +26,15 @@ public interface PeerConfiguration {
         return false;
     }
 
-    Maintenance getMaintenance(Peer peer);
+    MaintenanceFactory getMaintenance();
 
-    PeerState getPeerState(Peer peer);
+    PeerStateFactory getPeerState();
 
-    JoinStrategy getJoinStrategy(Peer peer);
+    JoinStrategy getJoinStrategy();
 
-    LookupStrategy getLookupStrategy(Peer peer);
+    LookupStrategy getLookupStrategy();
 
-    NextHopStrategy getNextHopStrategy(Peer peer);
+    NextHopStrategy getNextHopStrategy();
 
     ScheduledExecutorService getExecutor();
 
@@ -46,12 +45,12 @@ public interface PeerConfiguration {
     class Builder {
 
         private SyntheticDelay synthetic_delay = SyntheticDelay.ZERO;
-        private Function<Peer, Maintenance> maintenance_factory;
+        private MaintenanceFactory maintenance_factory;
         private boolean application_feedback_enabled;
-        private Function<Peer, PeerState> peer_state_factory;
-        private Function<Peer, JoinStrategy> join_strategy_factory;
-        private Function<Peer, NextHopStrategy> next_hop_strategy_factory;
-        private Function<Peer, LookupStrategy> lookup_strategy_factory;
+        private PeerStateFactory peer_state_factory;
+        private JoinStrategy join_strategy;
+        private NextHopStrategy next_hop_strategy;
+        private LookupStrategy lookup_strategy;
         private Supplier<ScheduledExecutorService> executor_supplier;
 
         /** Constructs a new {@link Builder builder} */
@@ -70,9 +69,9 @@ public interface PeerConfiguration {
             maintenance_factory = builder.maintenance_factory;
             application_feedback_enabled = builder.application_feedback_enabled;
             peer_state_factory = builder.peer_state_factory;
-            join_strategy_factory = builder.join_strategy_factory;
-            next_hop_strategy_factory = builder.next_hop_strategy_factory;
-            lookup_strategy_factory = builder.lookup_strategy_factory;
+            join_strategy = builder.join_strategy;
+            next_hop_strategy = builder.next_hop_strategy;
+            lookup_strategy = builder.lookup_strategy;
             executor_supplier = builder.executor_supplier;
         }
 
@@ -83,7 +82,7 @@ public interface PeerConfiguration {
             return this;
         }
 
-        public Builder maintenance(Function<Peer, Maintenance> maintenance_factory) {
+        public Builder maintenance(MaintenanceFactory maintenance_factory) {
 
             this.maintenance_factory = maintenance_factory;
             return this;
@@ -95,27 +94,27 @@ public interface PeerConfiguration {
             return this;
         }
 
-        public Builder peerState(Function<Peer, PeerState> peer_state_factory) {
+        public Builder peerState(PeerStateFactory peer_state_factory) {
 
             this.peer_state_factory = peer_state_factory;
             return this;
         }
 
-        public Builder lookupStrategy(Function<Peer, LookupStrategy> lookup_strategy_factory) {
+        public Builder lookupStrategy(LookupStrategy lookup_strategy) {
 
-            this.lookup_strategy_factory = lookup_strategy_factory;
+            this.lookup_strategy = lookup_strategy;
             return this;
         }
 
-        public Builder joinStrategy(Function<Peer, JoinStrategy> join_strategy_factory) {
+        public Builder joinStrategy(JoinStrategy join_strategy) {
 
-            this.join_strategy_factory = join_strategy_factory;
+            this.join_strategy = join_strategy;
             return this;
         }
 
-        public Builder nextHopStrategy(Function<Peer, NextHopStrategy> next_hop_strategy_factory) {
+        public Builder nextHopStrategy(NextHopStrategy next_hop_strategy) {
 
-            this.next_hop_strategy_factory = next_hop_strategy_factory;
+            this.next_hop_strategy = next_hop_strategy;
             return this;
         }
 
@@ -142,33 +141,33 @@ public interface PeerConfiguration {
                 }
 
                 @Override
-                public Maintenance getMaintenance(final Peer peer) {
+                public MaintenanceFactory getMaintenance() {
 
-                    return maintenance_factory.apply(peer);
+                    return maintenance_factory;
                 }
 
                 @Override
-                public PeerState getPeerState(final Peer peer) {
+                public PeerStateFactory getPeerState() {
 
-                    return peer_state_factory.apply(peer);
+                    return peer_state_factory;
                 }
 
                 @Override
-                public JoinStrategy getJoinStrategy(final Peer peer) {
+                public JoinStrategy getJoinStrategy() {
 
-                    return join_strategy_factory.apply(peer);
+                    return join_strategy;
                 }
 
                 @Override
-                public LookupStrategy getLookupStrategy(final Peer peer) {
+                public LookupStrategy getLookupStrategy() {
 
-                    return lookup_strategy_factory.apply(peer);
+                    return lookup_strategy;
                 }
 
                 @Override
-                public NextHopStrategy getNextHopStrategy(final Peer peer) {
+                public NextHopStrategy getNextHopStrategy() {
 
-                    return next_hop_strategy_factory.apply(peer);
+                    return next_hop_strategy;
                 }
 
                 @Override

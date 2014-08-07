@@ -19,9 +19,9 @@
 
 package uk.ac.standrews.cs.trombone.event.environment;
 
+import java.util.function.Supplier;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.trombone.core.key.Key;
-import uk.ac.standrews.cs.trombone.core.key.KeySupplier;
+import uk.ac.standrews.cs.trombone.core.Key;
 
 /**
  * Presents a synthetic pattern of a peer workload.
@@ -33,7 +33,7 @@ public class Workload {
     /** No workload. */
     public static final Workload NONE = new Workload(null, new ConstantIntervalGenerator(Duration.MAX_DURATION));
 
-    private final KeySupplier key_supplier;
+    private final RandomKeySupplier key_supplier;
     private final IntervalGenerator intervals;
 
     /**
@@ -52,7 +52,7 @@ public class Workload {
      * @param key_supplier the provider of target lookup keys
      * @param intervals the intervals between successive lookups
      */
-    public Workload(final KeySupplier key_supplier, final IntervalGenerator intervals) {
+    public Workload(final RandomKeySupplier key_supplier, final IntervalGenerator intervals) {
 
         this.key_supplier = key_supplier;
         this.intervals = intervals;
@@ -63,7 +63,7 @@ public class Workload {
      *
      * @return the provider of target lookup keys
      */
-    public KeySupplier getKeyProvider() {
+    public Supplier<Key> getKeyProvider() {
 
         return key_supplier;
     }

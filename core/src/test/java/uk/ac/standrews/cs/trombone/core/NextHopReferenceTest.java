@@ -3,7 +3,6 @@ package uk.ac.standrews.cs.trombone.core;
 import java.net.InetSocketAddress;
 import org.junit.Assert;
 import org.junit.Test;
-import uk.ac.standrews.cs.trombone.core.key.Key;
 
 public class NextHopReferenceTest {
 

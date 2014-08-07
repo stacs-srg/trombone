@@ -11,14 +11,9 @@ import uk.ac.standrews.cs.trombone.core.util.Probability;
  */
 public class RandomMaintenance extends EvolutionaryMaintenance {
 
-    public RandomMaintenance(final Peer peer, final int population_size, final long evolution_cycle_length, final TimeUnit evolution_cycle_unit, final Clusterer<EvaluatedDisseminationStrategy> clusterer, final DisseminationStrategyGenerator strategy_generator) {
+    RandomMaintenance(final Peer peer, final int population_size, final long evolution_cycle_length, final TimeUnit evolution_cycle_unit, final Clusterer<EvaluatedDisseminationStrategy> clusterer, final DisseminationStrategyGenerator strategy_generator, TerminationCondition termination_condition, long interval, TimeUnit interval_unit) {
 
-        super(peer, population_size, 0, Probability.ZERO, evolution_cycle_length, evolution_cycle_unit, clusterer, strategy_generator);
-    }
-
-    public RandomMaintenance(final Peer peer, final int population_size, final long evolution_cycle_length, final TimeUnit evolution_cycle_unit, final Clusterer<EvaluatedDisseminationStrategy> clusterer, final DisseminationStrategyGenerator strategy_generator, TerminationCondition termination_condition) {
-
-        super(peer, population_size, 0, Probability.ZERO, evolution_cycle_length, evolution_cycle_unit, clusterer, strategy_generator, termination_condition);
+        super(peer, population_size, 0, Probability.ZERO, evolution_cycle_length, evolution_cycle_unit, clusterer, strategy_generator, termination_condition, interval, interval_unit);
     }
 
     @Override

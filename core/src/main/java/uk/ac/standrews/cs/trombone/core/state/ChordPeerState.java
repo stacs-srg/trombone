@@ -27,10 +27,9 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
+import uk.ac.standrews.cs.trombone.core.Key;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
-import uk.ac.standrews.cs.trombone.core.key.Key;
-import uk.ac.standrews.cs.trombone.core.key.RingArithmetic;
 
 /**
  * Implements a Chord node's state. This is consist of reference to successor, reference to predecessor, {@link ChordSuccessorList} and {@link ChordFingerTableMapBased}.
@@ -46,7 +45,7 @@ public class ChordPeerState implements PeerState {
     private final Key local_key;
     private final Peer local;
 
-    public ChordPeerState(final Peer local, final int finger_table_size, final BigInteger inter_finger_ratio, final int successor_list_size) {
+    ChordPeerState(final Peer local, final int finger_table_size, final BigInteger inter_finger_ratio, final int successor_list_size) {
 
         this.local = local;
         local_key = local.key();
@@ -168,7 +167,7 @@ public class ChordPeerState implements PeerState {
             throw new RuntimeException("Unable to determine local key range because the predecessor is null");
         }
 
-        return RingArithmetic.inSegment(predecessor_key, target, local_key);
+        return Key.inSegment(predecessor_key, target, local_key);
     }
 
     @Override

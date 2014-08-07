@@ -6,24 +6,25 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.Random;
 import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Supplier;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
+import uk.ac.standrews.cs.trombone.core.Key;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
 import uk.ac.standrews.cs.trombone.core.PeerFactory;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
-import uk.ac.standrews.cs.trombone.core.key.Key;
-import uk.ac.standrews.cs.trombone.core.key.KeySupplier;
-import uk.ac.standrews.cs.trombone.core.maintenance.Maintenance;
-import uk.ac.standrews.cs.trombone.core.state.PeerState;
-import uk.ac.standrews.cs.trombone.core.state.TrombonePeerState;
+import uk.ac.standrews.cs.trombone.core.maintenance.MaintenanceFactory;
+import uk.ac.standrews.cs.trombone.core.state.PeerStateFactory;
+import uk.ac.standrews.cs.trombone.core.state.TrombonePeerStateFactory;
 import uk.ac.standrews.cs.trombone.core.strategy.ChordLookupStrategy;
 import uk.ac.standrews.cs.trombone.core.strategy.JoinStrategy;
 import uk.ac.standrews.cs.trombone.core.strategy.LookupStrategy;
@@ -37,38 +38,39 @@ import uk.ac.standrews.cs.trombone.core.strategy.TromboneNextHopStrategy;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class LookupCorrectnessTest {
 
-    public static final KeySupplier KEY_PROVIDER = new KeySupplier(984156);
+    private static final Random RANDOM = new Random(4152);
+    public static final Supplier<Key> KEY_PROVIDER = () -> Key.valueOf(RANDOM.nextLong());
     private static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newScheduledThreadPool(100);
     public static final PeerConfiguration TROMBONE_CONFIGURATION = new PeerConfiguration() {
 
         @Override
-        public Maintenance getMaintenance(final Peer peer) {
+        public MaintenanceFactory getMaintenance() {
 
-            return null;
+            return peer -> null;
         }
 
         @Override
-        public PeerState getPeerState(final Peer peer) {
+        public PeerStateFactory getPeerState() {
 
-            return new TrombonePeerState(peer);
+            return new TrombonePeerStateFactory();
         }
 
         @Override
-        public JoinStrategy getJoinStrategy(final Peer peer) {
+        public JoinStrategy getJoinStrategy() {
 
-            return new MinimalJoinStrategy(peer);
+            return new MinimalJoinStrategy();
         }
 
         @Override
-        public LookupStrategy getLookupStrategy(final Peer peer) {
+        public LookupStrategy getLookupStrategy() {
 
-            return new ChordLookupStrategy(peer);
+            return new ChordLookupStrategy();
         }
 
         @Override
-        public NextHopStrategy getNextHopStrategy(final Peer peer) {
+        public NextHopStrategy getNextHopStrategy() {
 
-            return new TromboneNextHopStrategy(peer);
+            return new TromboneNextHopStrategy();
         }
 
         @Override

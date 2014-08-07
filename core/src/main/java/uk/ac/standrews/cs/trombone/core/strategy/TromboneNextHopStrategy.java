@@ -5,7 +5,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import uk.ac.standrews.cs.trombone.core.NextHopReference;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
-import uk.ac.standrews.cs.trombone.core.key.Key;
+import uk.ac.standrews.cs.trombone.core.Key;
 import uk.ac.standrews.cs.trombone.core.state.PeerState;
 
 /**
@@ -13,19 +13,12 @@ import uk.ac.standrews.cs.trombone.core.state.PeerState;
  */
 public class TromboneNextHopStrategy implements NextHopStrategy {
 
-    private final Peer local;
-    private final PeerState state;
-    private final ScheduledExecutorService executor;
-
-    public TromboneNextHopStrategy(Peer local) {
-
-        this.local = local;
-        state = local.getPeerState();
-        executor = local.getExecutor();
-    }
-
     @Override
-    public CompletableFuture<NextHopReference> apply(final Key target) {
+    public CompletableFuture<NextHopReference> nextHop(final Peer local, final Key target) {
+
+        ;
+        final PeerState state = local.getPeerState();
+        final ScheduledExecutorService executor = local.getExecutor();
 
         return CompletableFuture.supplyAsync(() -> {
 

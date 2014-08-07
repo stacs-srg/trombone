@@ -3,7 +3,6 @@ package uk.ac.standrews.cs.trombone.core;
 import java.net.InetSocketAddress;
 import java.util.concurrent.CompletableFuture;
 import org.mashti.jetson.lean.LeanClientFactory;
-import uk.ac.standrews.cs.trombone.core.key.Key;
 import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */

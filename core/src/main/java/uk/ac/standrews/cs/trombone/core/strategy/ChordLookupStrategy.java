@@ -2,13 +2,12 @@ package uk.ac.standrews.cs.trombone.core.strategy;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ScheduledExecutorService;
 import uk.ac.standrews.cs.trombone.core.AsynchronousPeerRemote;
+import uk.ac.standrews.cs.trombone.core.Key;
 import uk.ac.standrews.cs.trombone.core.NextHopReference;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerMetric;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
-import uk.ac.standrews.cs.trombone.core.key.Key;
 
 /**
  * Implements Chord's lookup protocol.
@@ -17,26 +16,15 @@ import uk.ac.standrews.cs.trombone.core.key.Key;
  */
 public class ChordLookupStrategy implements LookupStrategy {
 
-    private final Peer local;
-    private final Key local_key;
-    private final ScheduledExecutorService executor;
-
-    public ChordLookupStrategy(final Peer local) {
-
-        this.local = local;
-        local_key = local.key();
-        executor = local.getExecutor();
-    }
-
     @Override
-    public CompletableFuture<PeerReference> apply(final Key target, final Optional<PeerMetric.LookupMeasurement> optional_measurement) {
+    public CompletableFuture<PeerReference> lookup(final Peer local, final Key target, final Optional<PeerMetric.LookupMeasurement> optional_measurement) {
 
         final CompletableFuture<PeerReference> future_lookup = new CompletableFuture<>();
-        lookup(future_lookup, target, local.getSelfReference(), optional_measurement);
+        lookup(local, future_lookup, target, local.getSelfReference(), optional_measurement);
         return future_lookup;
     }
 
-    void lookup(CompletableFuture<PeerReference> future_lookup, Key target, PeerReference current_hop, Optional<PeerMetric.LookupMeasurement> measurement) {
+    void lookup(final Peer local, CompletableFuture<PeerReference> future_lookup, Key target, PeerReference current_hop, Optional<PeerMetric.LookupMeasurement> measurement) {
 
         final AsynchronousPeerRemote current_hop_remote = local.getAsynchronousRemote(current_hop);
         final CompletableFuture<NextHopReference> future_next_hop = current_hop_remote.nextHop(target);
@@ -51,28 +39,29 @@ public class ChordLookupStrategy implements LookupStrategy {
                 future_lookup.completeExceptionally(error);
             }
             else {
-                updateMeasurement(current_hop, measurement);
+                updateMeasurement(local, current_hop, measurement);
 
                 if (next_hop.isFinalHop()) {
                     future_lookup.complete(next_hop);
                 }
                 else {
-                    lookup(future_lookup, target, next_hop, measurement);
+                    lookup(local, future_lookup, target, next_hop, measurement);
                 }
             }
-        }, executor);
+        }, local.getExecutor());
     }
 
-    private void updateMeasurement(final PeerReference current_hop, final Optional<PeerMetric.LookupMeasurement> measurement) {
+    private void updateMeasurement(final Peer local, final PeerReference current_hop, final Optional<PeerMetric.LookupMeasurement> measurement) {
 
-        if (measurement.isPresent() && !isLocal(current_hop)) {
+        if (measurement.isPresent() && !isLocal(local, current_hop)) {
             final PeerMetric.LookupMeasurement lookupMeasurement = measurement.get();
             lookupMeasurement.incrementHopCount();
         }
     }
 
-    private boolean isLocal(final PeerReference current) {
+    private static boolean isLocal(final Peer local, final PeerReference current) {
 
-        return local_key.equals(current.getKey());
+        return local.key()
+                .equals(current.getKey());
     }
 }

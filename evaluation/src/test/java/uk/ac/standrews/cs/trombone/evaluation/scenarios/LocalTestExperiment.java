@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
+import uk.ac.standrews.cs.trombone.evaluation.util.ScenarioUtils;
 import uk.ac.standrews.cs.trombone.event.EventExecutor;
 import uk.ac.standrews.cs.trombone.event.EventQueue;
 import uk.ac.standrews.cs.trombone.event.Scenario;
@@ -21,14 +22,14 @@ public class LocalTestExperiment {
         final Scenario scenario = Batch1EffectOfChurn.getInstance()
                 .get()
                 .get(15);
-        System.out.println(scenario.toJson());
         testExecution(scenario);
     }
 
-    private void testExecution(final Scenario scenario) throws Exception {
+    private static void testExecution(final Scenario scenario) throws Exception {
 
         final Path observations_path = Paths.get("/Users", "masih", "Desktop", String.valueOf(System.currentTimeMillis()));
         Files.createDirectories(observations_path);
+        ScenarioUtils.saveScenarioAsJson(scenario, observations_path);
 
         final EventExecutor executor = new EventExecutor(new EventQueue(scenario, 1), observations_path);
         executor.start();

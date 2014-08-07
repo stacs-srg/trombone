@@ -20,8 +20,7 @@ import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerFactory;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
-import uk.ac.standrews.cs.trombone.core.key.Key;
-import uk.ac.standrews.cs.trombone.core.key.RingArithmetic;
+import uk.ac.standrews.cs.trombone.core.Key;
 import uk.ac.standrews.cs.trombone.core.selector.ChordPredecessorSelector;
 import uk.ac.standrews.cs.trombone.core.selector.ChordSuccessorSelector;
 import uk.ac.standrews.cs.trombone.core.state.ChordFingerTable;
@@ -44,7 +43,7 @@ public class RecoveryTest {
     @BeforeClass
     public static void setUp() throws Exception {
 
-        network = new SingleProcessLocalP2PNetwork(50);
+        network = new SingleProcessLocalP2PNetwork(30);
         network.populate();
         network.deployAll();
         network.awaitAnyOfStates(ApplicationState.RUNNING);
@@ -226,7 +225,7 @@ public class RecoveryTest {
 
             if (previous_finger_reference != null && !finger_key.equals(node_key)) {
 
-                if (RingArithmetic.ringDistanceFurther(node_key, previous_finger_reference.getKey(), finger_key)) { return false; }
+                if (Key.ringDistanceFurther(node_key, previous_finger_reference.getKey(), finger_key)) { return false; }
             }
 
             previous_finger_reference = finger_reference;

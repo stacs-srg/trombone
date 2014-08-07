@@ -54,7 +54,7 @@ public class EventExecutor {
     private final MetricRegistry metric_registry;
     private final CsvReporter csv_reporter;
     private final Future<Void> task_populator_future;
-    private final JSONObject scenario_properties;
+    private final Scenario scenario;
     private final int lookup_retry_count;
     private final TromboneMetricSet metric_set;
     private Future<Void> task_scheduler_future;
@@ -70,7 +70,7 @@ public class EventExecutor {
         task_executor = new ThreadPoolExecutor(100, 100, 10, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("task_executor_"));
         task_executor.prestartAllCoreThreads();
         load_balancer = new Semaphore(MAX_BUFFERED_EVENTS, true);
-        scenario_properties = reader.getScenario();
+        scenario = reader.getScenario();
         lookup_retry_count = getLookupRetryCount();
         metric_registry = new MetricRegistry("test");
         metric_set = new TromboneMetricSet(this);
@@ -82,19 +82,17 @@ public class EventExecutor {
 
     private Duration getObservationInterval() {
 
-        final JSONObject observation_interval_json = scenario_properties.getJSONObject("observationInterval");
-        return new Duration(observation_interval_json.getLong("length"), TimeUnit.valueOf(observation_interval_json.getString("timeUnit")));
+        return scenario.getObservationInterval();
     }
 
     public Duration getExperimentDuration() {
 
-        final JSONObject observation_interval_json = scenario_properties.getJSONObject("experimentDuration");
-        return new Duration(observation_interval_json.getLong("length"), TimeUnit.valueOf(observation_interval_json.getString("timeUnit")));
+        return scenario.getExperimentDuration();
     }
 
     private int getLookupRetryCount() {
 
-        return scenario_properties.getInt("lookupRetryCount");
+        return scenario.getLookupRetryCount();
     }
 
     public long getCurrentTimeInNanos() {

@@ -9,11 +9,10 @@ import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import uk.ac.standrews.cs.trombone.core.key.Key;
-import uk.ac.standrews.cs.trombone.core.key.KeySupplier;
 import uk.ac.standrews.cs.trombone.core.selector.First;
 import uk.ac.standrews.cs.trombone.core.selector.Selector;
 import uk.ac.standrews.cs.trombone.core.selector.Self;
@@ -36,7 +35,7 @@ public class PeerTest {
         return random.nextInt(0xffff);
     }
 
-    private final KeySupplier key_provider = new KeySupplier(852456);
+    private final Supplier<Key> key_provider = () -> Key.valueOf(random.nextLong());
     private final Key peer_key = key_provider.get();
     private final TestPeerConfiguration configuration = new TestPeerConfiguration();
     private Peer peer;
@@ -76,10 +75,14 @@ public class PeerTest {
     @Test
     public void testGetKey() throws Exception {
 
-        assertEquals(peer_key, peer.getKey().get());
+        assertEquals(peer_key, peer.getKey()
+                .get());
         assertEquals(peer_key, peer.key());
         assertEquals(peer_key, peer_reference.getKey());
-        assertEquals(peer_key, peer.getAsynchronousRemote(peer_reference).getKey().toCompletableFuture().get());
+        assertEquals(peer_key, peer.getAsynchronousRemote(peer_reference)
+                .getKey()
+                .toCompletableFuture()
+                .get());
     }
 
     @Test
@@ -91,9 +94,9 @@ public class PeerTest {
     @Test
     public void testJoin() throws Exception {
 
-        assertEquals(peer, configuration.join_strategy_peer);
         final PeerReference reference = generateRandomReference();
         final CompletableFuture<Void> future_join = peer.join(reference);
+        assertEquals(peer, configuration.join_strategy_peer);
         assertEquals(reference, configuration.join_strategy_member);
         assertEquals(configuration.join_strategy_result, future_join);
     }
@@ -102,21 +105,25 @@ public class PeerTest {
     public void testPush() throws Exception {
 
         final PeerReference reference = generateRandomReference();
-        peer.push(reference).get();
+        peer.push(reference)
+                .get();
         assertEquals(reference, configuration.peer_state_added);
 
-        peer.push((PeerReference) null).get();
+        peer.push((PeerReference) null)
+                .get();
         assertNull(configuration.peer_state_added);
 
         List<PeerReference> references = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
             references.add(generateRandomReference());
         }
-        peer.push(references).get();
+        peer.push(references)
+                .get();
         final PeerReference last = references.get(references.size() - 1);
         assertEquals(last, configuration.peer_state_added);
 
-        peer.push((List<PeerReference>) null).get();
+        peer.push((List<PeerReference>) null)
+                .get();
         assertEquals(last, configuration.peer_state_added);
 
     }
@@ -129,21 +136,26 @@ public class PeerTest {
     @Test
     public void testPull() throws Exception {
 
-        assertEquals(peer_reference, peer.pull(Self.INSTANCE).get().get(0));
+        assertEquals(peer_reference, peer.pull(Self.INSTANCE)
+                .get()
+                .get(0));
 
         final PeerReference reference = generateRandomReference();
         final ArrayList<PeerReference> references = new ArrayList<>();
         references.add(reference);
 
         configuration.peer_state_references = references;
-        assertEquals(reference, peer.pull(new First(1, Selector.ReachabilityCriteria.REACHABLE)).get().get(0));
+        assertEquals(reference, peer.pull(new First(1, Selector.ReachabilityCriteria.REACHABLE))
+                .get()
+                .get(0));
     }
 
     @Test
     public void testLookup() throws Exception {
 
         configuration.lookup_result = CompletableFuture.completedFuture(peer_reference);
-        final PeerReference reference = peer.lookup(peer_key).get();
+        final PeerReference reference = peer.lookup(peer_key)
+                .get();
         assertEquals(peer_reference, reference);
 
         assertEquals(peer, configuration.lookup_strategy_peer);
@@ -175,7 +187,8 @@ public class PeerTest {
         configuration.lookup_strategy_lookup_call = 0;
         configuration.lookup_result = CompletableFuture.completedFuture(generateRandomReference());
 
-        final PeerMetric.LookupMeasurement successful_measuremnet = peer.lookupWithRetry(target, retry_count).get();
+        final PeerMetric.LookupMeasurement successful_measuremnet = peer.lookupWithRetry(target, retry_count)
+                .get();
         assertEquals(1, successful_measuremnet.getRetryCount());
         assertFalse(successful_measuremnet.isDoneInError());
         assertEquals(configuration.lookup_result.get(), successful_measuremnet.getResult());
@@ -194,7 +207,8 @@ public class PeerTest {
     public void testNextHop() throws Exception {
 
         configuration.next_hop_result = CompletableFuture.completedFuture(new NextHopReference(peer_reference, true));
-        final PeerReference reference = peer.nextHop(peer_key).get();
+        final PeerReference reference = peer.nextHop(peer_key)
+                .get();
         assertEquals(peer_reference, reference);
 
         assertEquals(peer, configuration.next_hop_strategy_peer);

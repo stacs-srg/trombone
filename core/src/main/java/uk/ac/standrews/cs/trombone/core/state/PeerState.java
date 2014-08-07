@@ -2,9 +2,8 @@ package uk.ac.standrews.cs.trombone.core.state;
 
 import java.util.List;
 import java.util.stream.Stream;
-import uk.ac.standrews.cs.trombone.core.InternalPeerReference;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
-import uk.ac.standrews.cs.trombone.core.key.Key;
+import uk.ac.standrews.cs.trombone.core.Key;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)

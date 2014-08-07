@@ -8,12 +8,11 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class ConstantIntervalGenerator implements IntervalGenerator{
+public class ConstantIntervalGenerator implements IntervalGenerator {
 
     private final long constant_interval_nanos;
     private final Duration constant_interval;
 
-    
     /**
      * Instantiates a new constant interval generator.
      *
@@ -41,20 +40,4 @@ public class ConstantIntervalGenerator implements IntervalGenerator{
 
         return constant_interval_nanos;
     }
-
-    @Override
-    public ConstantIntervalGenerator copy() {
-
-        return new ConstantIntervalGenerator(constant_interval);
-    }
-
-    @Override
-    public String toString() {
-
-        final StringBuilder sb = new StringBuilder("ConstantIntervalGenerator{");
-        sb.append("constant_interval=").append(constant_interval_nanos);
-        sb.append('}');
-        return sb.toString();
-    }
-
 }

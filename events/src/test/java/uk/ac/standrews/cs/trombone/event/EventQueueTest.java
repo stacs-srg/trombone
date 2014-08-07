@@ -7,7 +7,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.trombone.core.key.KeySupplier;
+import uk.ac.standrews.cs.trombone.event.environment.RandomKeySupplier;
 import uk.ac.standrews.cs.trombone.event.environment.Churn;
 import uk.ac.standrews.cs.trombone.event.environment.ConstantIntervalGenerator;
 import uk.ac.standrews.cs.trombone.event.environment.ExponentialIntervalGenerator;
@@ -29,7 +29,7 @@ public class EventQueueTest {
         scenario.setExperimentDuration(new Duration(5, TimeUnit.MINUTES));
         scenario.setLookupRetryCount(5);
         scenario.setObservationInterval(new Duration(10, TimeUnit.SECONDS));
-        final KeySupplier peer_key_provider = new KeySupplier(scenario.getMasterSeed());
+        final RandomKeySupplier peer_key_provider = new RandomKeySupplier(scenario.getMasterSeed());
         scenario.setPeerKeyProvider(peer_key_provider);
         final Churn churn = new Churn(new ExponentialIntervalGenerator(new Duration(500, TimeUnit.MILLISECONDS), 123123), new ExponentialIntervalGenerator(new Duration(500, TimeUnit.MILLISECONDS), 123123));
         final Workload workload = new Workload(peer_key_provider, new ConstantIntervalGenerator(new Duration(500, TimeUnit.MILLISECONDS)));

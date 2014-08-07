@@ -4,7 +4,7 @@ import java.util.Iterator;
 import java.util.Random;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.mashti.gauge.util.LongAdder;
-import uk.ac.standrews.cs.trombone.core.key.Key;
+import uk.ac.standrews.cs.trombone.core.Key;
 import uk.ac.standrews.cs.trombone.event.environment.Churn;
 import uk.ac.standrews.cs.trombone.event.environment.Workload;
 

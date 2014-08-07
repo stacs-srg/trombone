@@ -109,12 +109,6 @@ public class OscillatingExponentialInterval implements IntervalGenerator{
     }
 
     @Override
-    public OscillatingExponentialInterval copy() {
-
-        return new OscillatingExponentialInterval(max_mean, min_mean, cycle_length, seed);
-    }
-
-    @Override
     public String toString() {
 
         final StringBuilder sb = new StringBuilder("OscillatingExponentialInterval{");
