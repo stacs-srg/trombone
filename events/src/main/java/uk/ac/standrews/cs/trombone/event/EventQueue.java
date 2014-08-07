@@ -72,11 +72,12 @@ public class EventQueue implements Iterator<Event> {
 
                             nextEvent();
                         }
+                        System.out.println(events.size());
                         return null;
                     }
                 });
 
-        while (generator_task.isDone() || events.remainingCapacity() != 0) {
+        while (!generator_task.isDone() && events.remainingCapacity() != 0) {
 
             try {
                 Thread.sleep(1000);
