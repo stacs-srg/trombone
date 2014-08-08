@@ -78,7 +78,7 @@ public final class Analysis {
                     }
                     else {
 
-                        throw new RuntimeException("IMPLEMENT");
+//                        throw new RuntimeException("IMPLEMENT");
 
                         //                        analyser.setYAxisLabel(UNDERSCORE.matcher(base_name).replaceAll(" "));
                         //                        analyser.saveAsCsv(destination_directory);

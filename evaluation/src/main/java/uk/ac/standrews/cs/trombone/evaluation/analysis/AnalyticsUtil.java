@@ -47,7 +47,7 @@ import uk.ac.standrews.cs.shabdiz.util.ArrayUtil;
 import uk.ac.standrews.cs.trombone.evaluation.util.FileSystemUtils;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-final class AnalyticsUtil {
+public final class AnalyticsUtil {
 
     public static final Integer[] GAUGE_CSV_COLUMN_INDICES = new Integer[] {0, 1};
     public static final String GROUP_DELIMITER = "@";
@@ -115,7 +115,8 @@ final class AnalyticsUtil {
                 }
             }
 
-            result_writer.write(time.getMean().longValue(), counter, min.getMin(), stdev.wa.getWeightedAverage(), max.getMax(), stdev.getCombinedStandardDeviation(), percentile.getPercentile(0.1), percentile.getPercentile(1), percentile.getPercentile(2), percentile.getPercentile(5), percentile.getPercentile(25), percentile.getPercentile(50), percentile.getPercentile(75), percentile.getPercentile(95), percentile.getPercentile(98), percentile.getPercentile(99), percentile.getPercentile(99.9));
+            result_writer.write(time.getMean()
+                    .longValue(), counter, min.getMin(), stdev.wa.getWeightedAverage(), max.getMax(), stdev.getCombinedStandardDeviation(), percentile.getPercentile(0.1), percentile.getPercentile(1), percentile.getPercentile(2), percentile.getPercentile(5), percentile.getPercentile(25), percentile.getPercentile(50), percentile.getPercentile(75), percentile.getPercentile(95), percentile.getPercentile(98), percentile.getPercentile(99), percentile.getPercentile(99.9));
             time.reset();
             counter = 0;
             min.reset();
@@ -184,7 +185,8 @@ final class AnalyticsUtil {
                 }
             }
 
-            result_writer.write(time.getMean().longValue(), counter, min.getMin(), stdev.wa.getWeightedAverage(), max.getMax(), stdev.getCombinedStandardDeviation(), percentile.getPercentile(0.1), percentile.getPercentile(1), percentile.getPercentile(2), percentile.getPercentile(5), percentile.getPercentile(25), percentile.getPercentile(50), percentile.getPercentile(75), percentile.getPercentile(95), percentile.getPercentile(98), percentile.getPercentile(99), percentile.getPercentile(99.9), unit);
+            result_writer.write(time.getMean()
+                    .longValue(), counter, min.getMin(), stdev.wa.getWeightedAverage(), max.getMax(), stdev.getCombinedStandardDeviation(), percentile.getPercentile(0.1), percentile.getPercentile(1), percentile.getPercentile(2), percentile.getPercentile(5), percentile.getPercentile(25), percentile.getPercentile(50), percentile.getPercentile(75), percentile.getPercentile(95), percentile.getPercentile(98), percentile.getPercentile(99), percentile.getPercentile(99.9), unit);
             time.reset();
             counter = 0;
             min.reset();
@@ -199,7 +201,7 @@ final class AnalyticsUtil {
 
     }
 
-    static void unshardRateCsv(Collection<Path> csvs, Writer result) throws IOException {
+    public static void unshardRateCsv(Collection<Path> csvs, Writer result) throws IOException {
 
         final List<CsvListReader> readers = getCsvListReaders(csvs, false);
         final String[] header = getHeader(readers);
@@ -239,7 +241,8 @@ final class AnalyticsUtil {
                 }
             }
 
-            result_writer.write(time_sampler.getMean().longValue(), counter, rate, unit);
+            result_writer.write(time_sampler.getMean()
+                    .longValue(), counter, rate, unit);
             time_sampler.reset();
             counter = 0;
             rate = 0;
@@ -251,7 +254,7 @@ final class AnalyticsUtil {
 
     }
 
-    static void unshardCountCsv(Collection<Path> csvs, Writer result) throws IOException {
+    public static void unshardCountCsv(Collection<Path> csvs, Writer result) throws IOException {
 
         final List<CsvListReader> readers = getCsvListReaders(csvs, false);
         final String[] header = getHeader(readers);
@@ -280,7 +283,8 @@ final class AnalyticsUtil {
                 }
             }
 
-            result_writer.write(time_sampler.getMean().longValue(), counter);
+            result_writer.write(time_sampler.getMean()
+                    .longValue(), counter);
             time_sampler.reset();
             counter = 0;
         }
@@ -370,7 +374,8 @@ final class AnalyticsUtil {
 
                 for (Path path : csv_list) {
 
-                    if (skip_if_exists && Files.exists(fileSystem.getPath("/" + path.getFileName().toString()))) {
+                    if (skip_if_exists && Files.exists(fileSystem.getPath("/" + path.getFileName()
+                            .toString()))) {
                         continue;
                     }
                     final Path csv_file = path.getFileName();
@@ -420,7 +425,12 @@ final class AnalyticsUtil {
 
         if (!raw_zip_files.isEmpty()) {
 
-            Files.write(raw_zip_files.get(0).getParent().getParent().resolve("scenario.json"), MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(scenario_json).getBytes(StandardCharsets.UTF_8));
+            Files.write(raw_zip_files.get(0)
+                    .getParent()
+                    .getParent()
+                    .resolve("scenario.json"), MAPPER.writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(scenario_json)
+                    .getBytes(StandardCharsets.UTF_8));
         }
 
     }
@@ -648,7 +658,8 @@ final class AnalyticsUtil {
 
     static String decorateManagerAsApplicationName(final String manager) {
 
-        final String tidy_manager_name = manager.replaceAll("_", " ").replaceAll("\\..*", "");
+        final String tidy_manager_name = manager.replaceAll("_", " ")
+                .replaceAll("\\..*", "");
         return tidy_manager_name.contains("Chord") ? "Chord" : manager.contains("Echo") ? "Echo" : WordUtils.capitalize(tidy_manager_name);
 
     }
