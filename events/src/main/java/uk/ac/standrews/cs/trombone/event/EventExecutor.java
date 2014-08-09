@@ -77,6 +77,7 @@ public class EventExecutor {
         metric_registry.registerAll(metric_set);
 
         csv_reporter = new CsvReporter(metric_registry, observations_home);
+        csv_reporter.setUseCountAsTimestamp(true);
         task_populator_future = startTaskQueuePopulator();
     }
 
