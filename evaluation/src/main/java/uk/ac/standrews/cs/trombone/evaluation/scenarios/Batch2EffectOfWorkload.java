@@ -6,6 +6,7 @@ import uk.ac.standrews.cs.trombone.event.Scenario;
 import uk.ac.standrews.cs.trombone.event.environment.Churn;
 
 import static uk.ac.standrews.cs.trombone.evaluation.scenarios.Constants.EXPERIMENT_DURATION_4;
+import static uk.ac.standrews.cs.trombone.evaluation.scenarios.Constants.PEER_CONFIGURATIONS;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
@@ -26,7 +27,7 @@ public class Batch2EffectOfWorkload implements ScenarioBatch {
     @Override
     public List<Scenario> get() {
 
-        return BaseScenario.generateAll(getName(), new Churn[] {Constants.CHURN_30_MIN}, Constants.WORKLOADS, null, new Duration[] {EXPERIMENT_DURATION_4});
+        return BaseScenario.generateAll(getName(), new Churn[] {Constants.CHURN_30_MIN}, Constants.WORKLOADS, PEER_CONFIGURATIONS, new Duration[] {EXPERIMENT_DURATION_4});
     }
 
     @Override
