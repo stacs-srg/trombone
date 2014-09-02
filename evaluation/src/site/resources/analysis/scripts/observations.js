@@ -1,4 +1,4 @@
-define(['lib/jquery-1.11.0', 'util', 'mark', 'config/theme', 'data', 'series/double', 'series/verses', 'series/single', 'jstat', 'scenario'], function ($, util, mark, theme, data, double, verses, single, jstat, scenario) {
+define(['jquery', 'util', 'mark', 'config/theme', 'data', 'series/double', 'series/verses', 'series/single', 'jstat', 'scenario'], function ($, util, mark, theme, data, double, verses, single, jstat, scenario) {
 
     function unsuccessfulLookupPercentage(filter) {
 

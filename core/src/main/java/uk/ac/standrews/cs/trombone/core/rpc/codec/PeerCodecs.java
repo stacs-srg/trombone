@@ -18,5 +18,6 @@ public class PeerCodecs extends Codecs {
         register(1, new NextHopReferenceCodec());
         register(2, new PeerReferenceCodec());
         register(3, new PeerReferenceListCodec());
+        register(4, new SelectorCodec());
     }
 }

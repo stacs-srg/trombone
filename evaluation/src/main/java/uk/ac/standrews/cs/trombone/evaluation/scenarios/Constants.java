@@ -170,6 +170,7 @@ public final class Constants {
     private static final EvolutionaryMaintenanceFactory.Builder BASE_EVOLUTIONARY_MAINTENANCE_FACTORY_BUILDER = EvolutionaryMaintenanceFactory.builder()
             .populationSize(POPULATION_SIZE)
             .eliteCount(1)
+            .periodicMaintenanceInterval(MAINTENANCE_INTERVAL, MAINTENANCE_INTERVAL_UNIT)
             .mutationProbability(MUTATION_PROBABILITY)
             .evaluationDuration(2, TimeUnit.MINUTES)
             .clusterer(PFCLUST_CLUSTERER)
@@ -228,6 +229,7 @@ public final class Constants {
 
     private static final RandomMaintenanceFactory.Builder BASE_RANDOM_MAINTENANCE_FACTORY_BUILDER = RandomMaintenanceFactory.builder()
             .populationSize(POPULATION_SIZE)
+            .periodicMaintenanceInterval(MAINTENANCE_INTERVAL, MAINTENANCE_INTERVAL_UNIT)
             .evaluationDuration(2, TimeUnit.MINUTES)
             .clusterer(PFCLUST_CLUSTERER)
             .disseminationStrategyGenerator(STRATEGY_GENERATOR);

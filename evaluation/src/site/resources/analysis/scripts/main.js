@@ -77,7 +77,6 @@ require(
         'jszip_utils'
     ],
     function ($, observations, util, scenario) {
-        console.log($);
         $("#chart_list").html(Mark.up(util.read("templates/sidebar.html"), {observations: observations}));
         $(window).bind('resize', function (e) {
             window.resizeEvt;

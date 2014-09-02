@@ -11,7 +11,7 @@ public class RandomSelector extends Selector {
 
     private static final long serialVersionUID = -2686666721712477700L;
 
-    public RandomSelector(int size, ReachabilityCriteria reachability_criteria) {
+    public RandomSelector(Integer size, ReachabilityCriteria reachability_criteria) {
 
         super(size, reachability_criteria);
     }

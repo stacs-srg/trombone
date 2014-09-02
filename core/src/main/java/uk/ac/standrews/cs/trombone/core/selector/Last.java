@@ -15,7 +15,7 @@ public class Last extends Selector {
     private static final long serialVersionUID = 4969898731774717311L;
     private static final Logger LOGGER = LoggerFactory.getLogger(Last.class);
 
-    public Last(int size, ReachabilityCriteria reachability_criteria) {
+    public Last(Integer size, ReachabilityCriteria reachability_criteria) {
 
         super(size, reachability_criteria);
     }

@@ -14,7 +14,7 @@ public class ChordSuccessorListSelector extends Selector {
     private static final long serialVersionUID = -795878334750777307L;
     private final First fallback_selector;
 
-    public ChordSuccessorListSelector(final int size) {
+    public ChordSuccessorListSelector(final Integer size) {
 
         super(size, ReachabilityCriteria.REACHABLE);
         fallback_selector = new First(size, reachability_criteria);

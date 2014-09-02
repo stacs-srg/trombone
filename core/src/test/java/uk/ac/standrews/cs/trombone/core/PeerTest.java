@@ -136,7 +136,7 @@ public class PeerTest {
     @Test
     public void testPull() throws Exception {
 
-        assertEquals(peer_reference, peer.pull(Self.INSTANCE)
+        assertEquals(peer_reference, peer.pull(Self.getInstance())
                 .get()
                 .get(0));
 

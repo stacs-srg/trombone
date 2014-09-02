@@ -7,7 +7,7 @@ import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.util.Copyable;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public abstract class Selector implements Serializable, Copyable{
+public abstract class Selector implements Serializable, Copyable {
 
     private static final long serialVersionUID = -1994233167230411201L;
 
@@ -59,7 +59,6 @@ public abstract class Selector implements Serializable, Copyable{
     @Override
     public int hashCode() {
 
-        int result = size;
-        return  31 * result + reachability_criteria.hashCode();
+        return 31 * size + reachability_criteria.hashCode();
     }
 }
