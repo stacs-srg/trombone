@@ -17,7 +17,7 @@ public class StrongStabilization extends DisseminationStrategy {
     static final boolean NON_OPPORTUNISTIC = !OPPORTUNISTIC;
     static final Selector SUCCESSOR = ChordSuccessorSelector.getInstance();
     static final Selector PREDECESSOR = ChordPredecessorSelector.getInstance();
-    static final Self SELF = Self.INSTANCE;
+    static final Self SELF = Self.getInstance();
     private static final long serialVersionUID = 3153617698283830110L;
 
     public StrongStabilization() {

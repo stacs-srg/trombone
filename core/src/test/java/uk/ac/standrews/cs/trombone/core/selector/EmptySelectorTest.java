@@ -15,19 +15,19 @@ public class EmptySelectorTest {
     public void testSelect() throws Exception {
 
         final List<PeerReference> empty = Collections.emptyList();
-        assertEquals(empty, EmptySelector.INSTANCE.select(null));
+        assertEquals(empty, EmptySelector.getInstance().select(null));
 
     }
 
     @Test
     public void testCopy() throws Exception {
 
-        assertSame(EmptySelector.INSTANCE, EmptySelector.INSTANCE.copy());
+        assertSame(EmptySelector.getInstance(), EmptySelector.getInstance().copy());
     }
 
     @Test
     public void testIsSingleton() throws Exception {
 
-        assertTrue(EmptySelector.INSTANCE.isSingleton());
+        assertTrue(EmptySelector.getInstance().isSingleton());
     }
 }
