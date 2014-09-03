@@ -69,7 +69,8 @@ public class TrombonePeerState implements PeerState {
     @Override
     public PeerReference closest(final Key target) {
 
-        return ceilingReachable(target);
+        final PeerReference ceiling_reachable = ceilingReachable(target);
+        return ceiling_reachable == null ? first() : ceiling_reachable;
     }
 
     public PeerReference lower(final Key target) {

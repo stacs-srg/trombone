@@ -121,4 +121,54 @@ public class EvolutionaryMaintenanceFactory implements MaintenanceFactory {
 
         return new EvolutionaryMaintenance(peer, builder.population_size, builder.elite_count, builder.mutation_probability, builder.evaluation_length, builder.evaluation_length_unit, builder.clusterer, builder.generator, builder.condition, builder.interval, builder.interval_unit);
     }
+
+    public int getPopulationSize() {
+
+        return builder.population_size;
+    }
+
+    public int getEliteCount() {
+
+        return builder.elite_count;
+    }
+
+    public Probability getMutationProbability() {
+
+        return builder.mutation_probability;
+    }
+
+    public long getEvaluationLength() {
+
+        return builder.evaluation_length;
+    }
+
+    public TimeUnit getEvaluationLengthUnit() {
+
+        return builder.evaluation_length_unit;
+    }
+
+    public Clusterer<EvaluatedDisseminationStrategy> getClusterer() {
+
+        return builder.clusterer;
+    }
+
+    public DisseminationStrategyGenerator getDisseminationStrategyGenerator() {
+
+        return builder.generator;
+    }
+
+    public EvolutionaryMaintenance.TerminationCondition getTerminationCondition() {
+
+        return builder.condition;
+    }
+
+    public long getInterval() {
+
+        return builder.interval;
+    }
+
+    public TimeUnit getIntervalUnit() {
+
+        return builder.interval_unit;
+    }
 }

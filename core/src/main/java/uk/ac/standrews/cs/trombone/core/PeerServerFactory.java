@@ -49,8 +49,12 @@ public class PeerServerFactory extends ServerFactory<AsynchronousPeerRemote> {
     public static void shutdownPeerServerFactory() {
 
         try {
-            SERVER_BOOTSTRAP.childGroup().shutdownGracefully().sync();
-            SERVER_BOOTSTRAP.group().shutdownGracefully().sync();
+            SERVER_BOOTSTRAP.childGroup()
+                    .shutdownGracefully()
+                    .sync();
+            SERVER_BOOTSTRAP.group()
+                    .shutdownGracefully()
+                    .sync();
         }
         catch (InterruptedException e) {
             LOGGER.warn("interrupted while shutting down peer server factory", e);
@@ -82,7 +86,8 @@ public class PeerServerFactory extends ServerFactory<AsynchronousPeerRemote> {
         protected void handle(final ChannelHandlerContext context, final FutureResponse<Object> future_response) {
 
             handling_rate.mark();
-            peer.getPeerMetric().notifyServe(future_response.getMethod()); // record frequency of called methods
+            peer.getPeerMetric()
+                    .notifyServe(future_response.getMethod()); // record frequency of called methods
 
             if (future_response instanceof FuturePeerResponse<?>) {
                 final FuturePeerResponse<?> future_peer_response = (FuturePeerResponse<?>) future_response;

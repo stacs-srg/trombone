@@ -24,4 +24,19 @@ public class StrategicMaintenanceFactory implements MaintenanceFactory {
 
         return new StrategicMaintenance(peer, strategy, interval, interval_unit);
     }
+
+    public long getInterval() {
+
+        return interval;
+    }
+
+    public TimeUnit getIntervalUnit() {
+
+        return interval_unit;
+    }
+
+    public DisseminationStrategy getStrategy() {
+
+        return strategy;
+    }
 }

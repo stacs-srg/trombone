@@ -104,4 +104,44 @@ public class RandomMaintenanceFactory implements MaintenanceFactory {
 
         return new RandomMaintenance(peer, builder.population_size, builder.evaluation_length, builder.evaluation_length_unit, builder.clusterer, builder.generator, builder.condition, builder.interval, builder.interval_unit);
     }
+
+    public int getPopulationSize() {
+
+        return builder.population_size;
+    }
+
+    public long getEvaluationLength() {
+
+        return builder.evaluation_length;
+    }
+
+    public TimeUnit getEvaluationLengthUnit() {
+
+        return builder.evaluation_length_unit;
+    }
+
+    public Clusterer<EvaluatedDisseminationStrategy> getClusterer() {
+
+        return builder.clusterer;
+    }
+
+    public DisseminationStrategyGenerator getDisseminationStrategyGenerator() {
+
+        return builder.generator;
+    }
+
+    public EvolutionaryMaintenance.TerminationCondition getTerminationCondition() {
+
+        return builder.condition;
+    }
+
+    public long getInterval() {
+
+        return builder.interval;
+    }
+
+    public TimeUnit getIntervalUnit() {
+
+        return builder.interval_unit;
+    }
 }

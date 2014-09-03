@@ -10,9 +10,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadFactory;
 import java.util.function.Supplier;
+import org.apache.commons.math3.ml.clustering.Clusterer;
 import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
 import uk.ac.standrews.cs.trombone.core.SyntheticDelay;
+import uk.ac.standrews.cs.trombone.core.maintenance.DisseminationStrategy;
 import uk.ac.standrews.cs.trombone.core.maintenance.MaintenanceFactory;
+import uk.ac.standrews.cs.trombone.core.selector.Selector;
 import uk.ac.standrews.cs.trombone.core.state.PeerStateFactory;
 import uk.ac.standrews.cs.trombone.core.strategy.JoinStrategy;
 import uk.ac.standrews.cs.trombone.core.strategy.LookupStrategy;
@@ -45,6 +48,9 @@ class TromboneEvaluationModule extends SimpleModule {
         setMixInAnnotation(RejectedExecutionHandler.class, Mixin.class);
         setMixInAnnotation(ThreadFactory.class, Mixin.class);
         setMixInAnnotation(PeerConfiguration.class, Mixin.class);
+        setMixInAnnotation(Clusterer.class, Mixin.class);
+        setMixInAnnotation(Selector.class, Mixin.class);
+        setMixInAnnotation(DisseminationStrategy.class, Mixin.class);
     }
 
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")

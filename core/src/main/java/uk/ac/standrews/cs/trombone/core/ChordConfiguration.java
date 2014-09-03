@@ -20,18 +20,12 @@ import uk.ac.standrews.cs.trombone.core.strategy.NextHopStrategy;
  */
 public class ChordConfiguration implements PeerConfiguration {
 
-    private final int finger_table_size;
-    private final BigInteger finger_base;
-    private final int successor_list_size;
     private final ChordMaintenanceFactory maintenance_factory;
     private final ChordPeerStateFactory peer_state_factory;
     private final ScheduledExecutorService scheduled_executor_service;
 
     public ChordConfiguration(int finger_table_size, BigInteger finger_base, int successor_list_size, long maintenance_interval, TimeUnit maintenance_interval_unit, int executor_pool_size) {
 
-        this.finger_table_size = finger_table_size;
-        this.finger_base = finger_base;
-        this.successor_list_size = successor_list_size;
         maintenance_factory = new ChordMaintenanceFactory(maintenance_interval, maintenance_interval_unit);
         peer_state_factory = new ChordPeerStateFactory(finger_table_size, finger_base, successor_list_size);
         scheduled_executor_service = Executors.newScheduledThreadPool(executor_pool_size);

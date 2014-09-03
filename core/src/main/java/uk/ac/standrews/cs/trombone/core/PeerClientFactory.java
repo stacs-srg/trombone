@@ -12,6 +12,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.apache.commons.lang.reflect.MethodUtils;
 import org.mashti.jetson.ChannelFuturePool;
 import org.mashti.jetson.Client;
 import org.mashti.jetson.ClientFactory;
@@ -27,12 +28,17 @@ import uk.ac.standrews.cs.trombone.core.maintenance.Maintenance;
 import uk.ac.standrews.cs.trombone.core.maintenance.StrategicMaintenance;
 import uk.ac.standrews.cs.trombone.core.rpc.FuturePeerResponse;
 import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
+import uk.ac.standrews.cs.trombone.core.selector.Selector;
 import uk.ac.standrews.cs.trombone.core.state.PeerState;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PeerClientFactory.class);
+
+    static final Method PUSH_SINGLE_METHOD = MethodUtils.getAccessibleMethod(AsynchronousPeerRemote.class, "push", PeerReference.class);
+    static final Method PUSH_METHOD = MethodUtils.getAccessibleMethod(AsynchronousPeerRemote.class, "push", List.class);
+    static final Method PULL_METHOD = MethodUtils.getAccessibleMethod(AsynchronousPeerRemote.class, "pull", Selector.class);
     static final Bootstrap BOOTSTRAP = new Bootstrap();
     static final ChannelFuturePool CHANNEL_POOL = new ChannelFuturePool(BOOTSTRAP);
 
@@ -188,7 +194,7 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
                                     .thenAccept(contains -> {
                                         if (contains) {
 
-                                            final FutureResponse<?> future_dissemination = newFutureResponse(action.getMethod(), action.getArguments(peer));
+                                            final FutureResponse<?> future_dissemination = newFutureResponse(getMethod(action), action.getArguments(peer));
                                             channel.write(future_dissemination);
                                         }
                                     });
@@ -197,6 +203,11 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
                 }
             }
             super.beforeFlush(channel, future_response);
+        }
+
+        public Method getMethod(DisseminationStrategy.Action action) {
+
+            return action.isPush() ? PUSH_METHOD : PULL_METHOD;
         }
     }
 }

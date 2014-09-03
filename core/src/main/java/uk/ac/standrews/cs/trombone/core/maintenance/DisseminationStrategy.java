@@ -1,7 +1,6 @@
 package uk.ac.standrews.cs.trombone.core.maintenance;
 
 import java.io.Serializable;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -9,8 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
-import org.apache.commons.lang.reflect.MethodUtils;
-import uk.ac.standrews.cs.trombone.core.AsynchronousPeerRemote;
+import java.util.concurrent.TimeUnit;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.selector.Selector;
@@ -21,12 +19,9 @@ import uk.ac.standrews.cs.trombone.core.selector.Selector;
 public class DisseminationStrategy implements Iterable<DisseminationStrategy.Action>, Serializable {
 
     private static final long serialVersionUID = 7398182589384122556L;
-    public static final Method PUSH_SINGLE_METHOD = MethodUtils.getAccessibleMethod(AsynchronousPeerRemote.class, "push", PeerReference.class);
-    static final Method PUSH_METHOD = MethodUtils.getAccessibleMethod(AsynchronousPeerRemote.class, "push", List.class);
-    static final Method PULL_METHOD = MethodUtils.getAccessibleMethod(AsynchronousPeerRemote.class, "pull", Selector.class);
 
     private final ArrayList<Action> actions;
-    private int non_opportunistic_interval_millis = 2_000;
+    private long non_opportunistic_interval_millis = 2_000;
 
     public DisseminationStrategy() {
 
@@ -44,14 +39,14 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
         return actions.add(action);
     }
 
-    public int getInterval() {
+    public long getIntervalInMilliseconds() {
 
         return non_opportunistic_interval_millis;
     }
 
-    public void setInterval(int non_opportunistic_interval_millis) {
+    public void setInterval(long non_opportunistic_interval, TimeUnit unit) {
 
-        this.non_opportunistic_interval_millis = non_opportunistic_interval_millis;
+        non_opportunistic_interval_millis = TimeUnit.MILLISECONDS.convert(non_opportunistic_interval, unit);
     }
 
     public Action getActionAt(int index) {
@@ -110,7 +105,7 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
     public int hashCode() {
 
         int result = actions != null ? actions.hashCode() : 0;
-        result = 31 * result + non_opportunistic_interval_millis;
+        result = 31 * result + (int) (non_opportunistic_interval_millis ^ non_opportunistic_interval_millis >>> 32);
         return result;
     }
 
@@ -284,11 +279,6 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
         CompletableFuture<List<PeerReference>> getPushData(final Peer local) {
 
             return local.pull(data_selector);
-        }
-
-        public Method getMethod() {
-
-            return push ? PUSH_METHOD : PULL_METHOD;
         }
 
         public Object[] getArguments(Peer local) {

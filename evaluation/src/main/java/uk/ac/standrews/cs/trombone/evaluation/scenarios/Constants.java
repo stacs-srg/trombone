@@ -3,14 +3,16 @@ package uk.ac.standrews.cs.trombone.evaluation.scenarios;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import org.apache.commons.math3.ml.clustering.Clusterer;
 import org.apache.commons.math3.ml.clustering.KMeansPlusPlusClusterer;
 import org.apache.commons.math3.ml.distance.EuclideanDistance;
 import org.apache.commons.math3.random.MersenneTwister;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.core.Key;
 import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
@@ -20,6 +22,7 @@ import uk.ac.standrews.cs.trombone.core.maintenance.EvaluatedDisseminationStrate
 import uk.ac.standrews.cs.trombone.core.maintenance.EvolutionaryMaintenance;
 import uk.ac.standrews.cs.trombone.core.maintenance.EvolutionaryMaintenanceFactory;
 import uk.ac.standrews.cs.trombone.core.maintenance.MaintenanceFactory;
+import uk.ac.standrews.cs.trombone.core.maintenance.NoMaintenanceFactory;
 import uk.ac.standrews.cs.trombone.core.maintenance.PerPointClusterer;
 import uk.ac.standrews.cs.trombone.core.maintenance.RandomMaintenanceFactory;
 import uk.ac.standrews.cs.trombone.core.maintenance.StrategicMaintenanceFactory;
@@ -46,6 +49,7 @@ import uk.ac.standrews.cs.trombone.event.util.SequentialPortNumberSupplier;
  */
 public final class Constants {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(Constants.class);
     private Constants() {
 
     }
@@ -54,6 +58,9 @@ public final class Constants {
 
     static {
         System.setProperty(PeerConfiguration.PEER_KEY_LENGTH_SYSTEM_PROPERTY, String.valueOf(KEY_LENGTH_IN_BITS));
+        Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
+           LOGGER.warn("uncaught exception ", e);
+        });
     }
 
     static final long SCENARIO_MASTER_SEED = 1413;
@@ -136,8 +143,9 @@ public final class Constants {
 
     public static final PeerConfiguration NO_MAINTENANCE_CONFIGURATION = null;// new PeerConfiguration(NO_MAINTENANCE, BLUB_UNIFORMLY_DISTRIBUTED_SYNTHETIC_DELAY);
 
-    private static final MaintenanceFactory NO_MAINTENANCE = peer -> null;
-    public static final ScheduledExecutorService SCHEDULED_EXECUTOR_SERVICE = Executors.newScheduledThreadPool(300);
+    public static final MaintenanceFactory NO_MAINTENANCE = NoMaintenanceFactory.getInstance();
+    public static final ScheduledExecutorService SCHEDULED_EXECUTOR_SERVICE = new ScheduledThreadPoolExecutor(500);
+
     private static final PeerConfiguration.Builder BASE_BUILDER = new PeerConfiguration.Builder().enableApplicationFeedback(false)
             .syntheticDelay(BLUB_UNIFORMLY_DISTRIBUTED_SYNTHETIC_DELAY)
             .executor(() -> SCHEDULED_EXECUTOR_SERVICE);
@@ -194,7 +202,7 @@ public final class Constants {
 
     public static final EvolutionaryMaintenanceFactory.Builder EVOLUTIONARY_KMEAN_CLUSTERER = EvolutionaryMaintenanceFactory.builder(BASE_EVOLUTIONARY_MAINTENANCE_FACTORY_BUILDER)
             .clusterer(K_MEANS_PLUS_PLUS_CLUSTERER);
-    private static final MaintenanceFactory EVOLUTIONARY_MAINTENANCE_KMEAN = EvolutionaryMaintenanceFactory.builder(EVOLUTIONARY_KMEAN_CLUSTERER)
+    public static final MaintenanceFactory EVOLUTIONARY_MAINTENANCE_KMEAN = EvolutionaryMaintenanceFactory.builder(EVOLUTIONARY_KMEAN_CLUSTERER)
             .build();
     private static final MaintenanceFactory EVOLUTIONARY_MAINTENANCE_KMEAN_STOP_AFTER_2 = EvolutionaryMaintenanceFactory.builder(EVOLUTIONARY_KMEAN_CLUSTERER)
             .terminationCondition(TERMINATION_CONDITION_2)

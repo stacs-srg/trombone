@@ -31,7 +31,7 @@ public final class ScenarioUtils {
     private static final Path RESULTS_HOME = Paths.get("results");
 
     private static final JsonFactory JSON_FACTORY = new JsonFactory();
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper(JSON_FACTORY);
+     static final ObjectMapper OBJECT_MAPPER = new ObjectMapper(JSON_FACTORY);
 
     static {
         OBJECT_MAPPER.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
