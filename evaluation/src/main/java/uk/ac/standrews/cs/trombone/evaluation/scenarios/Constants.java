@@ -147,7 +147,8 @@ public final class Constants {
     public static final MaintenanceFactory NO_MAINTENANCE = NoMaintenanceFactory.getInstance();
     public static final ScheduledExecutorService SCHEDULED_EXECUTOR_SERVICE = new ScheduledThreadPoolExecutor(500);
 
-    private static final PeerConfiguration.Builder BASE_BUILDER = new PeerConfiguration.Builder().enableApplicationFeedback(false)
+    private static final PeerConfiguration.Builder BASE_BUILDER = PeerConfiguration.builder()
+            .enableApplicationFeedback(false)
             .syntheticDelay(BLUB_UNIFORMLY_DISTRIBUTED_SYNTHETIC_DELAY)
             .executor(() -> SCHEDULED_EXECUTOR_SERVICE);
 
@@ -157,14 +158,16 @@ public final class Constants {
     private static final TimeUnit MAINTENANCE_INTERVAL_UNIT = TimeUnit.SECONDS;
     private static final BigInteger INTER_FINGER_RATIO = Key.TWO;
 
-    public static final PeerConfiguration CHORD = new PeerConfiguration.Builder(BASE_BUILDER).peerState(new ChordPeerStateFactory(FINGER_TABLE_SIZE, INTER_FINGER_RATIO, SUCCESSOR_LIST_SIZE))
+    public static final PeerConfiguration CHORD = PeerConfiguration.builder(BASE_BUILDER)
+            .peerState(new ChordPeerStateFactory(FINGER_TABLE_SIZE, INTER_FINGER_RATIO, SUCCESSOR_LIST_SIZE))
             .joinStrategy(new ChordJoinStrategy())
             .nextHopStrategy(new ChordNextHopStrategy())
             .lookupStrategy(new ChordLookupStrategy())
             .maintenance(new ChordMaintenanceFactory(MAINTENANCE_INTERVAL, MAINTENANCE_INTERVAL_UNIT))
             .build();
 
-    private static final PeerConfiguration.Builder BASE_TROMBONE_CONFIGURATION = new PeerConfiguration.Builder(BASE_BUILDER).peerState(new TrombonePeerStateFactory())
+    private static final PeerConfiguration.Builder BASE_TROMBONE_CONFIGURATION = PeerConfiguration.builder(BASE_BUILDER)
+            .peerState(new TrombonePeerStateFactory())
             .joinStrategy(new MinimalJoinStrategy())
             .nextHopStrategy(new TromboneNextHopStrategy())
             .lookupStrategy(new ChordLookupStrategy());
@@ -298,74 +301,106 @@ public final class Constants {
             .terminationCondition(TERMINATION_CONDITION_16)
             .build();
 
-    public static final PeerConfiguration TROMBONE_NO_MAINTENANCE = BASE_TROMBONE_CONFIGURATION.maintenance(NO_MAINTENANCE)
+    public static final PeerConfiguration TROMBONE_NO_MAINTENANCE = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(NO_MAINTENANCE)
             .build();
 
-    public static final PeerConfiguration TROMBONE_STABILISATION = BASE_TROMBONE_CONFIGURATION.maintenance(PERIODIC_STABILIZATION)
+    public static final PeerConfiguration TROMBONE_STABILISATION = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(PERIODIC_STABILIZATION)
             .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE)
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(EVOLUTIONARY_MAINTENANCE)
             .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_2 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_STOP_AFTER_2)
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_2 = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(EVOLUTIONARY_MAINTENANCE_STOP_AFTER_2)
             .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_4 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_STOP_AFTER_4)
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_4 = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(EVOLUTIONARY_MAINTENANCE_STOP_AFTER_4)
             .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_8 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_STOP_AFTER_8)
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_8 = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(EVOLUTIONARY_MAINTENANCE_STOP_AFTER_8)
             .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_16 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_STOP_AFTER_16)
-            .build();
-
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_KMEAN = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_KMEAN)
-            .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_KMEAN_2 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_KMEAN_STOP_AFTER_2)
-            .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_KMEAN_4 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_KMEAN_STOP_AFTER_4)
-            .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_KMEAN_8 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_KMEAN_STOP_AFTER_8)
-            .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_KMEAN_16 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_KMEAN_STOP_AFTER_16)
-            .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_PER_POINT = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_PER_POINT)
-            .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_PER_POINT_2 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_PER_POINT_STOP_AFTER_2)
-            .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_PER_POINT_4 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_PER_POINT_STOP_AFTER_4)
-            .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_PER_POINT_8 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_PER_POINT_STOP_AFTER_8)
-            .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_PER_POINT_16 = BASE_TROMBONE_CONFIGURATION.maintenance(EVOLUTIONARY_MAINTENANCE_PER_POINT_STOP_AFTER_16)
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_16 = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(EVOLUTIONARY_MAINTENANCE_STOP_AFTER_16)
             .build();
 
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE)
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_KMEAN = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(EVOLUTIONARY_MAINTENANCE_KMEAN)
             .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_2 = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_STOP_AFTER_2)
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_KMEAN_2 = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(EVOLUTIONARY_MAINTENANCE_KMEAN_STOP_AFTER_2)
             .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_4 = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_STOP_AFTER_4)
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_KMEAN_4 = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(EVOLUTIONARY_MAINTENANCE_KMEAN_STOP_AFTER_4)
             .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_8 = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_STOP_AFTER_8)
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_KMEAN_8 = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(EVOLUTIONARY_MAINTENANCE_KMEAN_STOP_AFTER_8)
             .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_16 = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_STOP_AFTER_16)
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_KMEAN_16 = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(EVOLUTIONARY_MAINTENANCE_KMEAN_STOP_AFTER_16)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_PER_POINT = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(EVOLUTIONARY_MAINTENANCE_PER_POINT)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_PER_POINT_2 = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(EVOLUTIONARY_MAINTENANCE_PER_POINT_STOP_AFTER_2)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_PER_POINT_4 = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(EVOLUTIONARY_MAINTENANCE_PER_POINT_STOP_AFTER_4)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_PER_POINT_8 = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(EVOLUTIONARY_MAINTENANCE_PER_POINT_STOP_AFTER_8)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_PER_POINT_16 = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(EVOLUTIONARY_MAINTENANCE_PER_POINT_STOP_AFTER_16)
             .build();
 
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_KMEAN = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_KMEAN)
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(RANDOM_MAINTENANCE)
             .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_KMEAN_2 = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_KMEAN_STOP_AFTER_2)
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_2 = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(RANDOM_MAINTENANCE_STOP_AFTER_2)
             .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_KMEAN_4 = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_KMEAN_STOP_AFTER_4)
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_4 = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(RANDOM_MAINTENANCE_STOP_AFTER_4)
             .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_KMEAN_8 = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_KMEAN_STOP_AFTER_8)
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_8 = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(RANDOM_MAINTENANCE_STOP_AFTER_8)
             .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_KMEAN_16 = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_KMEAN_STOP_AFTER_16)
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_16 = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(RANDOM_MAINTENANCE_STOP_AFTER_16)
             .build();
 
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_PER_POINT = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_PER_POINT)
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_KMEAN = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(RANDOM_MAINTENANCE_KMEAN)
             .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_PER_POINT_2 = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_PER_POINT_STOP_AFTER_2)
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_KMEAN_2 = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(RANDOM_MAINTENANCE_KMEAN_STOP_AFTER_2)
             .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_PER_POINT_4 = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_PER_POINT_STOP_AFTER_4)
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_KMEAN_4 = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(RANDOM_MAINTENANCE_KMEAN_STOP_AFTER_4)
             .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_PER_POINT_8 = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_PER_POINT_STOP_AFTER_8)
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_KMEAN_8 = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(RANDOM_MAINTENANCE_KMEAN_STOP_AFTER_8)
             .build();
-    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_PER_POINT_16 = BASE_TROMBONE_CONFIGURATION.maintenance(RANDOM_MAINTENANCE_PER_POINT_STOP_AFTER_16)
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_KMEAN_16 = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(RANDOM_MAINTENANCE_KMEAN_STOP_AFTER_16)
+            .build();
+
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_PER_POINT = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(RANDOM_MAINTENANCE_PER_POINT)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_PER_POINT_2 = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(RANDOM_MAINTENANCE_PER_POINT_STOP_AFTER_2)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_PER_POINT_4 = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(RANDOM_MAINTENANCE_PER_POINT_STOP_AFTER_4)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_PER_POINT_8 = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(RANDOM_MAINTENANCE_PER_POINT_STOP_AFTER_8)
+            .build();
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_RANDOM_PER_POINT_16 = PeerConfiguration.builder(BASE_TROMBONE_CONFIGURATION)
+            .maintenance(RANDOM_MAINTENANCE_PER_POINT_STOP_AFTER_16)
             .build();
 
     static final PeerConfiguration[] PEER_CONFIGURATIONS = {

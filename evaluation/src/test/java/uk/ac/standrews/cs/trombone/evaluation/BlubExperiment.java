@@ -42,9 +42,6 @@ import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.evaluation.scenarios.Batch1EffectOfChurn;
-import uk.ac.standrews.cs.trombone.evaluation.scenarios.Batch2EffectOfWorkload;
-import uk.ac.standrews.cs.trombone.evaluation.scenarios.Batch3EffectOfTrainingDuration;
-import uk.ac.standrews.cs.trombone.evaluation.scenarios.Batch4EffectOfClusteringAlgorithm;
 import uk.ac.standrews.cs.trombone.evaluation.scenarios.Constants;
 import uk.ac.standrews.cs.trombone.evaluation.util.BlubCluster;
 import uk.ac.standrews.cs.trombone.evaluation.util.ExperimentWatcher;
@@ -61,6 +58,10 @@ public class BlubExperiment {
     static final Path BLUB_NODE_RESULTS_HOME = Paths.get("/state", "partition1", "t3", "evaluation");
     static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss-SSS");
     private static final LinkedBlockingQueue<String> AVAILABLE_HOSTS = new LinkedBlockingQueue<>(BlubCluster.getNodeNames());
+
+    static {
+        AVAILABLE_HOSTS.remove("compute-0-12.local");
+    }
 
     private static final Duration ADDITIONAL_WAIT = new Duration(30, TimeUnit.MINUTES);
 
@@ -85,12 +86,12 @@ public class BlubExperiment {
     static {
         SCENARIOS.addAll(Batch1EffectOfChurn.getInstance()
                 .get());
-        SCENARIOS.addAll(Batch2EffectOfWorkload.getInstance()
-                .get());
-        SCENARIOS.addAll(Batch3EffectOfTrainingDuration.getInstance()
-                .get());
-        SCENARIOS.addAll(Batch4EffectOfClusteringAlgorithm.getInstance()
-                .get());
+        //        SCENARIOS.addAll(Batch2EffectOfWorkload.getInstance()
+        //                .get());
+        //        SCENARIOS.addAll(Batch3EffectOfTrainingDuration.getInstance()
+        //                .get());
+        //        SCENARIOS.addAll(Batch4EffectOfClusteringAlgorithm.getInstance()
+        //                .get());
     }
 
     @Parameterized.Parameters(name = "{index} scenario: {0}")

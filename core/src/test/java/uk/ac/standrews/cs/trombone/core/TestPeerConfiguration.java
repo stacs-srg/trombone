@@ -16,7 +16,7 @@ import uk.ac.standrews.cs.trombone.core.strategy.NextHopStrategy;
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class TestPeerConfiguration implements PeerConfiguration {
+public class TestPeerConfiguration extends PeerConfiguration {
 
     volatile List<PeerReference> peer_state_references;
     volatile CompletableFuture<PeerReference> lookup_result;
@@ -35,6 +35,11 @@ public class TestPeerConfiguration implements PeerConfiguration {
     volatile Maintenance maintenance;
     volatile Peer maintenance_peer;
     volatile int lookup_strategy_lookup_call;
+
+    protected TestPeerConfiguration() {
+
+        super(builder());
+    }
 
     @Override
     public MaintenanceFactory getMaintenance() {

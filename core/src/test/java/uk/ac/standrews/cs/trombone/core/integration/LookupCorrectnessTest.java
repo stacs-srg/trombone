@@ -22,14 +22,9 @@ import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
 import uk.ac.standrews.cs.trombone.core.PeerFactory;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
-import uk.ac.standrews.cs.trombone.core.maintenance.MaintenanceFactory;
-import uk.ac.standrews.cs.trombone.core.state.PeerStateFactory;
 import uk.ac.standrews.cs.trombone.core.state.TrombonePeerStateFactory;
 import uk.ac.standrews.cs.trombone.core.strategy.ChordLookupStrategy;
-import uk.ac.standrews.cs.trombone.core.strategy.JoinStrategy;
-import uk.ac.standrews.cs.trombone.core.strategy.LookupStrategy;
 import uk.ac.standrews.cs.trombone.core.strategy.MinimalJoinStrategy;
-import uk.ac.standrews.cs.trombone.core.strategy.NextHopStrategy;
 import uk.ac.standrews.cs.trombone.core.strategy.TromboneNextHopStrategy;
 
 /**
@@ -41,44 +36,15 @@ public class LookupCorrectnessTest {
     private static final Random RANDOM = new Random(4152);
     public static final Supplier<Key> KEY_PROVIDER = () -> Key.valueOf(RANDOM.nextLong());
     private static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newScheduledThreadPool(100);
-    public static final PeerConfiguration TROMBONE_CONFIGURATION = new PeerConfiguration() {
+    public static final PeerConfiguration TROMBONE_CONFIGURATION = PeerConfiguration.builder()
+            .maintenance(peer -> null)
+            .peerState(new TrombonePeerStateFactory())
+            .joinStrategy(new MinimalJoinStrategy())
+            .lookupStrategy(new ChordLookupStrategy())
+            .nextHopStrategy(new TromboneNextHopStrategy())
+            .executor(() -> EXECUTOR_SERVICE)
+            .build();
 
-        @Override
-        public MaintenanceFactory getMaintenance() {
-
-            return peer -> null;
-        }
-
-        @Override
-        public PeerStateFactory getPeerState() {
-
-            return new TrombonePeerStateFactory();
-        }
-
-        @Override
-        public JoinStrategy getJoinStrategy() {
-
-            return new MinimalJoinStrategy();
-        }
-
-        @Override
-        public LookupStrategy getLookupStrategy() {
-
-            return new ChordLookupStrategy();
-        }
-
-        @Override
-        public NextHopStrategy getNextHopStrategy() {
-
-            return new TromboneNextHopStrategy();
-        }
-
-        @Override
-        public ScheduledExecutorService getExecutor() {
-
-            return EXECUTOR_SERVICE;
-        }
-    };
     private final NavigableMap<Key, Peer> network = new TreeMap<>();
     private static final int NETWORK_SIZE = 100;
 

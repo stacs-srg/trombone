@@ -16,6 +16,7 @@ public class Batch1EffectOfChurn implements ScenarioBatch {
 
     private static final Batch1EffectOfChurn BATCH_1_EFFECT_OF_CHURN = new Batch1EffectOfChurn();
 
+
     public static Batch1EffectOfChurn getInstance() {
 
         return BATCH_1_EFFECT_OF_CHURN;

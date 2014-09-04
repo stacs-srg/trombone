@@ -11,38 +11,13 @@ import uk.ac.standrews.cs.trombone.core.strategy.NextHopStrategy;
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface PeerConfiguration {
+public class PeerConfiguration {
 
-    String PEER_KEY_LENGTH_SYSTEM_PROPERTY = "peer.key.length";
-    int KEY_LENGTH = Integer.parseInt(System.getProperty(PEER_KEY_LENGTH_SYSTEM_PROPERTY, String.valueOf(16)));     // Default 32 bit key
+    public static final String PEER_KEY_LENGTH_SYSTEM_PROPERTY = "peer.key.length";
+    public static final int KEY_LENGTH = Integer.parseInt(System.getProperty(PEER_KEY_LENGTH_SYSTEM_PROPERTY, String.valueOf(16)));     // Default 32 bit key
+    private final Builder builder;
 
-    default SyntheticDelay getSyntheticDelay() {
-
-        return SyntheticDelay.ZERO;
-    }
-
-    default boolean isApplicationFeedbackEnabled() {
-
-        return false;
-    }
-
-    MaintenanceFactory getMaintenance();
-
-    PeerStateFactory getPeerState();
-
-    JoinStrategy getJoinStrategy();
-
-    LookupStrategy getLookupStrategy();
-
-    NextHopStrategy getNextHopStrategy();
-
-    ScheduledExecutorService getExecutor();
-
-    // TODO include self reference in inter-peer communications flag
-    // TODO lean from inter-peer communications  flag
-    // TODO piggyback on serve flag and implementation?
-
-    class Builder {
+    public static class Builder {
 
         private SyntheticDelay synthetic_delay = SyntheticDelay.ZERO;
         private MaintenanceFactory maintenance_factory;
@@ -53,17 +28,11 @@ public interface PeerConfiguration {
         private LookupStrategy lookup_strategy;
         private Supplier<ScheduledExecutorService> executor_supplier;
 
-        /** Constructs a new {@link Builder builder} */
-        public Builder() {
+        private Builder() {
 
         }
 
-        /**
-         * Constructs a copy of the given {@code builder}.
-         *
-         * @param builder the builder from which to copy
-         */
-        public Builder(Builder builder) {
+        private Builder(Builder builder) {
 
             synthetic_delay = builder.synthetic_delay;
             maintenance_factory = builder.maintenance_factory;
@@ -126,57 +95,68 @@ public interface PeerConfiguration {
 
         public PeerConfiguration build() {
 
-            return new PeerConfiguration() {
-
-                @Override
-                public SyntheticDelay getSyntheticDelay() {
-
-                    return synthetic_delay;
-                }
-
-                @Override
-                public boolean isApplicationFeedbackEnabled() {
-
-                    return application_feedback_enabled;
-                }
-
-                @Override
-                public MaintenanceFactory getMaintenance() {
-
-                    return maintenance_factory;
-                }
-
-                @Override
-                public PeerStateFactory getPeerState() {
-
-                    return peer_state_factory;
-                }
-
-                @Override
-                public JoinStrategy getJoinStrategy() {
-
-                    return join_strategy;
-                }
-
-                @Override
-                public LookupStrategy getLookupStrategy() {
-
-                    return lookup_strategy;
-                }
-
-                @Override
-                public NextHopStrategy getNextHopStrategy() {
-
-                    return next_hop_strategy;
-                }
-
-                @Override
-                public ScheduledExecutorService getExecutor() {
-
-                    return executor_supplier.get();
-                }
-            };
+            return new PeerConfiguration(this);
         }
 
     }
+
+    public static Builder builder() {
+
+        return new Builder();
+    }
+
+    public static Builder builder(Builder base) {
+
+        return new Builder(base);
+    }
+
+    protected PeerConfiguration(Builder builder) {
+
+        this.builder = builder;
+    }
+
+    public SyntheticDelay getSyntheticDelay() {
+
+        return SyntheticDelay.ZERO;
+    }
+
+    public boolean isApplicationFeedbackEnabled() {
+
+        return builder.application_feedback_enabled;
+    }
+
+    public MaintenanceFactory getMaintenance() {
+
+        return builder.maintenance_factory;
+    }
+
+    public PeerStateFactory getPeerState() {
+
+        return builder.peer_state_factory;
+    }
+
+    public JoinStrategy getJoinStrategy() {
+
+        return builder.join_strategy;
+    }
+
+    public LookupStrategy getLookupStrategy() {
+
+        return builder.lookup_strategy;
+    }
+
+    public NextHopStrategy getNextHopStrategy() {
+
+        return builder.next_hop_strategy;
+    }
+
+    public ScheduledExecutorService getExecutor() {
+
+        return builder.executor_supplier.get();
+    }
+
+    // TODO include self reference in inter-peer communications flag
+    // TODO lean from inter-peer communications  flag
+    // TODO piggyback on serve flag and implementation?
+
 }
