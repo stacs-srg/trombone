@@ -187,20 +187,18 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
                 final DisseminationStrategy strategy = strategicMaintenance.getDisseminationStrategy();
 
                 if (strategy != null) {
-                    for (DisseminationStrategy.Action action : strategy) {
-                        if (action.isOpportunistic()) {
 
-                            action.recipientsContain(peer, reference)
-                                    .thenAccept(contains -> {
-                                        if (contains) {
+                    strategy.getActions()
+                            .stream()
+                            .filter(action -> action.isOpportunistic() && action.recipientsContain(peer, reference))
+                            .forEach(action -> {
 
-                                            final FutureResponse<?> future_dissemination = newFutureResponse(getMethod(action), action.getArguments(peer));
-                                            channel.write(future_dissemination);
-                                        }
-                                    });
-                        }
-                    }
+                                final FutureResponse<?> future_dissemination = newFutureResponse(getMethod(action), action.getArguments(peer));
+                                writeToChannel(channel, future_dissemination);
+                            });
+
                 }
+
             }
             super.beforeFlush(channel, future_response);
         }

@@ -50,6 +50,7 @@ import uk.ac.standrews.cs.trombone.event.util.SequentialPortNumberSupplier;
 public final class Constants {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Constants.class);
+
     private Constants() {
 
     }
@@ -59,7 +60,7 @@ public final class Constants {
     static {
         System.setProperty(PeerConfiguration.PEER_KEY_LENGTH_SYSTEM_PROPERTY, String.valueOf(KEY_LENGTH_IN_BITS));
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
-           LOGGER.warn("uncaught exception ", e);
+            LOGGER.warn("uncaught exception ", e);
         });
     }
 

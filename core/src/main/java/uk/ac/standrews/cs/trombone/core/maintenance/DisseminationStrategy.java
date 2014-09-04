@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import uk.ac.standrews.cs.trombone.core.Peer;
@@ -136,10 +135,10 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
             return push;
         }
 
-        public CompletableFuture<Boolean> recipientsContain(Peer local, final PeerReference recipient) {
+        public boolean recipientsContain(Peer local, final PeerReference recipient) {
 
-            return local.pull(recipient_selector)
-                    .thenCompose(result -> CompletableFuture.completedFuture(result.contains(recipient)));
+            return recipient_selector.select(local)
+                    .contains(recipient);
         }
 
         public void nonOpportunistically(final Peer local) {
@@ -149,17 +148,15 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
                 final List<? extends PeerReference> recipients = getRecipients(local);
                 if (recipients != null && !recipients.isEmpty()) {
                     if (push) {
-                        getPushData(local).thenAcceptAsync(data_to_push -> {
-
-                            if (data_to_push != null && !data_to_push.isEmpty()) {
-                                recipients.stream()
-                                        .filter(recipient -> recipient != null)
-                                        .forEach(recipient -> {
-                                            local.getAsynchronousRemote(recipient)
-                                                    .push(data_to_push);
-                                        });
-                            }
-                        }, local.getExecutor());
+                        final List<PeerReference> data_to_push = getPushData(local);
+                        if (data_to_push != null && !data_to_push.isEmpty()) {
+                            recipients.stream()
+                                    .filter(recipient -> recipient != null)
+                                    .forEach(recipient -> {
+                                        local.getAsynchronousRemote(recipient)
+                                                .push(data_to_push);
+                                    });
+                        }
                     }
                     else {
                         recipients.stream()
@@ -276,9 +273,9 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
             this.data_selector = data_selector;
         }
 
-        CompletableFuture<List<PeerReference>> getPushData(final Peer local) {
+        List<PeerReference> getPushData(final Peer local) {
 
-            return local.pull(data_selector);
+            return data_selector.select(local);
         }
 
         public Object[] getArguments(Peer local) {

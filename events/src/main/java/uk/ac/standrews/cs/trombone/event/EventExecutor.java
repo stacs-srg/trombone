@@ -116,19 +116,11 @@ public class EventExecutor {
                     final Duration observation_interval = getObservationInterval();
                     csv_reporter.start(observation_interval.getLength(), observation_interval.getTimeUnit());
                     try {
-                        CompletableFuture<Void> previous_future = null;
                         while (!Thread.currentThread()
                                 .isInterrupted() && !task_populator_future.isDone() || !runnable_events.isEmpty()) {
                             final RunnableExperimentEvent runnable = runnable_events.take();
 
-                            if (previous_future == null) {
-                                previous_future = CompletableFuture.runAsync(runnable, task_executor);
-                            }
-                            else {
-                                previous_future = previous_future.thenRunAsync(runnable, task_executor);
-                            }
-
-                            //                            task_executor.execute(runnable);
+                            task_executor.execute(runnable);
 
                             metric_set.event_scheduling_rate.mark();
                             load_balancer.release();
