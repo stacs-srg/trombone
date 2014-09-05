@@ -41,7 +41,7 @@ public class ChordLookupStrategy implements LookupStrategy {
             else {
                 updateMeasurement(local, current_hop, measurement);
 
-                if (next_hop.isFinalHop()) {
+                if (next_hop.isFinalHop() || isHopCountExcessive(measurement)) {
                     future_lookup.complete(next_hop);
                 }
                 else {
@@ -49,6 +49,12 @@ public class ChordLookupStrategy implements LookupStrategy {
                 }
             }
         }, local.getExecutor());
+    }
+
+    private boolean isHopCountExcessive(final Optional<PeerMetric.LookupMeasurement> measurement) {
+
+        return measurement.isPresent() && measurement.get()
+                .getHopCount() >= 100;
     }
 
     private void updateMeasurement(final Peer local, final PeerReference current_hop, final Optional<PeerMetric.LookupMeasurement> measurement) {

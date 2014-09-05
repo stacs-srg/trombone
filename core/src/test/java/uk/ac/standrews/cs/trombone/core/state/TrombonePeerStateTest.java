@@ -10,7 +10,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.standrews.cs.trombone.core.InternalPeerReference;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.Key;
 
@@ -78,7 +77,7 @@ public class TrombonePeerStateTest {
                         .next()
         };
 
-        final List<InternalPeerReference> references = state.getInternalReferences();
+        final List<PeerReference> references = state.getInternalReferences();
         Collections.reverse(references);
 
         references.forEach(reference -> {

@@ -21,7 +21,7 @@ public class LocalTestExperiment {
 
         final Scenario scenario = Batch1EffectOfChurn.getInstance()
                 .get()
-                .get(1);
+                .get(14);
         testExecution(scenario);
     }
 

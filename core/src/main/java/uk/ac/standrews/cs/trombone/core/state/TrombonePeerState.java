@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Stream;
-import uk.ac.standrews.cs.trombone.core.InternalPeerReference;
 import uk.ac.standrews.cs.trombone.core.Key;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
@@ -16,7 +15,7 @@ import uk.ac.standrews.cs.trombone.core.util.RelativeRingDistanceComparator;
 public class TrombonePeerState implements PeerState {
 
     private final Key local_key;
-    private final ConcurrentSkipListMap<Key, InternalPeerReference> state;
+    private final ConcurrentSkipListMap<Key, PeerReference> state;
 
     TrombonePeerState(final Peer local) {
 
@@ -26,10 +25,10 @@ public class TrombonePeerState implements PeerState {
     TrombonePeerState(final Key local_key) {
 
         this.local_key = local_key;
-        state = new ConcurrentSkipListMap<Key, InternalPeerReference>(new RelativeRingDistanceComparator(local_key));
+        state = new ConcurrentSkipListMap<Key, PeerReference>(new RelativeRingDistanceComparator(local_key));
     }
 
-    public InternalPeerReference getInternalReference(final PeerReference reference) {
+    public PeerReference getInternalReference(final PeerReference reference) {
 
         final Key key = reference.getKey();
         add(reference);
@@ -49,8 +48,7 @@ public class TrombonePeerState implements PeerState {
         if (reference == null) { return false; }
         final Key key = reference.getKey();
         if (key.equals(local_key)) { return false; }
-        final InternalPeerReference internal_reference = toInternalPeerReference(reference);
-        final InternalPeerReference existing_reference = state.putIfAbsent(key, internal_reference);
+        final PeerReference existing_reference = state.putIfAbsent(key, reference);
 
         final boolean already_existed = existing_reference != null;
         if (already_existed) {
@@ -75,13 +73,13 @@ public class TrombonePeerState implements PeerState {
 
     public PeerReference lower(final Key target) {
 
-        final Map.Entry<Key, InternalPeerReference> lower_entry = state.lowerEntry(target);
+        final Map.Entry<Key, PeerReference> lower_entry = state.lowerEntry(target);
         return getEntryValue(lower_entry);
     }
 
     public PeerReference higher(final Key target) {
 
-        final Map.Entry<Key, InternalPeerReference> higher_entry = state.higherEntry(target);
+        final Map.Entry<Key, PeerReference> higher_entry = state.higherEntry(target);
         return getEntryValue(higher_entry);
     }
 
@@ -96,7 +94,7 @@ public class TrombonePeerState implements PeerState {
 
     public PeerReference ceiling(final Key target) {
 
-        final Map.Entry<Key, InternalPeerReference> ceiling_entry = state.ceilingEntry(target);
+        final Map.Entry<Key, PeerReference> ceiling_entry = state.ceilingEntry(target);
         return getEntryValue(ceiling_entry);
     }
 
@@ -138,9 +136,9 @@ public class TrombonePeerState implements PeerState {
     }
 
     @Override
-    public List<PeerReference> getReferences() {
+    public Collection<PeerReference> getReferences() {
 
-        return new CopyOnWriteArrayList<>(state.values());
+        return state.values();
     }
 
     @Override
@@ -151,22 +149,17 @@ public class TrombonePeerState implements PeerState {
                 .map(internal -> internal);
     }
 
-    public Collection<InternalPeerReference> getValues() {
+    public Collection<PeerReference> getValues() {
 
         return state.values();
     }
 
-    public List<InternalPeerReference> getInternalReferences() {
+    public List<PeerReference> getInternalReferences() {
 
         return new CopyOnWriteArrayList<>(getValues());
     }
 
-    private static InternalPeerReference toInternalPeerReference(final PeerReference reference) {
-
-        return reference instanceof InternalPeerReference ? (InternalPeerReference) reference : new InternalPeerReference(reference);
-    }
-
-    private static InternalPeerReference getEntryValue(final Map.Entry<Key, InternalPeerReference> entry) {
+    private static PeerReference getEntryValue(final Map.Entry<Key, PeerReference> entry) {
 
         return entry != null ? entry.getValue() : null;
     }

@@ -1,9 +1,9 @@
 package uk.ac.standrews.cs.trombone.core.state;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.stream.Stream;
-import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.Key;
+import uk.ac.standrews.cs.trombone.core.PeerReference;
 
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
@@ -26,5 +26,5 @@ public interface PeerState {
 
     int size();
 
-    List<PeerReference> getReferences();
+    Collection<PeerReference> getReferences();
 }

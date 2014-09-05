@@ -23,7 +23,7 @@ public class First extends Selector {
     public List<PeerReference> select(final Peer peer) {
 
         final Stream<PeerReference> state_stream = peer.getPeerState().stream();
-        
+
         switch (reachability_criteria) {
             case REACHABLE:
                 return state_stream.filter(reference -> reference.isReachable()).limit(size).collect(Collectors.toList());

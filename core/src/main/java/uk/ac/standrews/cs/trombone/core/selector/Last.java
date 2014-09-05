@@ -1,5 +1,7 @@
 package uk.ac.standrews.cs.trombone.core.selector;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,16 +25,25 @@ public class Last extends Selector {
     @Override
     public List<PeerReference> select(final Peer peer) {
 
-        final List<PeerReference> references = peer.getPeerState().getReferences();
-        Collections.reverse(references);
-        final Stream<PeerReference> state_reverse_stream = references.stream();
+        final Collection<PeerReference> references = peer.getPeerState()
+                .getReferences();
+
+        final ArrayList<PeerReference> list = new ArrayList<PeerReference>(references);
+        Collections.reverse(list);
+        final Stream<PeerReference> state_reverse_stream = list.stream();
+
         switch (reachability_criteria) {
             case REACHABLE:
-                return state_reverse_stream.filter(reference -> reference.isReachable()).limit(size).collect(Collectors.toList());
+                return state_reverse_stream.filter(reference -> reference.isReachable())
+                        .limit(size)
+                        .collect(Collectors.toList());
             case UNREACHABLE:
-                return state_reverse_stream.filter(reference -> !reference.isReachable()).limit(size).collect(Collectors.toList());
+                return state_reverse_stream.filter(reference -> !reference.isReachable())
+                        .limit(size)
+                        .collect(Collectors.toList());
             case ANY:
-                return state_reverse_stream.limit(size).collect(Collectors.toList());
+                return state_reverse_stream.limit(size)
+                        .collect(Collectors.toList());
             default:
                 LOGGER.warn("unknown reachability criteria {}", reachability_criteria);
                 return null;
