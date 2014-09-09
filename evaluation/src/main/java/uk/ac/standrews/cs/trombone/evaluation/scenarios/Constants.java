@@ -32,7 +32,6 @@ import uk.ac.standrews.cs.trombone.core.state.TrombonePeerStateFactory;
 import uk.ac.standrews.cs.trombone.core.strategy.ChordJoinStrategy;
 import uk.ac.standrews.cs.trombone.core.strategy.ChordLookupStrategy;
 import uk.ac.standrews.cs.trombone.core.strategy.ChordNextHopStrategy;
-import uk.ac.standrews.cs.trombone.core.strategy.MinimalJoinStrategy;
 import uk.ac.standrews.cs.trombone.core.strategy.TromboneNextHopStrategy;
 import uk.ac.standrews.cs.trombone.core.util.Probability;
 import uk.ac.standrews.cs.trombone.evaluation.util.UniformSyntheticDelay;
@@ -168,7 +167,7 @@ public final class Constants {
 
     private static final PeerConfiguration.Builder BASE_TROMBONE_CONFIGURATION = PeerConfiguration.builder(BASE_BUILDER)
             .peerState(new TrombonePeerStateFactory())
-            .joinStrategy(new MinimalJoinStrategy())
+            .joinStrategy(new ChordJoinStrategy())
             .nextHopStrategy(new TromboneNextHopStrategy())
             .lookupStrategy(new ChordLookupStrategy());
 
@@ -176,7 +175,7 @@ public final class Constants {
     private static final Clusterer<EvaluatedDisseminationStrategy> PFCLUST_CLUSTERER = new PFClustClusterer<>(4121);
     private static final Clusterer<EvaluatedDisseminationStrategy> K_MEANS_PLUS_PLUS_CLUSTERER = new KMeansPlusPlusClusterer<>(5, 100, new EuclideanDistance(), new MersenneTwister(852));
     private static final Clusterer<EvaluatedDisseminationStrategy> PER_POINT_CLUSTERER = new PerPointClusterer<>();
-    private static final DisseminationStrategyGenerator STRATEGY_GENERATOR = new DisseminationStrategyGenerator(10, 5);
+    private static final DisseminationStrategyGenerator STRATEGY_GENERATOR = new DisseminationStrategyGenerator(20, 5);
     private static final int POPULATION_SIZE = 10;
 
     private static final EvolutionaryMaintenanceFactory.Builder BASE_EVOLUTIONARY_MAINTENANCE_FACTORY_BUILDER = EvolutionaryMaintenanceFactory.builder()

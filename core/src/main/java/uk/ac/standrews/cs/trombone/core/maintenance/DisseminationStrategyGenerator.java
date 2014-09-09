@@ -22,10 +22,9 @@ public class DisseminationStrategyGenerator {
 
     static {
 
-        SELECTORS.add(EmptySelector.getInstance());
+                SELECTORS.add(EmptySelector.getInstance());
         SELECTORS.add(new First(1, Selector.ReachabilityCriteria.ANY));
         SELECTORS.add(new Last(1, Selector.ReachabilityCriteria.ANY));
-        //                SELECTORS.add(new MostRecentlySeen(1, Selector.ReachabilityCriteria.ANY));
         SELECTORS.add(new RandomSelector(1, Selector.ReachabilityCriteria.ANY));
         SELECTORS.add(Self.getInstance());
     }

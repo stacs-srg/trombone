@@ -117,7 +117,7 @@ public class PeerConfiguration {
 
     public SyntheticDelay getSyntheticDelay() {
 
-        return SyntheticDelay.ZERO;
+        return builder.synthetic_delay;
     }
 
     public boolean isApplicationFeedbackEnabled() {

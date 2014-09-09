@@ -42,6 +42,9 @@ import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.evaluation.scenarios.Batch1EffectOfChurn;
+import uk.ac.standrews.cs.trombone.evaluation.scenarios.Batch2EffectOfWorkload;
+import uk.ac.standrews.cs.trombone.evaluation.scenarios.Batch3EffectOfTrainingDuration;
+import uk.ac.standrews.cs.trombone.evaluation.scenarios.Batch4EffectOfClusteringAlgorithm;
 import uk.ac.standrews.cs.trombone.evaluation.scenarios.Constants;
 import uk.ac.standrews.cs.trombone.evaluation.util.BlubCluster;
 import uk.ac.standrews.cs.trombone.evaluation.util.ExperimentWatcher;
@@ -86,12 +89,12 @@ public class BlubExperiment {
     static {
         SCENARIOS.addAll(Batch1EffectOfChurn.getInstance()
                 .get());
-        //        SCENARIOS.addAll(Batch2EffectOfWorkload.getInstance()
-        //                .get());
-        //        SCENARIOS.addAll(Batch3EffectOfTrainingDuration.getInstance()
-        //                .get());
-        //        SCENARIOS.addAll(Batch4EffectOfClusteringAlgorithm.getInstance()
-        //                .get());
+        SCENARIOS.addAll(Batch2EffectOfWorkload.getInstance()
+                .get());
+        SCENARIOS.addAll(Batch3EffectOfTrainingDuration.getInstance()
+                .get());
+        SCENARIOS.addAll(Batch4EffectOfClusteringAlgorithm.getInstance()
+                .get());
     }
 
     @Parameterized.Parameters(name = "{index} scenario: {0}")

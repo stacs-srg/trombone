@@ -12,6 +12,6 @@ public class ScenarioUtilsTest {
 
         final List<Scenario> scenarios = Batch1EffectOfChurn.getInstance()
                 .get();
-        System.out.println(ScenarioUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(scenarios.get(1)));
+        System.out.println(ScenarioUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(scenarios.get(0)));
     }
 }
