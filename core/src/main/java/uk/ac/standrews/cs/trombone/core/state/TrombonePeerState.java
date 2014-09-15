@@ -35,10 +35,6 @@ public class TrombonePeerState implements PeerState {
     public boolean inLocalKeyRange(Key target) {
 
         final PeerReference last = last();
-        if (last != null) {
-            local.getAsynchronousRemote(last, false)
-                    .push(local.getSelfReference());
-        }
         return last == null || Key.inSegment(last.getKey(), target, local_key);
     }
 

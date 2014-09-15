@@ -21,7 +21,7 @@ public class LocalTestExperiment {
 
         final Scenario scenario = Batch1EffectOfChurn.getInstance()
                 .get()
-                .get(10);
+                .get(13);
 
         // 13 evolutionary
         // 10 chord
