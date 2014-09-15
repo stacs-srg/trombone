@@ -6,10 +6,11 @@ import java.util.Random;
 import uk.ac.standrews.cs.trombone.core.selector.EmptySelector;
 import uk.ac.standrews.cs.trombone.core.selector.First;
 import uk.ac.standrews.cs.trombone.core.selector.Last;
+import uk.ac.standrews.cs.trombone.core.selector.NextKeyLookupSelector;
+import uk.ac.standrews.cs.trombone.core.selector.PreviousKeyLookupSelector;
 import uk.ac.standrews.cs.trombone.core.selector.RandomSelector;
 import uk.ac.standrews.cs.trombone.core.selector.Selector;
 import uk.ac.standrews.cs.trombone.core.selector.SelectorFactory;
-import uk.ac.standrews.cs.trombone.core.selector.Self;
 import uk.ac.standrews.cs.trombone.core.util.Probability;
 
 /**
@@ -22,11 +23,12 @@ public class DisseminationStrategyGenerator {
 
     static {
 
-                SELECTORS.add(EmptySelector.getInstance());
-        SELECTORS.add(new First(1, Selector.ReachabilityCriteria.ANY));
-        SELECTORS.add(new Last(1, Selector.ReachabilityCriteria.ANY));
-        SELECTORS.add(new RandomSelector(1, Selector.ReachabilityCriteria.ANY));
-        SELECTORS.add(Self.getInstance());
+        SELECTORS.add(EmptySelector.getInstance());
+        SELECTORS.add(new First(1));
+        SELECTORS.add(new Last(1));
+        SELECTORS.add(new RandomSelector(1));
+        SELECTORS.add(NextKeyLookupSelector.getInstance());
+        SELECTORS.add(PreviousKeyLookupSelector.getInstance());
     }
 
     private final int max_action_size;

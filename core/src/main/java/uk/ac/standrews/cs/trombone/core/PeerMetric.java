@@ -5,6 +5,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.math3.stat.descriptive.SynchronizedDescriptiveStatistics;
+import org.mashti.gauge.Counter;
 import org.mashti.gauge.Metric;
 import org.mashti.gauge.Rate;
 import org.mashti.gauge.Timer;
@@ -23,6 +24,7 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
     private final Rate served_next_hop_counter;
     private final Rate rpc_error_rate;
     private final boolean application_feedback_enabled;
+    private final Counter correct_state_count = new Counter();
 
     public PeerMetric(final boolean application_feedback_enabled) {
 
@@ -34,6 +36,11 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
         lookup_counter = new Rate();
         served_next_hop_counter = new Rate();
         rpc_error_rate = new Rate();
+    }
+
+    public Counter getCorrectStateCounter() {
+
+        return correct_state_count;
     }
 
     public static Rate getGlobalSentBytesRate() {
@@ -100,7 +107,7 @@ public class PeerMetric implements Metric, WrittenByteCountListener {
         return rpc_error_rate.getRate();
     }
 
-    void notifyRPCError(final Throwable error) {
+    void notifyRPCError(PeerReference reference, Throwable error) {
 
         rpc_error_rate.mark();
         GLOBAL_RPC_ERROR_RATE.mark();

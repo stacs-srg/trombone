@@ -41,7 +41,7 @@ import uk.ac.standrews.cs.trombone.core.maintenance.Maintenance;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class EventExecutor {
 
-    private static final int MAX_BUFFERED_EVENTS = 3_000;
+    private static final int MAX_BUFFERED_EVENTS = 1;
     private static final Logger LOGGER = LoggerFactory.getLogger(EventExecutor.class);
 
     final DelayQueue<RunnableExperimentEvent> runnable_events;
@@ -271,6 +271,7 @@ public class EventExecutor {
         final Event event = event_reader.next();
         final Participant participant = event.getSource();
         final Peer peer = participant.getPeer();
+
         queue(peer, event);
     }
 

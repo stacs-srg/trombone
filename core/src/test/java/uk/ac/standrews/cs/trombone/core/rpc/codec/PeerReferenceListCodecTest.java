@@ -53,7 +53,7 @@ public class PeerReferenceListCodecTest {
     @Test
     public void testCodec() throws Exception {
 
-        final PeerReference[] references = {null, new PeerReference(Key.valueOf(45), new InetSocketAddress(8541)), new PeerReference(Key.valueOf(333), new InetSocketAddress(85), false)};
+        final PeerReference[] references = {null, new PeerReference(Key.valueOf(45), new InetSocketAddress(8541)), new PeerReference(Key.valueOf(333), new InetSocketAddress(85))};
         for (PeerReference reference : references) {
             reference_list.add(reference);
         }

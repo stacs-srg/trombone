@@ -175,7 +175,7 @@ public final class Constants {
     private static final Clusterer<EvaluatedDisseminationStrategy> PFCLUST_CLUSTERER = new PFClustClusterer<>(4121);
     private static final Clusterer<EvaluatedDisseminationStrategy> K_MEANS_PLUS_PLUS_CLUSTERER = new KMeansPlusPlusClusterer<>(5, 100, new EuclideanDistance(), new MersenneTwister(852));
     private static final Clusterer<EvaluatedDisseminationStrategy> PER_POINT_CLUSTERER = new PerPointClusterer<>();
-    private static final DisseminationStrategyGenerator STRATEGY_GENERATOR = new DisseminationStrategyGenerator(20, 5);
+    private static final DisseminationStrategyGenerator STRATEGY_GENERATOR = new DisseminationStrategyGenerator(10, 5);
     private static final int POPULATION_SIZE = 10;
 
     private static final EvolutionaryMaintenanceFactory.Builder BASE_EVOLUTIONARY_MAINTENANCE_FACTORY_BUILDER = EvolutionaryMaintenanceFactory.builder()
@@ -183,7 +183,7 @@ public final class Constants {
             .eliteCount(1)
             .periodicMaintenanceInterval(MAINTENANCE_INTERVAL, MAINTENANCE_INTERVAL_UNIT)
             .mutationProbability(MUTATION_PROBABILITY)
-            .evaluationDuration(2, TimeUnit.MINUTES)
+            .evaluationDuration(1, TimeUnit.MINUTES)
             .clusterer(PFCLUST_CLUSTERER)
             .disseminationStrategyGenerator(STRATEGY_GENERATOR);
 

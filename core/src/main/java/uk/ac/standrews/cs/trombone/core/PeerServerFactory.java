@@ -10,11 +10,11 @@ import org.mashti.gauge.Rate;
 import org.mashti.jetson.FutureResponse;
 import org.mashti.jetson.Server;
 import org.mashti.jetson.ServerFactory;
-import org.mashti.jetson.lean.LeanServerChannelInitializer;
 import org.mashti.jetson.util.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.core.rpc.FuturePeerResponse;
+import uk.ac.standrews.cs.trombone.core.rpc.LeanPeerServerChannelInitializer;
 import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
 
 /**
@@ -32,8 +32,8 @@ public class PeerServerFactory extends ServerFactory<AsynchronousPeerRemote> {
 
     static {
 
-        parent_event_loop = new NioEventLoopGroup(50, new NamedThreadFactory("server_parent_event_loop_"));
-        child_event_loop = new NioEventLoopGroup(50, new NamedThreadFactory("server_child_event_loop_"));
+        parent_event_loop = new NioEventLoopGroup(0, new NamedThreadFactory("server_parent_event_loop_"));
+        child_event_loop = new NioEventLoopGroup(0, new NamedThreadFactory("server_child_event_loop_"));
 
         SERVER_BOOTSTRAP.group(parent_event_loop, child_event_loop);
         SERVER_BOOTSTRAP.channel(NioServerSocketChannel.class);
@@ -42,7 +42,7 @@ public class PeerServerFactory extends ServerFactory<AsynchronousPeerRemote> {
         SERVER_BOOTSTRAP.childOption(ChannelOption.SO_KEEPALIVE, true);
         SERVER_BOOTSTRAP.childOption(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK, 32 * 1024);
         SERVER_BOOTSTRAP.childOption(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK, 8 * 1024);
-        SERVER_BOOTSTRAP.childHandler(new LeanServerChannelInitializer<AsynchronousPeerRemote>(AsynchronousPeerRemote.class, PeerCodecs.getInstance()));
+        SERVER_BOOTSTRAP.childHandler(new LeanPeerServerChannelInitializer<AsynchronousPeerRemote>(AsynchronousPeerRemote.class, PeerCodecs.getInstance()));
         SERVER_BOOTSTRAP.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
     }
 
@@ -89,16 +89,19 @@ public class PeerServerFactory extends ServerFactory<AsynchronousPeerRemote> {
             peer.getPeerMetric()
                     .notifyServe(future_response.getMethod()); // record frequency of called methods
 
-            if (future_response instanceof FuturePeerResponse<?>) {
+            if (future_response instanceof FuturePeerResponse) {
                 final FuturePeerResponse<?> future_peer_response = (FuturePeerResponse<?>) future_response;
                 final PeerReference correspondent = future_peer_response.getCorrespondent();
-                peer.push(correspondent);
+                if (correspondent != null) {
+                    peer.getPeerState()
+                            .add(correspondent);
+                }
             }
 
             MyServer.super.handle(context, future_response);
-            future_response.thenRunAsync(() -> {
+            future_response.thenRun(() -> {
                 handled_rate.mark();
-            }, peer.getExecutor());
+            });
         }
     }
 }

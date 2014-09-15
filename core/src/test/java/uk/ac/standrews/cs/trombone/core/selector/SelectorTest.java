@@ -4,10 +4,11 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 import org.junit.Test;
+import uk.ac.standrews.cs.trombone.core.Key;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
-import uk.ac.standrews.cs.trombone.core.Key;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -15,7 +16,6 @@ import static org.junit.Assert.assertFalse;
 public class SelectorTest {
 
     static final Random RANDOM = new Random(1237418);
-    static final Selector.ReachabilityCriteria[] REACHABILITY_CRITERIA_VALUES = Selector.ReachabilityCriteria.values();
 
     @Test
     public void testGetters() throws Exception {
@@ -23,14 +23,13 @@ public class SelectorTest {
         for (int i = 0; i < 100; i++) {
 
             final int size = RANDOM.nextInt(1000);
-            final Selector.ReachabilityCriteria criteria = randomReachabilityCriteria();
 
-            Selector selector = new Selector(size, criteria) {
+            Selector selector = new Selector(size) {
 
                 private static final long serialVersionUID = -6385048910225591282L;
 
                 @Override
-                public List<PeerReference> select(final Peer peer) {
+                public CompletableFuture<List<PeerReference>> select(final Peer peer) {
 
                     return null;
                 }
@@ -44,7 +43,6 @@ public class SelectorTest {
 
             assertFalse(selector.isSingleton());
             assertEquals(size, selector.getSelectionSize());
-            assertEquals(criteria, selector.getReachabilityCriteria());
         }
     }
 
@@ -58,13 +56,9 @@ public class SelectorTest {
 
     }
 
-    static Selector.ReachabilityCriteria randomReachabilityCriteria() {
-
-        return REACHABILITY_CRITERIA_VALUES[RANDOM.nextInt(REACHABILITY_CRITERIA_VALUES.length)];
-    }
 
     static PeerReference generateRandomPeerReference() {
 
-        return new PeerReference(Key.valueOf(RANDOM.nextLong()), new InetSocketAddress(RANDOM.nextInt(0xffff)), RANDOM.nextBoolean());
+        return new PeerReference(Key.valueOf(RANDOM.nextLong()), new InetSocketAddress(RANDOM.nextInt(0xffff)));
     }
 }

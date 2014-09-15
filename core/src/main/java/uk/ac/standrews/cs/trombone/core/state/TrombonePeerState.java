@@ -16,10 +16,13 @@ public class TrombonePeerState implements PeerState {
 
     private final Key local_key;
     private final ConcurrentSkipListMap<Key, PeerReference> state;
+    private Peer local;
 
     TrombonePeerState(final Peer local) {
 
         this(local.key());
+        this.local = local;
+
     }
 
     TrombonePeerState(final Key local_key) {
@@ -28,18 +31,15 @@ public class TrombonePeerState implements PeerState {
         state = new ConcurrentSkipListMap<Key, PeerReference>(new RelativeRingDistanceComparator(local_key));
     }
 
-    public PeerReference getInternalReference(final PeerReference reference) {
-
-        final Key key = reference.getKey();
-        add(reference);
-        return state.get(key);
-    }
-
     @Override
     public boolean inLocalKeyRange(Key target) {
 
-        final PeerReference last_reachable = lastReachable();
-        return last_reachable == null || Key.inSegment(last_reachable.getKey(), target, local_key);
+        final PeerReference last = last();
+        if (last != null) {
+            local.getAsynchronousRemote(last, false)
+                    .push(local.getSelfReference());
+        }
+        return last == null || Key.inSegment(last.getKey(), target, local_key);
     }
 
     @Override
@@ -48,14 +48,7 @@ public class TrombonePeerState implements PeerState {
         if (reference == null) { return false; }
         final Key key = reference.getKey();
         if (key.equals(local_key)) { return false; }
-        final PeerReference existing_reference = state.putIfAbsent(key, reference);
-
-        final boolean already_existed = existing_reference != null;
-        if (already_existed) {
-            existing_reference.setReachable(reference.isReachable());
-        }
-
-        return !already_existed;
+        return state.putIfAbsent(key, reference) == null;
     }
 
     @Override
@@ -67,8 +60,13 @@ public class TrombonePeerState implements PeerState {
     @Override
     public PeerReference closest(final Key target) {
 
-        final PeerReference ceiling_reachable = ceilingReachable(target);
-        return ceiling_reachable == null ? first() : ceiling_reachable;
+        return closestSuccessor(target);
+    }
+
+    private PeerReference closestSuccessor(final Key target) {
+
+        final PeerReference ceiling = ceiling(target);
+        return ceiling == null ? first() : ceiling;
     }
 
     public PeerReference lower(final Key target) {
@@ -83,19 +81,16 @@ public class TrombonePeerState implements PeerState {
         return getEntryValue(higher_entry);
     }
 
-    public PeerReference ceilingReachable(final Key target) {
-
-        PeerReference ceiling = ceiling(target);
-        while (ceiling != null && !ceiling.isReachable()) {
-            ceiling = lower(ceiling.getKey());
-        }
-        return ceiling;
-    }
-
     public PeerReference ceiling(final Key target) {
 
         final Map.Entry<Key, PeerReference> ceiling_entry = state.ceilingEntry(target);
         return getEntryValue(ceiling_entry);
+    }
+
+    public PeerReference floor(final Key target) {
+
+        final Map.Entry<Key, PeerReference> floor_entry = state.floorEntry(target);
+        return getEntryValue(floor_entry);
     }
 
     @Override
@@ -104,29 +99,10 @@ public class TrombonePeerState implements PeerState {
         return getEntryValue(state.firstEntry());
     }
 
-    public PeerReference firstReachable() {
-
-        PeerReference first = first();
-        while (first != null && !first.isReachable()) {
-            first = lower(first.getKey());
-        }
-        return first;
-    }
-
     @Override
     public PeerReference last() {
 
         return getEntryValue(state.lastEntry());
-    }
-
-    public PeerReference lastReachable() {
-
-        PeerReference last = last();
-        while (last != null && !last.isReachable()) {
-            last = higher(last.getKey());
-        }
-
-        return last;
     }
 
     @Override

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 
@@ -12,13 +13,13 @@ public class RandomSelector extends Selector {
 
     private static final long serialVersionUID = -2686666721712477700L;
 
-    public RandomSelector(Integer size, ReachabilityCriteria reachability_criteria) {
+    public RandomSelector(Integer size) {
 
-        super(size, reachability_criteria);
+        super(size);
     }
 
     @Override
-    public List<PeerReference> select(final Peer peer) {
+    public CompletableFuture<List<PeerReference>> select(final Peer peer) {
 
         final Collection<PeerReference> references = peer.getPeerState()
                 .getReferences();
@@ -28,17 +29,17 @@ public class RandomSelector extends Selector {
         final List<PeerReference> result = new ArrayList<>(references);
         final Random random = peer.getRandom();
 
-        while(result.size() > result_size){
+        while (result.size() > result_size) {
             final int selection_index = random.nextInt(result.size());
             result.remove(selection_index);
         }
 
-        return result;
+        return CompletableFuture.completedFuture(result);
     }
 
     @Override
     public RandomSelector copy() {
 
-        return new RandomSelector(size, reachability_criteria);
+        return new RandomSelector(size);
     }
 }

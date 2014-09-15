@@ -29,7 +29,7 @@ import uk.ac.standrews.cs.trombone.core.PeerReference;
 public class EventQueue implements Iterator<Event> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EventQueue.class);
-    private static final int BUFFERED_EVENTS = 2000;
+    private static final int BUFFERED_EVENTS = 1;
     private static final int MAX_JOIN_KNOWN_PEERS = 5;
     private final LinkedBlockingQueue<Event> events;
     private final Scenario scenario;
@@ -139,6 +139,11 @@ public class EventQueue implements Iterator<Event> {
     public void remove() {
 
         throw new UnsupportedOperationException("remove is not supported");
+    }
+
+    public boolean isAlive(PeerReference reference) {
+
+        return alive_peers.containsKey(reference.getKey());
     }
 
     private void nextEvent() throws InterruptedException {

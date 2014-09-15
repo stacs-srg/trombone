@@ -14,7 +14,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import uk.ac.standrews.cs.trombone.core.selector.First;
-import uk.ac.standrews.cs.trombone.core.selector.Selector;
 import uk.ac.standrews.cs.trombone.core.selector.Self;
 import uk.ac.standrews.cs.trombone.core.state.PeerState;
 
@@ -79,7 +78,7 @@ public class PeerTest {
                 .get());
         assertEquals(peer_key, peer.key());
         assertEquals(peer_key, peer_reference.getKey());
-        assertEquals(peer_key, peer.getAsynchronousRemote(peer_reference)
+        assertEquals(peer_key, peer.getAsynchronousRemote(peer_reference, false)
                 .getKey()
                 .toCompletableFuture()
                 .get());
@@ -145,7 +144,7 @@ public class PeerTest {
         references.add(reference);
 
         configuration.peer_state_references = references;
-        assertEquals(reference, peer.pull(new First(1, Selector.ReachabilityCriteria.REACHABLE))
+        assertEquals(reference, peer.pull(new First(1))
                 .get()
                 .get(0));
     }
@@ -268,8 +267,8 @@ public class PeerTest {
     @Test
     public void testGetRemote() throws Exception {
 
-        assertEquals(peer, peer.getAsynchronousRemote(peer_reference));
-        assertFalse(peer.getAsynchronousRemote(generateRandomReference()) instanceof Peer);
+        assertEquals(peer, peer.getAsynchronousRemote(peer_reference, false));
+        assertFalse(peer.getAsynchronousRemote(generateRandomReference(), false) instanceof Peer);
     }
 
     @Test

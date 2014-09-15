@@ -18,7 +18,6 @@ import org.mashti.jetson.Client;
 import org.mashti.jetson.ClientFactory;
 import org.mashti.jetson.FutureResponse;
 import org.mashti.jetson.exception.RPCException;
-import org.mashti.jetson.lean.LeanClientChannelInitializer;
 import org.mashti.jetson.util.NamedThreadFactory;
 import org.mashti.jetson.util.ReflectionUtil;
 import org.slf4j.Logger;
@@ -27,6 +26,7 @@ import uk.ac.standrews.cs.trombone.core.maintenance.DisseminationStrategy;
 import uk.ac.standrews.cs.trombone.core.maintenance.Maintenance;
 import uk.ac.standrews.cs.trombone.core.maintenance.StrategicMaintenance;
 import uk.ac.standrews.cs.trombone.core.rpc.FuturePeerResponse;
+import uk.ac.standrews.cs.trombone.core.rpc.LeanPeerClientChannelInitializer;
 import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
 import uk.ac.standrews.cs.trombone.core.selector.Selector;
 import uk.ac.standrews.cs.trombone.core.state.PeerState;
@@ -43,12 +43,12 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
     static final ChannelFuturePool CHANNEL_POOL = new ChannelFuturePool(BOOTSTRAP);
 
     static {
-        final NioEventLoopGroup child_event_loop = new NioEventLoopGroup(50, new NamedThreadFactory("client_event_loop_"));
+        final NioEventLoopGroup child_event_loop = new NioEventLoopGroup(0, new NamedThreadFactory("client_event_loop_"));
         BOOTSTRAP.group(child_event_loop);
         BOOTSTRAP.channel(NioSocketChannel.class);
-        BOOTSTRAP.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30_000);
+        BOOTSTRAP.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10_000);
         BOOTSTRAP.option(ChannelOption.TCP_NODELAY, true);
-        BOOTSTRAP.handler(new LeanClientChannelInitializer(AsynchronousPeerRemote.class, PeerCodecs.getInstance()));
+        BOOTSTRAP.handler(new LeanPeerClientChannelInitializer(AsynchronousPeerRemote.class, PeerCodecs.getInstance()));
         BOOTSTRAP.option(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK, 32 * 1024);
         BOOTSTRAP.option(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK, 8 * 1024);
         BOOTSTRAP.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
@@ -87,6 +87,7 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
         peer_metric = peer.getPeerMetric();
         peer_address = peer.getAddress()
                 .getAddress();
+
     }
 
     @Override
@@ -95,12 +96,13 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
         return CHANNEL_POOL;
     }
 
-    AsynchronousPeerRemote get(final PeerReference reference) {
+    AsynchronousPeerRemote get(final PeerReference reference, boolean piggyback_enabled) {
 
         final InetSocketAddress address = reference.getAddress();
         final AsynchronousPeerRemote remote = get(address);
         final PeerClient handler = (PeerClient) Proxy.getInvocationHandler(remote);
         handler.reference = reference;
+        handler.piggyback_enabled = piggyback_enabled;
 
         return remote;
     }
@@ -115,6 +117,7 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
 
         private final InetAddress client_address;
         volatile PeerReference reference;
+        volatile boolean piggyback_enabled;
 
         protected PeerClient(final InetSocketAddress address) {
 
@@ -144,12 +147,13 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
         @Override
         public FutureResponse<?> newFutureResponse(final Method method, final Object[] arguments) {
 
-            final FuturePeerResponse<?> future_response = new FuturePeerResponse(reference, method, arguments);
+            final FuturePeerResponse<?> future_response = new FuturePeerResponse(peer.getSelfReference(), method, arguments);
             future_response.setWrittenByteCountListener(written_byte_count_listener);
             future_response.whenCompleteAsync((Object result, Throwable error) -> {
                 if (!future_response.isCompletedExceptionally()) {
 
-                    reference.setReachable(true);
+                    peer.getPeerState()
+                            .add(reference);
 
                     if (result instanceof PeerReference) {
                         peer.push((PeerReference) result);
@@ -166,12 +170,11 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
                     }
                 }
                 else {
-                    reference.setReachable(false);
-                    peer_metric.notifyRPCError(error);
+                    peer.getPeerState()
+                            .remove(reference);
+                    peer_metric.notifyRPCError(reference, error);
                     LOGGER.debug("failure occurred on future", error);
                 }
-
-                peer.push(reference);
 
             }, peer.getExecutor());
 
@@ -181,8 +184,8 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
         @Override
         protected void beforeFlush(final Channel channel, final FutureResponse<?> future_response) throws RPCException {
 
-            final Maintenance maintenance = peer.getMaintenance();
-            if (maintenance instanceof StrategicMaintenance) {
+            Maintenance maintenance = peer.getMaintenance();
+            if (piggyback_enabled && maintenance instanceof StrategicMaintenance) {
                 StrategicMaintenance strategicMaintenance = (StrategicMaintenance) maintenance;
                 final DisseminationStrategy strategy = strategicMaintenance.getDisseminationStrategy();
 
@@ -190,13 +193,28 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
 
                     strategy.getActions()
                             .stream()
-                            .filter(action -> action.isOpportunistic() && action.recipientsContain(peer, reference))
+                            .filter(action -> action.isOpportunistic())
                             .forEach(action -> {
+                                action.recipientsContain(peer, reference)
+                                        .thenAccept(contains -> {
+                                            if (contains) {
 
-                                final FutureResponse<?> future_dissemination = newFutureResponse(getMethod(action), action.getArguments(peer));
-                                writeToChannel(channel, future_dissemination);
+                                                if (action.isPush()) {
+
+                                                    action.getPushData(peer)
+                                                            .thenAccept(data -> {
+                                                                final FutureResponse<?> future_dissemination = newFutureResponse(getMethod(action), new Object[] {data});
+                                                                writeToChannel(channel, future_dissemination);
+                                                            });
+                                                }
+                                                else {
+                                                    final FutureResponse<?> future_dissemination = newFutureResponse(getMethod(action), action.getArguments(peer));
+                                                    writeToChannel(channel, future_dissemination);
+                                                }
+
+                                            }
+                                        });
                             });
-
                 }
 
             }

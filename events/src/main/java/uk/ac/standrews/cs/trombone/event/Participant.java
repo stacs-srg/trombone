@@ -2,11 +2,11 @@ package uk.ac.standrews.cs.trombone.event;
 
 import java.net.InetSocketAddress;
 import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
+import uk.ac.standrews.cs.trombone.core.Key;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
 import uk.ac.standrews.cs.trombone.core.PeerFactory;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
-import uk.ac.standrews.cs.trombone.core.Key;
 import uk.ac.standrews.cs.trombone.event.environment.Churn;
 import uk.ac.standrews.cs.trombone.event.environment.Workload;
 

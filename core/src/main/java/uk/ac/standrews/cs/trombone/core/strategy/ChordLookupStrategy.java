@@ -26,7 +26,7 @@ public class ChordLookupStrategy implements LookupStrategy {
 
     void lookup(final Peer local, CompletableFuture<PeerReference> future_lookup, Key target, PeerReference current_hop, Optional<PeerMetric.LookupMeasurement> measurement) {
 
-        final AsynchronousPeerRemote current_hop_remote = local.getAsynchronousRemote(current_hop);
+        final AsynchronousPeerRemote current_hop_remote = local.getAsynchronousRemote(current_hop, measurement.isPresent());
         final CompletableFuture<NextHopReference> future_next_hop = current_hop_remote.nextHop(target);
 
         future_next_hop.whenCompleteAsync((next_hop, error) -> {

@@ -1,6 +1,7 @@
 package uk.ac.standrews.cs.trombone.core.selector;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.state.ChordPeerState;
@@ -16,26 +17,24 @@ public class ChordSuccessorListSelector extends Selector {
 
     public ChordSuccessorListSelector(final Integer size) {
 
-        super(size, ReachabilityCriteria.REACHABLE);
-        fallback_selector = new First(size, reachability_criteria);
+        super(size);
+        fallback_selector = new First(size);
     }
 
     @Override
-    public List<PeerReference> select(final Peer peer) {
+    public CompletableFuture<List<PeerReference>> select(final Peer peer) {
 
         final PeerState state = peer.getPeerState();
-        final List<PeerReference> selection;
 
         if (state instanceof ChordPeerState) {
             final ChordPeerState chord_state = (ChordPeerState) state;
-            selection = chord_state.getSuccessorList()
-                    .values();
+            return CompletableFuture.completedFuture(chord_state.getSuccessorList()
+                    .values());
         }
         else {
-            selection = fallback_selector.select(peer);
+            return fallback_selector.select(peer);
         }
 
-        return selection;
     }
 
     @Override

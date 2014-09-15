@@ -15,7 +15,7 @@ public class EmptySelectorTest {
     public void testSelect() throws Exception {
 
         final List<PeerReference> empty = Collections.emptyList();
-        assertEquals(empty, EmptySelector.getInstance().select(null));
+        assertEquals(empty, EmptySelector.getInstance().select(null).get());
 
     }
 

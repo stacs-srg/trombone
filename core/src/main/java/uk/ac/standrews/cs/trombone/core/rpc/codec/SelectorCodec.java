@@ -33,9 +33,6 @@ public class SelectorCodec implements Codec {
             codecs.encodeAs(selector.getClass()
                     .getName(), out, String.class);
             if (!singleton) {
-                codecs.encodeAs(selector.getReachabilityCriteria()
-                        .toString(), out, String.class);
-
                 codecs.encodeAs(selector.getSelectionSize(), out, Integer.class);
             }
         }
@@ -67,29 +64,17 @@ public class SelectorCodec implements Codec {
             }
         }
         else {
-            final Selector.ReachabilityCriteria criteria = Selector.ReachabilityCriteria.valueOf(codecs.decodeAs(in, String.class));
             final int selection_size = codecs.decodeAs(in, Integer.class);
             Constructor<?> constructor;
             try {
                 try {
-                    constructor = selector_class.getConstructor(Integer.class, Selector.ReachabilityCriteria.class);
-                    return (Selector) constructor.newInstance(selection_size, criteria);
+                    constructor = selector_class.getConstructor(Integer.class);
+                    return (Selector) constructor.newInstance(selection_size);
                 }
                 catch (NoSuchMethodException e) {
-                    try {
-                        constructor = selector_class.getConstructor(Integer.class);
-                        return (Selector) constructor.newInstance(selection_size);
-                    }
-                    catch (NoSuchMethodException e1) {
-                        try {
-                            constructor = selector_class.getConstructor(Selector.ReachabilityCriteria.class);
-                            return (Selector) constructor.newInstance(criteria);
-                        }
-                        catch (NoSuchMethodException e2) {
-                            constructor = selector_class.getConstructor();
-                            return (Selector) constructor.newInstance();
-                        }
-                    }
+
+                    constructor = selector_class.getConstructor();
+                    return (Selector) constructor.newInstance();
                 }
             }
             catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {

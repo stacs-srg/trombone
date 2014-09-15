@@ -57,7 +57,7 @@ public class LeanPeerRequestEncoder extends LeanRequestEncoder {
         }
         else {
             correspondent = null;
-            LOGGER.warn("no correspondent for {}", future_response);
+            LOGGER.debug("no correspondent for {}", future_response);
         }
 
         codecs.encodeAs(correspondent, out, PeerReference.class);

@@ -23,7 +23,7 @@ public class ChordJoinStrategy implements JoinStrategy {
 
         if (!self.equals(member)) {
 
-            return local.getAsynchronousRemote(member)
+            return local.getAsynchronousRemote(member, false)
                     .lookup(self.getKey())
                     .thenAccept(potential_successor -> {
 
@@ -33,9 +33,8 @@ public class ChordJoinStrategy implements JoinStrategy {
                                 ChordPeerState chord_state = (ChordPeerState) local_state;
                                 chord_state.setSuccessor(potential_successor);
                             }
-                            else {
-                                local.push(potential_successor);
-                            }
+                            local_state.add(potential_successor);
+                            local_state.add(member);
                         }
                     });
         }

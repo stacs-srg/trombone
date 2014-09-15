@@ -40,18 +40,14 @@ public class LastTest extends SelectorTest {
         references.sort(c.reversed());
 
         for (int i = 0; i <= reference_count; i++) {
-            Assert.assertEquals(references.subList(0, i), new Last(i, Selector.ReachabilityCriteria.ANY).select(peer));
+            Assert.assertEquals(references.subList(0, i), new Last(i).select(peer).get());
         }
 
-        final List<PeerReference> reachable_references = references.stream().filter(reference -> reference.isReachable()).collect(Collectors.toList());
+        final List<PeerReference> reachable_references = references.stream().collect(Collectors.toList());
         for (int i = 0; i <= reachable_references.size(); i++) {
-            Assert.assertEquals(reachable_references.subList(0, i), new Last(i, Selector.ReachabilityCriteria.REACHABLE).select(peer));
+            Assert.assertEquals(reachable_references.subList(0, i), new Last(i).select(peer).get());
         }
 
-        final List<PeerReference> unreachable_references = references.stream().filter(reference -> !reference.isReachable()).collect(Collectors.toList());
-        for (int i = 0; i <= unreachable_references.size(); i++) {
-            Assert.assertEquals(unreachable_references.subList(0, i), new Last(i, Selector.ReachabilityCriteria.UNREACHABLE).select(peer));
-        }
     }
 
     @Test
@@ -59,7 +55,7 @@ public class LastTest extends SelectorTest {
 
         for (int i = 0; i < 100; i++) {
 
-            final Last last = new Last(RANDOM.nextInt(65) + 1, REACHABILITY_CRITERIA_VALUES[RANDOM.nextInt(REACHABILITY_CRITERIA_VALUES.length)]);
+            final Last last = new Last(RANDOM.nextInt(65) + 1);
             Assert.assertEquals(last, last.copy());
         }
     }

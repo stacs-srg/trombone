@@ -2,6 +2,7 @@ package uk.ac.standrews.cs.trombone.core.selector;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.state.ChordPeerState;
@@ -14,7 +15,7 @@ public final class ChordSuccessorSelector extends Selector {
 
     private static final long serialVersionUID = 4945435011721991055L;
     private static final ChordSuccessorSelector CHORD_SUCCESSOR_SELECTOR = new ChordSuccessorSelector();
-    private final First fallback_selector;
+    private static final First FALLBACK_SELECTOR_FIRST = new First(1);
 
     public static ChordSuccessorSelector getInstance() {
 
@@ -23,26 +24,21 @@ public final class ChordSuccessorSelector extends Selector {
 
     private ChordSuccessorSelector() {
 
-        super(1, ReachabilityCriteria.REACHABLE);
-        fallback_selector = new First(size, reachability_criteria);
+        super(1);
     }
 
     @Override
-    public List<PeerReference> select(final Peer peer) {
+    public CompletableFuture<List<PeerReference>> select(final Peer peer) {
 
         final PeerState state = peer.getPeerState();
-        final List<PeerReference> selection;
 
         if (state instanceof ChordPeerState) {
             final ChordPeerState chord_state = (ChordPeerState) state;
-            selection = new ArrayList<>();
+            final List<PeerReference> selection = new ArrayList<>();
             selection.add(chord_state.getSuccessor());
+            return CompletableFuture.completedFuture(selection);
         }
-        else {
-            selection = fallback_selector.select(peer);
-        }
-
-        return selection;
+        return FALLBACK_SELECTOR_FIRST.select(peer);
     }
 
     @Override

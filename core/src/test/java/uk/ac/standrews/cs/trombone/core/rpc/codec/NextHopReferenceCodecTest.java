@@ -41,7 +41,7 @@ public class NextHopReferenceCodecTest {
         final NextHopReference[] keys = {
                 null,
                 new NextHopReference(new PeerReference(Key.valueOf(45), new InetSocketAddress(8541)), true),
-                new NextHopReference(new PeerReference(Key.valueOf(333), new InetSocketAddress(85), false), false)
+                new NextHopReference(new PeerReference(Key.valueOf(333), new InetSocketAddress(85)), false)
         };
 
         for (NextHopReference key : keys) {

@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerMetric;
+import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.maintenance.DisseminationStrategy;
 import uk.ac.standrews.cs.trombone.core.maintenance.EvaluatedDisseminationStrategy;
 import uk.ac.standrews.cs.trombone.core.maintenance.EvolutionaryMaintenance;
@@ -55,6 +56,56 @@ public final class TromboneMetricSet extends MetricSet {
     final Rate join_failure_rate = new Rate();
     final Rate join_success_rate = new Rate();
 
+    private final Gauge<Double> state_correctness_counter = new Gauge<Double>() {
+
+        @Override
+        public Double get() {
+
+            double correct_state_size = 0;
+            double state_size = 0;
+            for (Participant participant : event_executor.event_reader.getParticipants()) {
+                Peer peer = participant.getPeer();
+                if (peer.isExposed()) {
+
+                    for (PeerReference reference : peer.getPeerState()
+                            .getReferences()) {
+                        if (event_executor.event_reader.isAlive(reference)) {
+
+                            correct_state_size++;
+                        }
+                        state_size++;
+                    }
+                }
+            }
+
+            return correct_state_size / state_size;
+        }
+    };
+    private final Gauge<Double> state_completeness_counter = new Gauge<Double>() {
+
+        @Override
+        public Double get() {
+
+            double correct_state_size = 0;
+            for (Participant participant : event_executor.event_reader.getParticipants()) {
+                Peer peer = participant.getPeer();
+                if (peer.isExposed()) {
+
+                    for (PeerReference reference : peer.getPeerState()
+                            .getReferences()) {
+                        if (event_executor.event_reader.isAlive(reference)) {
+
+                            correct_state_size++;
+                        }
+                    }
+                }
+            }
+
+            final long available_peer_count = available_peer_counter.get();
+            return available_peer_count != 0 ? correct_state_size / available_peer_count / available_peer_count : 0;
+        }
+    };
+
     private final Gauge<Double> lookup_correctness_ratio = new Gauge<Double>() {
 
         @Override
@@ -69,7 +120,8 @@ public final class TromboneMetricSet extends MetricSet {
         public Double get() {
 
             final long available_peer_count = available_peer_counter.get();
-            return available_peer_count != 0 ? PeerMetric.getGlobalSentBytesRate().getRate() / available_peer_count : 0;
+            return available_peer_count != 0 ? PeerMetric.getGlobalSentBytesRate()
+                    .getRate() / available_peer_count : 0;
         }
     };
     private final ThreadCountGauge thread_count_gauge = new ThreadCountGauge();
@@ -82,43 +134,26 @@ public final class TromboneMetricSet extends MetricSet {
         @Override
         public Integer get() {
 
-            return event_executor.task_executor.getQueue().size();
+            return event_executor.task_executor.getQueue()
+                    .size();
         }
     };
-    private final Gauge reachable_state_size_per_alive_peer_gauge = new Gauge() {
+    private final Gauge<Double> state_size_per_alive_peer_gauge = new Gauge<Double>() {
 
         @Override
-        public Object get() {
+        public Double get() {
 
             double number_of_reachable_state = 0;
             for (Participant participant : event_executor.event_reader.getParticipants()) {
                 Peer peer = participant.getPeer();
                 if (peer.isExposed()) {
                     final PeerState state = peer.getPeerState();
-                    number_of_reachable_state += state.stream().filter(reference -> reference.isReachable()).count();
+                    number_of_reachable_state += state.size();
                 }
             }
 
             final long available_peer_count = available_peer_counter.get();
             return available_peer_count != 0 ? number_of_reachable_state / available_peer_count : 0;
-        }
-    };
-    private final Gauge unreachable_state_size_per_alive_peer_gauge = new Gauge() {
-
-        @Override
-        public Object get() {
-
-            double number_of_unreachable_state = 0;
-            for (Participant participant : event_executor.event_reader.getParticipants()) {
-                Peer peer = participant.getPeer();
-                if (peer.isExposed()) {
-                    final PeerState state = peer.getPeerState();
-                    number_of_unreachable_state += state.stream().filter(reference -> !reference.isReachable()).count();
-                }
-            }
-
-            final long available_peer_count = available_peer_counter.get();
-            return available_peer_count != 0 ? number_of_unreachable_state / available_peer_count : 0;
         }
     };
 
@@ -238,8 +273,7 @@ public final class TromboneMetricSet extends MetricSet {
         putMetric("join_failure_rate", join_failure_rate);
         putMetric("join_success_rate", join_success_rate);
         putMetric("queue_size_gauge", queue_size_gauge);
-        putMetric("reachable_state_size_per_alive_peer_gauge", reachable_state_size_per_alive_peer_gauge);
-        putMetric("unreachable_state_size_per_alive_peer_gauge", unreachable_state_size_per_alive_peer_gauge);
+        putMetric("state_size_per_alive_peer_gauge", state_size_per_alive_peer_gauge);
         putMetric("thread_count_gauge", thread_count_gauge);
         putMetric("system_load_average_gauge", system_load_average_gauge);
         putMetric("thread_cpu_usage_gauge", thread_cpu_usage_gauge);
@@ -255,6 +289,8 @@ public final class TromboneMetricSet extends MetricSet {
         putMetric("strategy_action_size_sampler", EvolutionaryMaintenance.STRATEGY_ACTION_SIZE_SAMPLER);
         putMetric("strategy_uniformity_sampler", strategy_uniformity_sampler);
         putMetric("generated_strategy_uniformity_sampler", generated_strategy_uniformity_sampler);
+        putMetric("state_correctness_counter", state_correctness_counter);
+        putMetric("state_completeness_counter", state_completeness_counter);
 
     }
 

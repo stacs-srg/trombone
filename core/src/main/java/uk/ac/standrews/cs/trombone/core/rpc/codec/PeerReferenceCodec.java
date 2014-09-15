@@ -6,8 +6,8 @@ import java.net.InetSocketAddress;
 import org.mashti.jetson.exception.RPCException;
 import org.mashti.jetson.lean.codec.Codec;
 import org.mashti.jetson.lean.codec.Codecs;
-import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.Key;
+import uk.ac.standrews.cs.trombone.core.PeerReference;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class PeerReferenceCodec implements Codec {
@@ -29,7 +29,6 @@ public class PeerReferenceCodec implements Codec {
             final PeerReference reference = (PeerReference) value;
             codecs.encodeAs(reference.getKey(), out, Key.class);
             codecs.encodeAs(reference.getAddress(), out, InetSocketAddress.class);
-            codecs.encodeAs(reference.isReachable(), out, Boolean.TYPE);
         }
     }
 
@@ -40,7 +39,6 @@ public class PeerReferenceCodec implements Codec {
         if (is_null) { return null; }
         final Key key = codecs.decodeAs(in, Key.class);
         final InetSocketAddress address = codecs.decodeAs(in, InetSocketAddress.class);
-        final Boolean reachable = codecs.decodeAs(in, Boolean.TYPE);
-        return new PeerReference(key, address, reachable);
+        return new PeerReference(key, address);
     }
 }

@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import uk.ac.standrews.cs.trombone.core.Peer;
@@ -135,39 +136,43 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
             return push;
         }
 
-        public boolean recipientsContain(Peer local, final PeerReference recipient) {
+        public CompletableFuture<Boolean> recipientsContain(Peer local, final PeerReference recipient) {
 
             return recipient_selector.select(local)
-                    .contains(recipient);
+                    .thenApply(recipients -> recipients.contains(recipient));
         }
 
         public void nonOpportunistically(final Peer local) {
 
             if (!opportunistic) {
 
-                final List<? extends PeerReference> recipients = getRecipients(local);
-                if (recipients != null && !recipients.isEmpty()) {
-                    if (push) {
-                        final List<PeerReference> data_to_push = getPushData(local);
-                        if (data_to_push != null && !data_to_push.isEmpty()) {
+                getRecipients(local).thenAccept(recipients -> {
+                    if (recipients != null && !recipients.isEmpty()) {
+                        if (push) {
+                            getPushData(local).thenAccept(data_to_push -> {
+                                if (data_to_push != null && !data_to_push.isEmpty()) {
+                                    recipients.stream()
+                                            .filter(recipient -> recipient != null)
+                                            .forEach(recipient -> {
+                                                local.getAsynchronousRemote(recipient, false)
+                                                        .push(data_to_push);
+                                            });
+                                }
+                            });
+
+                        }
+                        else {
                             recipients.stream()
                                     .filter(recipient -> recipient != null)
                                     .forEach(recipient -> {
-                                        local.getAsynchronousRemote(recipient)
-                                                .push(data_to_push);
+                                        local.getAsynchronousRemote(recipient, false)
+                                                .pull(data_selector)
+                                                .thenAcceptAsync(result -> local.push(result), local.getExecutor());
                                     });
                         }
                     }
-                    else {
-                        recipients.stream()
-                                .filter(recipient -> recipient != null)
-                                .forEach(recipient -> {
-                                    local.getAsynchronousRemote(recipient)
-                                            .pull(data_selector)
-                                            .thenAcceptAsync(result -> local.push(result), local.getExecutor());
-                                });
-                    }
-                }
+                });
+
             }
         }
 
@@ -273,7 +278,7 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
             this.data_selector = data_selector;
         }
 
-        List<PeerReference> getPushData(final Peer local) {
+        public CompletableFuture<List<PeerReference>> getPushData(final Peer local) {
 
             return data_selector.select(local);
         }
@@ -283,7 +288,7 @@ public class DisseminationStrategy implements Iterable<DisseminationStrategy.Act
             return new Object[] {push ? getPushData(local) : data_selector};
         }
 
-        List<? extends PeerReference> getRecipients(final Peer local) {
+        CompletableFuture<List<PeerReference>> getRecipients(final Peer local) {
 
             return recipient_selector.select(local);
         }

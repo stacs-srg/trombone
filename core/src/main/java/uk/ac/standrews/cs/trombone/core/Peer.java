@@ -57,8 +57,10 @@ public class Peer implements AsynchronousPeerRemote {
         refreshSelfReference();
 
         executor = configuration.getExecutor();
-        state = configuration.getPeerState().apply(this);
-        maintenance = configuration.getMaintenance().apply(this);
+        state = configuration.getPeerState()
+                .apply(this);
+        maintenance = configuration.getMaintenance()
+                .apply(this);
         join_strategy = configuration.getJoinStrategy();
         lookup_strategy = configuration.getLookupStrategy();
         next_hop_strategy = configuration.getNextHopStrategy();
@@ -128,7 +130,7 @@ public class Peer implements AsynchronousPeerRemote {
     @Override
     public CompletableFuture<List<PeerReference>> pull(final Selector selector) {
 
-        return CompletableFuture.supplyAsync(() -> selector.select(this), executor);
+        return selector.select(this);
     }
 
     @Override
@@ -174,9 +176,9 @@ public class Peer implements AsynchronousPeerRemote {
         return self;
     }
 
-    public AsynchronousPeerRemote getAsynchronousRemote(final PeerReference reference) {
+    public AsynchronousPeerRemote getAsynchronousRemote(final PeerReference reference, boolean piggyback_enabled) {
 
-        return !self.equals(reference) ? remote_factory.get(reference) : this;
+        return !self.equals(reference) ? remote_factory.get(reference, piggyback_enabled) : this;
     }
 
     public PeerMetric getPeerMetric() {

@@ -24,7 +24,6 @@ import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.maintenance.DisseminationStrategy;
 import uk.ac.standrews.cs.trombone.core.selector.First;
 import uk.ac.standrews.cs.trombone.core.selector.Last;
-import uk.ac.standrews.cs.trombone.core.selector.Selector;
 import uk.ac.standrews.cs.trombone.core.selector.Self;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
@@ -38,8 +37,8 @@ public class SingleProcessPeerManager implements ApplicationManager {
     public static final DisseminationStrategy STRATEGY = new DisseminationStrategy();
 
     static {
-        final First successor = new First(1, Selector.ReachabilityCriteria.REACHABLE);
-        final Last predecessor = new Last(1, Selector.ReachabilityCriteria.REACHABLE);
+        final First successor = new First(1);
+        final Last predecessor = new Last(1);
         final Self self = Self.getInstance();
 
         STRATEGY.addAction(new DisseminationStrategy.Action(false, false, predecessor, successor));
@@ -73,13 +72,8 @@ public class SingleProcessPeerManager implements ApplicationManager {
         peer.expose();
         descriptor.setAttribute(PEER_KEY, peer);
         final PeerReference peer_reference = peer.getSelfReference();
-        if (joined_peers.isEmpty()) {
-            join(peer_reference).get();
-        }
-        else {
-            join(peer_reference);
+        join(peer_reference).get();
 
-        }
         return peer_reference;
     }
 

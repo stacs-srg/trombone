@@ -44,15 +44,15 @@ public class ChordMaintenance extends Maintenance {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ChordMaintenance.class);
     private static final ChordPredecessorSelector PREDECESSOR_SELECTOR = ChordPredecessorSelector.getInstance();
-    private static final Void VOID = null;
-    private static final CompletableFuture<Void> DONE = CompletableFuture.completedFuture(VOID);
+    private static final CompletableFuture<Boolean> SKIP = CompletableFuture.completedFuture(Boolean.TRUE);
+    public static final int MAX_SKIPPED_CYCLES = 20;
     private final ChordPeerState state;
     private final ChordSuccessorList successor_list;
     private final ChordSuccessorListSelector successor_list_selector;
     private final Key local_key;
     private final ChordFingerTable finger_table;
     private final ScheduledExecutorService executor;
-    private CompletableFuture<Void> future;
+    private CompletableFuture<Void> maintenance_cycle;
 
     ChordMaintenance(final Peer peer, long interval, TimeUnit interval_unit) {
 
@@ -65,11 +65,8 @@ public class ChordMaintenance extends Maintenance {
         finger_table = state.getFingerTable();
     }
 
-    int skipped_cycles = 0;
-
-    boolean pingp;
-    boolean stabilize;
-    boolean fix;
+    int skipped_cycles;
+    boolean pingp, stab, fix, pred_of_suc, notif, succ_list;
 
     @Override
     public void run() {
@@ -77,35 +74,41 @@ public class ChordMaintenance extends Maintenance {
         if (LOGGER.isDebugEnabled()) {
             final PeerReference predecessor = state.getPredecessor();
             final PeerReference successor = state.getSuccessor();
-            LOGGER.debug("{} -> {} -> {}", predecessor != null ? predecessor.getKey() : "null", local_key, successor != null ? successor.getKey() : "null");
+            LOGGER.info("{} -> {} -> {}\n\n", predecessor != null ? predecessor.getKey() : "null", local_key, successor != null ? successor.getKey() : "null");
         }
 
         try {
-            if (future == null || future.isDone()) {
-                pingp = false;
-                stabilize = false;
-                fix = false;
-
-                future = pingPredecessor().thenCompose(v -> {
-
+            if (isMaintenanceCycleCompleted()) {
+                pingp = stab = fix = pred_of_suc = notif = succ_list = false;
+                maintenance_cycle = pingPredecessor().thenComposeAsync(v -> {
                     pingp = true;
                     return stabilizeRing();
-                })
-                        .thenCompose(v -> {
-                            stabilize = true;
-                            return fixNextFinger().thenRun(() -> fix = true);
-                        });
+                }, executor)
+                        .thenComposeAsync(v -> {
+                            stab = true;
+                            return fixNextFinger();
+                        }, executor)
+                        .thenAccept(v -> fix = true);
 
-                LOGGER.debug("maintenance cycle finished after {} skipped cycles", skipped_cycles);
+                LOGGER.debug("maintenance cycle completed after {} skipped cycles", skipped_cycles);
                 skipped_cycles = 0;
             }
             else {
-                LOGGER.info("still running {}, Pingp {}, stabilize {}, fix {} ", ++skipped_cycles, pingp, stabilize, fix);
+                ++skipped_cycles;
+                if (skipped_cycles >= MAX_SKIPPED_CYCLES) {
+                    maintenance_cycle.cancel(true);
+                }
+                LOGGER.warn("still running {}, Ping predecessor {}, stabilize {} (pred {}, notif {}, refresh {}), fix {} ", skipped_cycles, pingp, stab, pred_of_suc, notif, succ_list, fix);
             }
         }
         catch (Throwable error) {
-            LOGGER.debug("failed to perform Chord maintenance cycle", error);
+            LOGGER.warn("failed to perform Chord maintenance cycle", error);
         }
+    }
+
+    private boolean isMaintenanceCycleCompleted() {
+
+        return maintenance_cycle == null || maintenance_cycle.isDone();
     }
 
     private CompletableFuture<Boolean> fixNextFinger() {
@@ -115,42 +118,50 @@ public class ChordMaintenance extends Maintenance {
 
     private CompletableFuture<Void> refreshSuccessorList(Void v) {
 
-        return local.getAsynchronousRemote(state.getSuccessor())
+        notif = true;
+        return local.getAsynchronousRemote(state.getSuccessor(), false)
                 .pull(successor_list_selector)
-                .thenAcceptAsync(successors_successor_list -> {
+                .thenAccept(successors_successor_list -> {
                     successor_list.refresh(successors_successor_list);
-                }, executor);
+                });
     }
 
-    private CompletableFuture<Void> stabilizeRing() {
+    private CompletableFuture<Boolean> stabilizeRing() {
 
         return getPredecessorOfSuccessor().thenApply(this :: checkPotentialSuccessor)
                 .thenComposeAsync(this :: notifySuccessor, executor)
                 .thenComposeAsync(this :: refreshSuccessorList, executor)
-                .whenCompleteAsync((result, error) -> {
+                .handleAsync(this :: handleStabilizeRing, executor);
+    }
 
-                    if (error != null) {
-                        LOGGER.debug("failed to stabilise ring ", error);
-                        handleSuccessorFailure();
-                    }
-                    else {
-                        LOGGER.debug("successfully stabilised ring");
-                    }
-                }, executor);
+    private boolean handleStabilizeRing(final Void success, final Throwable error) {
+
+        succ_list = true;
+        final boolean stabilization_failed = error != null;
+        if (stabilization_failed) {
+            LOGGER.debug("failed to stabilise ring ", error);
+            handleSuccessorFailure();
+        }
+        else {
+            LOGGER.debug("successfully stabilised ring");
+        }
+        return stabilization_failed;
     }
 
     private CompletableFuture<Void> notifySuccessor(boolean successor_changed) {
 
+        pred_of_suc = true;
         LOGGER.debug("successor changed? {}", successor_changed);
 
         final PeerReference successor = state.getSuccessor();
         final PeerReference self_reference = local.getSelfReference();
-        final AsynchronousPeerRemote successor_remote = local.getAsynchronousRemote(successor);
+        final AsynchronousPeerRemote successor_remote = local.getAsynchronousRemote(successor, false);
         return successor_remote.push(self_reference);
     }
 
     private boolean checkPotentialSuccessor(PeerReference potential_successor) {
 
+        pred_of_suc = true;
         if (potential_successor != null) {
             final PeerReference successor = state.getSuccessor();
             final Key successor_key = successor.getKey();
@@ -168,9 +179,9 @@ public class ChordMaintenance extends Maintenance {
     private CompletableFuture<PeerReference> getPredecessorOfSuccessor() {
 
         final PeerReference successor = state.getSuccessor();
-        return local.getAsynchronousRemote(successor)
+        return local.getAsynchronousRemote(successor, false)
                 .pull(PREDECESSOR_SELECTOR)
-                .thenApplyAsync(selection -> selection != null && !selection.isEmpty() ? selection.get(0) : null, executor);
+                .thenApply(selection -> selection != null && !selection.isEmpty() ? selection.get(0) : null);
     }
 
     private void handleSuccessorFailure() {
@@ -228,28 +239,34 @@ public class ChordMaintenance extends Maintenance {
         }
     }
 
-    private CompletableFuture<Void> pingPredecessor() {
+    private CompletableFuture<Boolean> pingPredecessor() {
 
         final PeerReference predecessor = state.getPredecessor();
-        return predecessor != null ? ping(predecessor).whenComplete((success, error) -> {
-            if (error != null) {
-                LOGGER.debug("predecessor ping failure", error);
-                handlePredecessorFailure();
-            }
-            else {
-                LOGGER.debug("successfully pinged predecessor");
-            }
-        }) : DONE;
+        return predecessor != null ? ping(predecessor).handle(this :: handlePredecessorPing) : SKIP;
     }
 
-    private void handlePredecessorFailure() {
+    private boolean handlePredecessorPing(Void success, Throwable error) {
+
+        final boolean ping_failed = error != null;
+
+        if (ping_failed) {
+            LOGGER.debug("predecessor ping failure", error);
+            handlePredecessorPingFailure();
+        }
+        else {
+            LOGGER.debug("successfully pinged predecessor");
+        }
+        return ping_failed;
+    }
+
+    private void handlePredecessorPingFailure() {
 
         state.setPredecessor(null);
     }
 
     private CompletableFuture<Void> ping(final PeerReference predecessor) {
 
-        return local.getAsynchronousRemote(predecessor)
-                .push(Collections.emptyList());
+        final AsynchronousPeerRemote predecessor_remote = local.getAsynchronousRemote(predecessor, false);
+        return predecessor_remote.push(Collections.emptyList());
     }
 }

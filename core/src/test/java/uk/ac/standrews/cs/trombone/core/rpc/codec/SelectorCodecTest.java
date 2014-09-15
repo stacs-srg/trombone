@@ -44,8 +44,8 @@ public class SelectorCodecTest {
 
         final Selector[] keys = {
                 null, ChordPredecessorSelector.getInstance(), new ChordSuccessorListSelector(10), ChordSuccessorSelector.getInstance(), EmptySelector.getInstance(),
-                new First(10, Selector.ReachabilityCriteria.ANY), new First(1, Selector.ReachabilityCriteria.UNREACHABLE), new Last(10, Selector.ReachabilityCriteria.ANY),
-                new Last(1, Selector.ReachabilityCriteria.UNREACHABLE), new RandomSelector(10, Selector.ReachabilityCriteria.ANY), new RandomSelector(1, Selector.ReachabilityCriteria.UNREACHABLE),
+                new First(10), new First(1), new Last(10),
+                new Last(1), new RandomSelector(10), new RandomSelector(1),
                 Self.getInstance()
         };
 

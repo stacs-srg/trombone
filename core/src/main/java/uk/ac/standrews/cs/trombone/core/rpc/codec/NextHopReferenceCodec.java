@@ -30,7 +30,6 @@ public class NextHopReferenceCodec implements Codec {
             final NextHopReference next_hop_reference = (NextHopReference) value;
             codecs.encodeAs(next_hop_reference.getKey(), out, Key.class);
             codecs.encodeAs(next_hop_reference.getAddress(), out, InetSocketAddress.class);
-            codecs.encodeAs(next_hop_reference.isReachable(), out, Boolean.TYPE);
             codecs.encodeAs(next_hop_reference.isFinalHop(), out, Boolean.TYPE);
         }
     }
@@ -42,9 +41,8 @@ public class NextHopReferenceCodec implements Codec {
         if (is_null) { return null; }
         final Key key = codecs.decodeAs(in, Key.class);
         final InetSocketAddress address = codecs.decodeAs(in, InetSocketAddress.class);
-        final Boolean reachable = codecs.decodeAs(in, Boolean.TYPE);
         final Boolean final_hop = codecs.decodeAs(in, Boolean.TYPE);
-        final PeerReference reference = new PeerReference(key, address, reachable);
+        final PeerReference reference = new PeerReference(key, address);
         return new NextHopReference(reference, final_hop);
     }
 }

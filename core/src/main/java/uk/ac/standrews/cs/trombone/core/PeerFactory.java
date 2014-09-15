@@ -2,13 +2,14 @@ package uk.ac.standrews.cs.trombone.core;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.CompletableFuture;
-import org.mashti.jetson.lean.LeanClientFactory;
+import org.mashti.jetson.ClientFactory;
+import uk.ac.standrews.cs.trombone.core.rpc.LeanPeerClientChannelInitializer;
 import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public final class PeerFactory {
 
-    static final LeanClientFactory<AsynchronousPeerRemote> CLIENT_FACTORY = new LeanClientFactory<>(AsynchronousPeerRemote.class, PeerCodecs.getInstance());
+    static final ClientFactory<AsynchronousPeerRemote> CLIENT_FACTORY = new ClientFactory<>(AsynchronousPeerRemote.class, new LeanPeerClientChannelInitializer(AsynchronousPeerRemote.class, PeerCodecs.getInstance()));
 
     private PeerFactory() {
 

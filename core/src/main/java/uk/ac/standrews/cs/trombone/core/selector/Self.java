@@ -2,6 +2,7 @@ package uk.ac.standrews.cs.trombone.core.selector;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 
@@ -15,16 +16,17 @@ public final class Self extends Selector {
 
         return INSTANCE;
     }
+
     private Self() {
 
-        super(1, ReachabilityCriteria.REACHABLE);
+        super(1);
     }
 
     @Override
-    public List<PeerReference> select(final Peer peer) {
-        
+    public CompletableFuture<List<PeerReference>> select(final Peer peer) {
+
         final PeerReference self_reference = peer.getSelfReference();
-        return Collections.singletonList(self_reference);
+        return CompletableFuture.completedFuture(Collections.singletonList(self_reference));
     }
 
     @Override

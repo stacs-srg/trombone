@@ -2,7 +2,6 @@ package uk.ac.standrews.cs.trombone.evaluation.scenarios;
 
 import uk.ac.standrews.cs.trombone.core.maintenance.DisseminationStrategy;
 import uk.ac.standrews.cs.trombone.core.selector.Last;
-import uk.ac.standrews.cs.trombone.core.selector.Selector;
 
 import static uk.ac.standrews.cs.trombone.evaluation.scenarios.StrongStabilization.NON_OPPORTUNISTIC;
 import static uk.ac.standrews.cs.trombone.evaluation.scenarios.StrongStabilization.PREDECESSOR;
@@ -17,6 +16,6 @@ public class PeriodicPredecessorListPull extends DisseminationStrategy {
 
     public PeriodicPredecessorListPull(int size) {
 
-        addAction(new Action(NON_OPPORTUNISTIC, PULL, new Last(size, Selector.ReachabilityCriteria.ANY), PREDECESSOR));
+        addAction(new Action(NON_OPPORTUNISTIC, PULL, new Last(size), PREDECESSOR));
     }
 }

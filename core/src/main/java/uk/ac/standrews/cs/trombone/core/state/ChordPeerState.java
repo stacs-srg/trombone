@@ -92,12 +92,7 @@ public class ChordPeerState implements PeerState {
     @Override
     public boolean add(final PeerReference reference) {
 
-        if (reference.isReachable()) {
-            return notify(reference);
-        }
-        else {
-            return finger_table.notifyFailure(reference) != null;
-        }
+        return notify(reference);
     }
 
     @Override
@@ -149,19 +144,11 @@ public class ChordPeerState implements PeerState {
         // It's possible that predecessor and successor will change during execution of this method, leading to transiently
         // incorrect results. We don't care about this, so only synchronize enough of the method to avoid NPEs.
 
-        final Key predecessor_key;
-        final boolean successor_is_self;
-
-        synchronized (this) {
-            final PeerReference predecessor = getPredecessor();
-            // getKey() is a non-open call, holding lock on this node.
-            // It may make a remote getKey() call on the predecessor, which doesn't require any further locks.
-            predecessor_key = predecessor != null ? predecessor.getKey() : null;
-            successor_is_self = isSuccessorSelf();
-        }
+        final PeerReference predecessor = getPredecessor();
+        final Key predecessor_key = predecessor != null ? predecessor.getKey() : null;
 
         if (predecessor_key == null) {
-            if (successor_is_self) { return true; }
+            if (isSuccessorSelf()) { return true; }
 
             // No predecessor and successor not self, so not a one-node ring - don't know local key range.
             throw new RuntimeException("Unable to determine local key range because the predecessor is null");
@@ -248,7 +235,7 @@ public class ChordPeerState implements PeerState {
     }
 
     /** Sets data structures for a new ring. */
-    private synchronized void createRing() {
+    private void createRing() {
 
         setPredecessor(null);
         setSuccessor(local.getSelfReference());

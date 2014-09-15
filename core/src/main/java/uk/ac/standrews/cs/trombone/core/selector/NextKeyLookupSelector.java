@@ -9,26 +9,27 @@ import uk.ac.standrews.cs.trombone.core.PeerReference;
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public final class EmptySelector extends Selector {
+public class NextKeyLookupSelector extends Selector {
 
-    private static final long serialVersionUID = -7162399826632352226L;
-    private static final EmptySelector INSTANCE = new EmptySelector();
-    private static final CompletableFuture<List<PeerReference>> EMPTY_SELECTION = CompletableFuture.completedFuture(Collections.emptyList());
+    private static final long serialVersionUID = -6477106603395278649L;
+    private static final NextKeyLookupSelector NEXT_PREVIOUS_LOOKUP_SELECTOR = new NextKeyLookupSelector();
 
-    public static EmptySelector getInstance() {
+    public static NextKeyLookupSelector getInstance() {
 
-        return INSTANCE;
+        return NEXT_PREVIOUS_LOOKUP_SELECTOR;
     }
 
-    private EmptySelector() {
+    private NextKeyLookupSelector() {
 
-        super(0);
+        super(1);
     }
 
     @Override
     public CompletableFuture<List<PeerReference>> select(final Peer peer) {
 
-        return EMPTY_SELECTION;
+        return peer.lookup(peer.key()
+                .next())
+                .thenApply(Collections:: singletonList);
     }
 
     @Override

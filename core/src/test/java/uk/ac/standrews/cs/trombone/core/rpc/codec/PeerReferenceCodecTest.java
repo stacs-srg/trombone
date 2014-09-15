@@ -37,7 +37,7 @@ public class PeerReferenceCodecTest {
     @Test
     public void testCodec() throws Exception {
 
-        final PeerReference[] keys = {null, new PeerReference(Key.valueOf(45), new InetSocketAddress(8541)), new PeerReference(Key.valueOf(333), new InetSocketAddress(85), false)};
+        final PeerReference[] keys = {null, new PeerReference(Key.valueOf(45), new InetSocketAddress(8541)), new PeerReference(Key.valueOf(333), new InetSocketAddress(85))};
 
         for (PeerReference key : keys) {
             codec.encode(key, buffer, PeerCodecs.getInstance(), PeerReference.class);

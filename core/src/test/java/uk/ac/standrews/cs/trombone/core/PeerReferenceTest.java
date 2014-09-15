@@ -15,18 +15,12 @@ public class PeerReferenceTest {
     private final Random random = new Random(52165);
     private final Supplier<Key> key_provider = () -> Key.valueOf(random.nextLong());
 
-    @Test
-    public void testIsReachable() throws Exception {
-
-        assertTrue(new PeerReference(key_provider.get(), new InetSocketAddress(0)).isReachable());
-        assertFalse(new PeerReference(key_provider.get(), new InetSocketAddress(0), false).isReachable());
-    }
 
     @Test
     public void testGetKey() throws Exception {
 
         final Key key = key_provider.get();
-        final PeerReference reference = new PeerReference(key, new InetSocketAddress(0), false);
+        final PeerReference reference = new PeerReference(key, new InetSocketAddress(0));
         assertEquals(key, reference.getKey());
         Assert.assertNull(new PeerReference(null, new InetSocketAddress(0)).getKey());
     }
@@ -45,19 +39,19 @@ public class PeerReferenceTest {
     public void testHashCode() throws Exception {
 
         final Key key = key_provider.get();
-        final PeerReference reference = new PeerReference(key, new InetSocketAddress(0), false);
+        final PeerReference reference = new PeerReference(key, new InetSocketAddress(0));
         assertEquals(key.hashCode(), reference.hashCode());
     }
 
     @Test
     public void testEquals() throws Exception {
 
-        final PeerReference reference = new PeerReference(key_provider.get(), new InetSocketAddress(0), false);
+        final PeerReference reference = new PeerReference(key_provider.get(), new InetSocketAddress(0));
         assertFalse(reference.equals(null));
         assertFalse(reference.equals(new Object()));
         assertTrue(reference.equals(reference));
 
-        final PeerReference reference2 = new PeerReference(key_provider.get(), new InetSocketAddress(0), false);
+        final PeerReference reference2 = new PeerReference(key_provider.get(), new InetSocketAddress(0));
         assertFalse(reference.equals(reference2));
     }
 
@@ -78,16 +72,4 @@ public class PeerReferenceTest {
 
     }
 
-    @Test
-    public void testSetReachable() throws Exception {
-
-        final PeerReference reference = new PeerReference(key_provider.get(), new InetSocketAddress(0), false);
-        assertFalse(reference.isReachable());
-
-        reference.setReachable(true);
-        assertTrue(reference.isReachable());
-
-        reference.setReachable(false);
-        assertFalse(reference.isReachable());
-    }
 }
