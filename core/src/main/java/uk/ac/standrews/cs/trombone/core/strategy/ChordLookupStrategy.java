@@ -29,7 +29,7 @@ public class ChordLookupStrategy implements LookupStrategy {
         final AsynchronousPeerRemote current_hop_remote = local.getAsynchronousRemote(current_hop, measurement.isPresent());
         final CompletableFuture<NextHopReference> future_next_hop = current_hop_remote.nextHop(target);
 
-        future_next_hop.whenComplete((next_hop, error) -> {
+        future_next_hop.whenCompleteAsync((next_hop, error) -> {
 
             // Next hop mustn't be this node, or further from us than the target.
             // assert !local_key.equals(next_hop.getKey());
@@ -48,7 +48,7 @@ public class ChordLookupStrategy implements LookupStrategy {
                     lookup(local, future_lookup, target, next_hop, measurement);
                 }
             }
-        });
+        }, local.getExecutor());
     }
 
     private boolean isHopCountExcessive(final Optional<PeerMetric.LookupMeasurement> measurement) {
