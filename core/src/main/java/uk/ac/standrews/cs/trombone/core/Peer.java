@@ -31,6 +31,7 @@ public class Peer implements AsynchronousPeerRemote {
 
     private final PeerState state;
     private final PeerClientFactory remote_factory;
+    private final PeerClientWithoutPiggybackFactory remote_factory_without_piggyback;
     private final Key key;
     private final Server server;
     private final PropertyChangeSupport property_change_support;
@@ -54,6 +55,8 @@ public class Peer implements AsynchronousPeerRemote {
         server.setBindAddress(address);
         server.setWrittenByteCountListener(metric);
         remote_factory = new PeerClientFactory(this, configuration.getSyntheticDelay());
+        refreshSelfReference();
+        remote_factory_without_piggyback = new PeerClientWithoutPiggybackFactory(this, configuration.getSyntheticDelay());
         refreshSelfReference();
 
         executor = configuration.getExecutor();
@@ -178,7 +181,12 @@ public class Peer implements AsynchronousPeerRemote {
 
     public AsynchronousPeerRemote getAsynchronousRemote(final PeerReference reference, boolean piggyback_enabled) {
 
-        return !self.equals(reference) ? remote_factory.get(reference, piggyback_enabled) : this;
+        if (!self.equals(reference)) {
+            return piggyback_enabled ? remote_factory.get(reference) : remote_factory_without_piggyback.get(reference);
+        }
+        else {
+            return this;
+        }
     }
 
     public PeerMetric getPeerMetric() {

@@ -29,7 +29,6 @@ import uk.ac.standrews.cs.trombone.core.rpc.FuturePeerResponse;
 import uk.ac.standrews.cs.trombone.core.rpc.LeanPeerClientChannelInitializer;
 import uk.ac.standrews.cs.trombone.core.rpc.codec.PeerCodecs;
 import uk.ac.standrews.cs.trombone.core.selector.Selector;
-import uk.ac.standrews.cs.trombone.core.state.PeerState;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
@@ -60,7 +59,6 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
 
     private final Peer peer;
     private final SyntheticDelay synthetic_delay;
-    private final PeerState peer_state;
     private final PeerMetric peer_metric;
     private final InetAddress peer_address;
 
@@ -83,7 +81,6 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
         super(AsynchronousPeerRemote.class, DISPATCH, BOOTSTRAP);
         this.peer = peer;
         this.synthetic_delay = synthetic_delay;
-        peer_state = peer.getPeerState();
         peer_metric = peer.getPeerMetric();
         peer_address = peer.getAddress()
                 .getAddress();
@@ -96,13 +93,12 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
         return CHANNEL_POOL;
     }
 
-    AsynchronousPeerRemote get(final PeerReference reference, boolean piggyback_enabled) {
+    AsynchronousPeerRemote get(final PeerReference reference) {
 
         final InetSocketAddress address = reference.getAddress();
         final AsynchronousPeerRemote remote = get(address);
         final PeerClient handler = (PeerClient) Proxy.getInvocationHandler(remote);
         handler.reference = reference;
-        handler.piggyback_enabled = piggyback_enabled;
 
         return remote;
     }
@@ -117,7 +113,6 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
 
         private final InetAddress client_address;
         volatile PeerReference reference;
-        volatile boolean piggyback_enabled;
 
         protected PeerClient(final InetSocketAddress address) {
 
@@ -185,7 +180,7 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
         protected void beforeFlush(final Channel channel, final FutureResponse<?> future_response) throws RPCException {
 
             Maintenance maintenance = peer.getMaintenance();
-            if (piggyback_enabled && maintenance instanceof StrategicMaintenance) {
+            if (maintenance instanceof StrategicMaintenance) {
                 StrategicMaintenance strategicMaintenance = (StrategicMaintenance) maintenance;
                 final DisseminationStrategy strategy = strategicMaintenance.getDisseminationStrategy();
 
