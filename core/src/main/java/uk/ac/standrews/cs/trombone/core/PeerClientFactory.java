@@ -149,7 +149,7 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
 
             final FuturePeerResponse<?> future_response = new FuturePeerResponse(peer.getSelfReference(), method, arguments);
             future_response.setWrittenByteCountListener(written_byte_count_listener);
-            future_response.whenCompleteAsync((Object result, Throwable error) -> {
+            future_response.whenComplete((Object result, Throwable error) -> {
                 if (!future_response.isCompletedExceptionally()) {
 
                     peer.getPeerState()
@@ -176,7 +176,7 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
                     LOGGER.debug("failure occurred on future", error);
                 }
 
-            }, peer.getExecutor());
+            });
 
             return future_response;
         }

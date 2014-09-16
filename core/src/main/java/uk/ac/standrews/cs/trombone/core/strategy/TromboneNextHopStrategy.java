@@ -16,7 +16,6 @@ public class TromboneNextHopStrategy implements NextHopStrategy {
     @Override
     public CompletableFuture<NextHopReference> nextHop(final Peer local, final Key target) {
 
-        ;
         final PeerState state = local.getPeerState();
         final ScheduledExecutorService executor = local.getExecutor();
 
