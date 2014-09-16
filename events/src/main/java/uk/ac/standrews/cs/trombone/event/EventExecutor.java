@@ -1,7 +1,6 @@
 package uk.ac.standrews.cs.trombone.event;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -22,8 +21,6 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.apache.commons.io.FileUtils;
-import org.json.JSONObject;
 import org.mashti.gauge.MetricRegistry;
 import org.mashti.gauge.Timer;
 import org.mashti.gauge.reporter.CsvReporter;
@@ -169,15 +166,15 @@ public class EventExecutor {
             }
         }
 
-        final JSONObject strategies_json = new JSONObject(node_strategies);
-        try {
-            FileUtils.write(observations_home.resolve("evaluated_strategies_per_peer.json")
-                    .toFile(), strategies_json.toString(4), StandardCharsets.UTF_8, false);
-        }
-        catch (Exception e) {
-            LOGGER.error("failed to save evaluated strategies per peer", e);
-            LOGGER.error("Evaluated strategies per peer {}", strategies_json);
-        }
+        //        final JSONObject strategies_json = new JSONObject(node_strategies);
+        //        try {
+        //            FileUtils.write(observations_home.resolve("evaluated_strategies_per_peer.json")
+        //                    .toFile(), strategies_json.toString(4), StandardCharsets.UTF_8, false);
+        //        }
+        //        catch (Exception e) {
+        //            LOGGER.error("failed to save evaluated strategies per peer", e);
+        //            LOGGER.error("Evaluated strategies per peer {}", strategies_json);
+        //        }
 
         LOGGER.info("shutting down maintenance scheduler...");
         //TODO fix
