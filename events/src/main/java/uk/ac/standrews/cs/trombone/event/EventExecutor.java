@@ -365,12 +365,7 @@ public class EventExecutor {
                         logger.warn("exposure of peer {} was unsuccessful", peer);
                     }
 
-                    try {
-                        join(peer, join_event.getKnownPeerReferences()).get();
-                    }
-                    catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    join(peer, join_event.getKnownPeerReferences());
                 }
             }
             catch (final Exception e) {
@@ -408,7 +403,6 @@ public class EventExecutor {
                     }
                     else {
                         future_join.completeExceptionally(error);
-                        error.printStackTrace();
                         metric_set.join_failure_rate.mark();
                     }
                 }
