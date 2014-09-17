@@ -42,7 +42,7 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
     static final ChannelFuturePool CHANNEL_POOL = new ChannelFuturePool(BOOTSTRAP);
 
     static {
-        final NioEventLoopGroup child_event_loop = new NioEventLoopGroup(0, new NamedThreadFactory("client_event_loop_"));
+        final NioEventLoopGroup child_event_loop = new NioEventLoopGroup(50, new NamedThreadFactory("client_event_loop_"));
         BOOTSTRAP.group(child_event_loop);
         BOOTSTRAP.channel(NioSocketChannel.class);
         BOOTSTRAP.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10_000);
@@ -186,30 +186,31 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
 
                 if (strategy != null) {
 
-                    strategy.getActions()
-                            .stream()
-                            .filter(action -> action.isOpportunistic())
-                            .forEach(action -> {
-                                action.recipientsContain(peer, reference)
-                                        .thenAccept(contains -> {
-                                            if (contains) {
+                    final List<DisseminationStrategy.Action> actions = strategy.getActions();
 
-                                                if (action.isPush()) {
+                    for (DisseminationStrategy.Action action : actions) {
+                        if(action.isOpportunistic()){
+                            action.recipientsContain(peer, reference)
+                                    .thenAccept(contains -> {
+                                        if (contains) {
 
-                                                    action.getPushData(peer)
-                                                            .thenAccept(data -> {
-                                                                final FutureResponse<?> future_dissemination = newFutureResponse(getMethod(action), new Object[] {data});
-                                                                writeToChannel(channel, future_dissemination);
-                                                            });
-                                                }
-                                                else {
-                                                    final FutureResponse<?> future_dissemination = newFutureResponse(getMethod(action), action.getArguments(peer));
-                                                    writeToChannel(channel, future_dissemination);
-                                                }
+                                            if (action.isPush()) {
 
+                                                action.getPushData(peer)
+                                                        .thenAccept(data -> {
+                                                            final FutureResponse<?> future_dissemination = newFutureResponse(getMethod(action), new Object[] {data});
+                                                            writeToChannel(channel, future_dissemination);
+                                                        });
                                             }
-                                        });
-                            });
+                                            else {
+                                                final FutureResponse<?> future_dissemination = newFutureResponse(getMethod(action), action.getArguments(peer));
+                                                writeToChannel(channel, future_dissemination);
+                                            }
+
+                                        }
+                                    });
+                        }
+                    }
                 }
 
             }
