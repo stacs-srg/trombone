@@ -343,7 +343,6 @@ public class EventExecutor {
 
     private class RunnableJoinEvent extends RunnableExperimentEvent {
 
-        private final Logger logger = LoggerFactory.getLogger(RunnableJoinEvent.class);
 
         private RunnableJoinEvent(Peer peer, final JoinEvent event) {
 
@@ -362,15 +361,15 @@ public class EventExecutor {
                         metric_set.available_peer_counter.increment();
                     }
                     else {
-                        logger.warn("exposure of peer {} was unsuccessful", peer);
+                        LOGGER.warn("exposure of peer {} was unsuccessful", peer);
                     }
 
                     join(peer, join_event.getKnownPeerReferences());
                 }
             }
             catch (final Exception e) {
-                logger.warn("failed to expose peer {} on address {}", peer, peer.getAddress());
-                logger.error("failure occurred when executing join event", e);
+                LOGGER.warn("failed to expose peer {} on address {}", peer, peer.getAddress());
+                LOGGER.error("failure occurred when executing join event", e);
             }
         }
 
@@ -404,6 +403,7 @@ public class EventExecutor {
                     else {
                         future_join.completeExceptionally(error);
                         metric_set.join_failure_rate.mark();
+                        LOGGER.error("join failed", error);
                     }
                 }
                 else {
@@ -415,8 +415,6 @@ public class EventExecutor {
     }
 
     private class RunnableLeaveEvent extends RunnableExperimentEvent {
-
-        private final Logger logger = LoggerFactory.getLogger(RunnableLeaveEvent.class);
 
         private RunnableLeaveEvent(Peer peer, final LeaveEvent event) {
 
@@ -433,18 +431,16 @@ public class EventExecutor {
                     metric_set.available_peer_counter.decrement();
                 }
                 else {
-                    logger.trace("un-exposure of peer {} was unsuccessful typically because it was already unexposed", peer);
+                    LOGGER.trace("un-exposure of peer {} was unsuccessful typically because it was already unexposed", peer);
                 }
             }
             catch (final IOException e) {
-                logger.error("failed to unexpose peer", e);
+                LOGGER.error("failed to unexpose peer", e);
             }
         }
     }
 
     private class RunnableLookupEvent extends RunnableExperimentEvent {
-
-        private final Logger logger = LoggerFactory.getLogger(RunnableLookupEvent.class);
 
         private RunnableLookupEvent(Peer peer, final LookupEvent event) {
 
@@ -486,7 +482,7 @@ public class EventExecutor {
                 }
             }
             catch (final Throwable e) {
-                logger.error("failure occurred when executing lookup", e);
+                LOGGER.error("failure occurred when executing lookup", e);
             }
             finally {
                 metric_set.lookup_execution_rate.mark();
@@ -495,8 +491,6 @@ public class EventExecutor {
     }
 
     private class RunnableLookupAsyncEvent extends RunnableExperimentEvent {
-
-        private final Logger logger = LoggerFactory.getLogger(RunnableLookupEvent.class);
 
         private RunnableLookupAsyncEvent(Peer peer, final LookupEvent event) {
 
@@ -541,7 +535,7 @@ public class EventExecutor {
                     }
                 }
                 else {
-                    logger.error("failure occurred when executing lookup", error);
+                    LOGGER.error("failure occurred when executing lookup", error);
                 }
             }, task_executor);
         }
