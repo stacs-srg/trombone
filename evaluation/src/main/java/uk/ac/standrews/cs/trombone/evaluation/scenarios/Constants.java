@@ -144,7 +144,7 @@ public final class Constants {
     public static final PeerConfiguration NO_MAINTENANCE_CONFIGURATION = null;// new PeerConfiguration(NO_MAINTENANCE, BLUB_UNIFORMLY_DISTRIBUTED_SYNTHETIC_DELAY);
 
     public static final MaintenanceFactory NO_MAINTENANCE = NoMaintenanceFactory.getInstance();
-    public static final ScheduledExecutorService SCHEDULED_EXECUTOR_SERVICE = new ScheduledThreadPoolExecutor(500);
+    public static final ScheduledExecutorService SCHEDULED_EXECUTOR_SERVICE = new ScheduledThreadPoolExecutor(800);
 
     private static final PeerConfiguration.Builder BASE_BUILDER = PeerConfiguration.builder()
             .enableApplicationFeedback(false)
