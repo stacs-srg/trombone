@@ -396,7 +396,7 @@ public class EventExecutor {
             final PeerReference known_peer = known_members.next();
             final CompletableFuture<Void> join_trial = peer.join(known_peer);
 
-            join_trial.whenComplete((success, error) -> {
+            join_trial.whenCompleteAsync((success, error) -> {
                 if (join_trial.isCompletedExceptionally()) {
                     if (known_members.hasNext()) {
                         join(future_join, peer, known_members);
@@ -410,7 +410,7 @@ public class EventExecutor {
                     future_join.complete(null); // void future.
                     metric_set.join_success_rate.mark();
                 }
-            });
+            }, task_executor);
         }
     }
 
