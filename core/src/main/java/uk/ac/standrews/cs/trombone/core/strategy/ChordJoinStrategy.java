@@ -24,8 +24,8 @@ public class ChordJoinStrategy implements JoinStrategy {
         if (!self.equals(member)) {
 
             return local.getAsynchronousRemote(member, false)
-                    .lookup(self.getKey())
-                    .thenAccept(potential_successor -> {
+                    .lookup(local.key())
+                    .thenAcceptAsync(potential_successor -> {
 
                         if (!self.equals(potential_successor)) {
 
@@ -36,7 +36,7 @@ public class ChordJoinStrategy implements JoinStrategy {
                             local_state.add(potential_successor);
                             local_state.add(member);
                         }
-                    });
+                    }, local.getExecutor());
         }
         return DONE;
     }
