@@ -42,7 +42,7 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
     static final ChannelFuturePool CHANNEL_POOL = new ChannelFuturePool(BOOTSTRAP);
 
     static {
-        final NioEventLoopGroup child_event_loop = new NioEventLoopGroup(100, new NamedThreadFactory("client_event_loop_"));
+        final NioEventLoopGroup child_event_loop = new NioEventLoopGroup(0, new NamedThreadFactory("client_event_loop_"));
         BOOTSTRAP.group(child_event_loop);
         BOOTSTRAP.channel(NioSocketChannel.class);
         BOOTSTRAP.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10_000);

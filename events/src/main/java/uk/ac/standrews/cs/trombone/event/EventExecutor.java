@@ -343,7 +343,6 @@ public class EventExecutor {
 
     private class RunnableJoinEvent extends RunnableExperimentEvent {
 
-
         private RunnableJoinEvent(Peer peer, final JoinEvent event) {
 
             super(peer, event);
@@ -397,14 +396,14 @@ public class EventExecutor {
 
             join_trial.whenCompleteAsync((success, error) -> {
                 if (join_trial.isCompletedExceptionally()) {
-                    if (known_members.hasNext()) {
-                        join(future_join, peer, known_members);
-                    }
-                    else {
-                        future_join.completeExceptionally(error);
-                        metric_set.join_failure_rate.mark();
-                        LOGGER.error("join failed", error);
-                    }
+                    //                    if (known_members.hasNext()) {
+                    //                        join(future_join, peer, known_members);
+                    //                    }
+                    //                    else {
+                    future_join.completeExceptionally(error);
+                    metric_set.join_failure_rate.mark();
+                    LOGGER.error("join failed", error);
+                    //                    }
                 }
                 else {
                     future_join.complete(null); // void future.
