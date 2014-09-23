@@ -115,12 +115,14 @@ public class EventExecutor {
                     try {
                         while (!Thread.currentThread()
                                 .isInterrupted() && !task_populator_future.isDone() || !runnable_events.isEmpty()) {
-                            final RunnableExperimentEvent runnable = runnable_events.take();
+                            final RunnableExperimentEvent runnable = runnable_events.poll(1, TimeUnit.SECONDS);
 
-                            task_executor.execute(runnable);
+                            if (runnable != null) {
+                                task_executor.execute(runnable);
 
-                            metric_set.event_scheduling_rate.mark();
-                            load_balancer.release();
+                                metric_set.event_scheduling_rate.mark();
+                                load_balancer.release();
+                            }
                         }
                     }
                     catch (Throwable e) {
