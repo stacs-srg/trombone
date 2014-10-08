@@ -47,6 +47,6 @@ public class Batch5EffectOfFeedback implements ScenarioBatch {
     @Override
     public String getName() {
 
-        return "churn";
+        return "feedback";
     }
 }
