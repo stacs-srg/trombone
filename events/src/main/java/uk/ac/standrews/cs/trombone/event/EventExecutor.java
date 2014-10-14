@@ -64,7 +64,7 @@ public class EventExecutor {
         runnable_events = new DelayQueue<RunnableExperimentEvent>();
         task_populator = Executors.newSingleThreadExecutor(new NamedThreadFactory("task_populator_"));
         task_scheduler = Executors.newSingleThreadExecutor(new NamedThreadFactory("task_scheduler_"));
-        task_executor = new ThreadPoolExecutor(300, 300, 10, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("task_executor_"));
+        task_executor = new ThreadPoolExecutor(10, 10, 10, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("task_executor_"));
         task_executor.prestartAllCoreThreads();
         load_balancer = new Semaphore(MAX_BUFFERED_EVENTS, true);
         scenario = reader.getScenario();
@@ -398,14 +398,14 @@ public class EventExecutor {
 
             join_trial.whenCompleteAsync((success, error) -> {
                 if (join_trial.isCompletedExceptionally()) {
-                    //                    if (known_members.hasNext()) {
-                    //                        join(future_join, peer, known_members);
-                    //                    }
-                    //                    else {
-                    future_join.completeExceptionally(error);
-                    metric_set.join_failure_rate.mark();
-                    LOGGER.debug("join failed", error);
-                    //                    }
+                    if (known_members.hasNext()) {
+                        join(future_join, peer, known_members);
+                    }
+                    else {
+                        future_join.completeExceptionally(error);
+                        metric_set.join_failure_rate.mark();
+                        LOGGER.debug("join failed", error);
+                    }
                 }
                 else {
                     future_join.complete(null); // void future.
