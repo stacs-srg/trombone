@@ -74,20 +74,24 @@ public class ChordMaintenance extends Maintenance {
         if (LOGGER.isDebugEnabled()) {
             final PeerReference predecessor = state.getPredecessor();
             final PeerReference successor = state.getSuccessor();
-            LOGGER.info("{} -> {} -> {}\n\n", predecessor != null ? predecessor.getKey() : "null", local_key, successor != null ? successor.getKey() : "null");
+            LOGGER.info("{} -> {} -> {}\n\n", predecessor != null ? predecessor.getAddress()
+                    .getPort() : "null", local.getSelfReference()
+                    .getAddress()
+                    .getPort(), successor != null ? successor.getAddress()
+                    .getPort() : "null");
         }
 
         try {
             if (isMaintenanceCycleCompleted()) {
                 pingp = stab = fix = pred_of_suc = notif = succ_list = false;
-                maintenance_cycle = pingPredecessor().thenComposeAsync(v -> {
+                maintenance_cycle = pingPredecessor().thenCompose(v -> {
                     pingp = true;
                     return stabilizeRing();
-                }, executor)
-                        .thenComposeAsync(v -> {
+                })
+                        .thenCompose(v -> {
                             stab = true;
                             return fixNextFinger();
-                        }, executor)
+                        })
                         .thenAccept(v -> fix = true);
 
                 LOGGER.debug("maintenance cycle completed after {} skipped cycles", skipped_cycles);
@@ -123,20 +127,20 @@ public class ChordMaintenance extends Maintenance {
                 .pull(successor_list_selector)
                 .thenAccept(successors_successor_list -> {
                     successor_list.refresh(successors_successor_list);
+                    succ_list = true;
                 });
     }
 
     private CompletableFuture<Boolean> stabilizeRing() {
 
         return getPredecessorOfSuccessor().thenApply(this :: checkPotentialSuccessor)
-                .thenComposeAsync(this :: notifySuccessor, executor)
-                .thenComposeAsync(this :: refreshSuccessorList, executor)
-                .handleAsync(this :: handleStabilizeRing, executor);
+                .thenCompose(this :: notifySuccessor)
+                .thenCompose(this :: refreshSuccessorList)
+                .handleAsync(this :: handleStabilizeRing);
     }
 
     private boolean handleStabilizeRing(final Void success, final Throwable error) {
 
-        succ_list = true;
         final boolean stabilization_failed = error != null;
         if (stabilization_failed) {
             LOGGER.debug("failed to stabilise ring ", error);
@@ -187,8 +191,16 @@ public class ChordMaintenance extends Maintenance {
     private void handleSuccessorFailure() {
 
         final Optional<PeerReference> next_reachable_successor = successor_list.stream()
-                .filter(entry -> isReachable(entry))
-                .findFirst();
+                .filter(successor -> {
+
+                    try {
+                        return isReachable(successor).get();
+                    }
+                    catch (InterruptedException | ExecutionException e) {
+                        return false;
+                    }
+                })
+                .findAny();
         if (next_reachable_successor.isPresent()) {
             state.setSuccessor(next_reachable_successor.get());
         }
@@ -227,16 +239,19 @@ public class ChordMaintenance extends Maintenance {
         }
     }
 
-    private boolean isReachable(final PeerReference reference) {
+    private CompletableFuture<Boolean> isReachable(final PeerReference reference) {
 
-        try {
-            ping(reference).get();
-            return true;
-        }
-        catch (InterruptedException | ExecutionException error) {
-            LOGGER.debug("failed to ping reference {} due to {}", reference, error);
-            return false;
-        }
+        return ping(reference).handle((result, error) -> {
+
+            final boolean ping_failed = error != null;
+
+            if (ping_failed) {
+
+                LOGGER.debug("failed to ping reference {} due to {}", reference, error);
+            }
+
+            return !ping_failed;
+        });
     }
 
     private CompletableFuture<Boolean> pingPredecessor() {
