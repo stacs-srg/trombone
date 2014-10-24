@@ -243,7 +243,7 @@ public final class TromboneMetricSet extends MetricSet {
     };
     private final EventExecutor event_executor;
 
-    TromboneMetricSet(EventExecutor event_executor) {
+    public TromboneMetricSet(EventExecutor event_executor) {
 
         this.event_executor = event_executor;
         putMetric("lookup_correctness_ratio", lookup_correctness_ratio);

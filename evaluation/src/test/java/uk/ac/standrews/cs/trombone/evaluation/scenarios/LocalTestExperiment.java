@@ -19,9 +19,9 @@ public class LocalTestExperiment {
     @Test
     public void testExecution() throws Exception {
 
-        final Scenario scenario = Batch2EffectOfWorkload.getInstance()
+        final Scenario scenario = Batch1EffectOfChurn.getInstance()
                 .get()
-                .get(5);
+                .get(0);
 
         // Batch1EffectOfChurn.getInstance()
         // 13 evolutionary

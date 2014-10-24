@@ -46,6 +46,8 @@ import uk.ac.standrews.cs.trombone.evaluation.scenarios.Batch2EffectOfWorkload;
 import uk.ac.standrews.cs.trombone.evaluation.scenarios.Batch3EffectOfTrainingDuration;
 import uk.ac.standrews.cs.trombone.evaluation.scenarios.Batch4EffectOfClusteringAlgorithm;
 import uk.ac.standrews.cs.trombone.evaluation.scenarios.Batch5EffectOfFeedback;
+import uk.ac.standrews.cs.trombone.evaluation.scenarios.Batch6EffectOfFeedbackWithTraining;
+import uk.ac.standrews.cs.trombone.evaluation.scenarios.Batch7EffectOfTrainingDurationOscillating;
 import uk.ac.standrews.cs.trombone.evaluation.scenarios.Constants;
 import uk.ac.standrews.cs.trombone.evaluation.util.BlubCluster;
 import uk.ac.standrews.cs.trombone.evaluation.util.ExperimentWatcher;
@@ -94,6 +96,24 @@ public class BlubExperiment {
                 .get());
         SCENARIOS.addAll(Batch5EffectOfFeedback.getInstance()
                 .get());
+        SCENARIOS.addAll(Batch6EffectOfFeedbackWithTraining.getInstance()
+                .get());
+        SCENARIOS.addAll(Batch7EffectOfTrainingDurationOscillating.getInstance()
+                .get());
+    }
+
+    public static void main(String[] args) {
+
+        for (Scenario scenario : SCENARIOS) {
+            for (Scenario.HostScenario hostScenario : scenario.getHostScenarios()) {
+                if (hostScenario.getPeerConfiguration()
+                        .getMaintenance()
+                        .toString()
+                        .contains("Chord")) {
+                    System.out.println(scenario.getName());
+                }
+            }
+        }
     }
 
     @Parameterized.Parameters(name = "{index} scenario: {0}")

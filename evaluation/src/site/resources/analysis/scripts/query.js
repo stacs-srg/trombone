@@ -92,6 +92,15 @@ define(['jquery', 'observations', 'config/scenarios', 'scope', 'series', 'config
             this.experiment_duration.forEach(function (selection) {
                 $("#experiment_duration_" + selection).prop('checked', true);
             })
+            this.experiment_duration.forEach(function (selection) {
+                $("#training_duration_" + selection).prop('checked', true);
+            })
+            this.experiment_duration.forEach(function (selection) {
+                $("#clustering_algorithm_" + selection).prop('checked', true);
+            })
+            this.experiment_duration.forEach(function (selection) {
+                $("#feedback_enabled_" + selection).prop('checked', true);
+            })
 
             var matches = this.matches();
             var observation = observations[this.metric]

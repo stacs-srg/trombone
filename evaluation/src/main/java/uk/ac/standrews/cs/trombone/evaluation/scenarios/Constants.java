@@ -190,16 +190,16 @@ public final class Constants {
     private static final MaintenanceFactory EVOLUTIONARY_MAINTENANCE = EvolutionaryMaintenanceFactory.builder(BASE_EVOLUTIONARY_MAINTENANCE_FACTORY_BUILDER)
             .build();
 
-    private static final MaintenanceFactory EVOLUTIONARY_MAINTENANCE_STOP_AFTER_2 = EvolutionaryMaintenanceFactory.builder(BASE_EVOLUTIONARY_MAINTENANCE_FACTORY_BUILDER)
+    public static final MaintenanceFactory EVOLUTIONARY_MAINTENANCE_STOP_AFTER_2 = EvolutionaryMaintenanceFactory.builder(BASE_EVOLUTIONARY_MAINTENANCE_FACTORY_BUILDER)
             .terminationCondition(TERMINATION_CONDITION_2)
             .build();
-    private static final MaintenanceFactory EVOLUTIONARY_MAINTENANCE_STOP_AFTER_4 = EvolutionaryMaintenanceFactory.builder(BASE_EVOLUTIONARY_MAINTENANCE_FACTORY_BUILDER)
+    public static final MaintenanceFactory EVOLUTIONARY_MAINTENANCE_STOP_AFTER_4 = EvolutionaryMaintenanceFactory.builder(BASE_EVOLUTIONARY_MAINTENANCE_FACTORY_BUILDER)
             .terminationCondition(TERMINATION_CONDITION_4)
             .build();
-    private static final MaintenanceFactory EVOLUTIONARY_MAINTENANCE_STOP_AFTER_8 = EvolutionaryMaintenanceFactory.builder(BASE_EVOLUTIONARY_MAINTENANCE_FACTORY_BUILDER)
+    public static final MaintenanceFactory EVOLUTIONARY_MAINTENANCE_STOP_AFTER_8 = EvolutionaryMaintenanceFactory.builder(BASE_EVOLUTIONARY_MAINTENANCE_FACTORY_BUILDER)
             .terminationCondition(TERMINATION_CONDITION_8)
             .build();
-    private static final MaintenanceFactory EVOLUTIONARY_MAINTENANCE_STOP_AFTER_16 = EvolutionaryMaintenanceFactory.builder(BASE_EVOLUTIONARY_MAINTENANCE_FACTORY_BUILDER)
+    public static final MaintenanceFactory EVOLUTIONARY_MAINTENANCE_STOP_AFTER_16 = EvolutionaryMaintenanceFactory.builder(BASE_EVOLUTIONARY_MAINTENANCE_FACTORY_BUILDER)
             .terminationCondition(TERMINATION_CONDITION_16)
             .build();
 
@@ -247,16 +247,16 @@ public final class Constants {
 
     private static final MaintenanceFactory RANDOM_MAINTENANCE = RandomMaintenanceFactory.builder(BASE_RANDOM_MAINTENANCE_FACTORY_BUILDER)
             .build();
-    private static final MaintenanceFactory RANDOM_MAINTENANCE_STOP_AFTER_2 = RandomMaintenanceFactory.builder(BASE_RANDOM_MAINTENANCE_FACTORY_BUILDER)
+    public static final MaintenanceFactory RANDOM_MAINTENANCE_STOP_AFTER_2 = RandomMaintenanceFactory.builder(BASE_RANDOM_MAINTENANCE_FACTORY_BUILDER)
             .terminationCondition(TERMINATION_CONDITION_2)
             .build();
-    private static final MaintenanceFactory RANDOM_MAINTENANCE_STOP_AFTER_4 = RandomMaintenanceFactory.builder(BASE_RANDOM_MAINTENANCE_FACTORY_BUILDER)
+    public static final MaintenanceFactory RANDOM_MAINTENANCE_STOP_AFTER_4 = RandomMaintenanceFactory.builder(BASE_RANDOM_MAINTENANCE_FACTORY_BUILDER)
             .terminationCondition(TERMINATION_CONDITION_4)
             .build();
-    private static final MaintenanceFactory RANDOM_MAINTENANCE_STOP_AFTER_8 = RandomMaintenanceFactory.builder(BASE_RANDOM_MAINTENANCE_FACTORY_BUILDER)
+    public static final MaintenanceFactory RANDOM_MAINTENANCE_STOP_AFTER_8 = RandomMaintenanceFactory.builder(BASE_RANDOM_MAINTENANCE_FACTORY_BUILDER)
             .terminationCondition(TERMINATION_CONDITION_8)
             .build();
-    private static final MaintenanceFactory RANDOM_MAINTENANCE_STOP_AFTER_16 = RandomMaintenanceFactory.builder(BASE_RANDOM_MAINTENANCE_FACTORY_BUILDER)
+    public static final MaintenanceFactory RANDOM_MAINTENANCE_STOP_AFTER_16 = RandomMaintenanceFactory.builder(BASE_RANDOM_MAINTENANCE_FACTORY_BUILDER)
             .terminationCondition(TERMINATION_CONDITION_16)
             .build();
 

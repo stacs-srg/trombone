@@ -1,0 +1,58 @@
+<html>
+<head>
+    <script src="scripts/lib/jszip.min.js"></script>
+    <script src="scripts/lib/jszip-utils.min.js"></script>
+    <script src="scripts/lib/jquery-1.11.0.js"></script>
+    <script src="scripts/lib/jquerycsv-0.71.js"></script>
+</head>
+<body>
+<script>
+
+    var model = {
+        
+        plot: null,
+        scenarios:[]
+    };
+    
+    
+
+    JSZipUtils.getBinaryContent('../../../../results.zip', function (err, data) {
+
+        if (err) {
+            throw err;
+        }
+        var results = new JSZip(data).folder('results');
+        var getRepetitions = function (scenario_name) {
+            return results.folder(scenario_name).file(/\.zip$/);
+        }
+
+        var combineCrossHostMeasurements = function (measurements) {
+
+            if (measurements.length == 1) {
+                return measurements[0].asBinary();
+            }
+
+            // check if there are headers and the headers are the same 
+            // identify type and combine to a 2d array
+        }
+
+        var getMeanPerRepetition = function (repetitions, file_name) {
+
+            var files = [];
+            repetitions.forEach(function (rep) {
+
+                var zip = new JSZip(rep.asBinary());
+                var cross_host_files = zip.filter(function (path) {
+                    return path.match(new RegExp('[0-9]\/' + file_name))
+                });
+
+                files.push(combineCrossHostMeasurements(cross_host_files));
+            })
+            return files;
+        }
+
+        console.log(getMeanPerRepetition(getRepetitions('scenario_1'), 'available_peer_counter.csv'));
+    });
+</script>
+</body>
+</html>

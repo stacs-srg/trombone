@@ -31,19 +31,16 @@ public class Batch4EffectOfClusteringAlgorithm implements ScenarioBatch {
         scenarios.add(new BaseScenario(getName() + ++i, Constants.CHURN_30_MIN, Constants.WORKLOAD_10_SEC, Constants.TROMBONE_ADAPTIVE_GA_KMEAN_4, Constants.EXPERIMENT_DURATION_8));
         scenarios.add(new BaseScenario(getName() + ++i, Constants.CHURN_30_MIN, Constants.WORKLOAD_10_SEC, Constants.TROMBONE_ADAPTIVE_GA_KMEAN_8, Constants.EXPERIMENT_DURATION_12));
         scenarios.add(new BaseScenario(getName() + ++i, Constants.CHURN_30_MIN, Constants.WORKLOAD_10_SEC, Constants.TROMBONE_ADAPTIVE_GA_KMEAN_16, Constants.EXPERIMENT_DURATION_20));
-
         scenarios.add(new BaseScenario(getName() + ++i, Constants.CHURN_30_MIN, Constants.WORKLOAD_10_SEC, Constants.TROMBONE_ADAPTIVE_RANDOM_KMEAN, Constants.EXPERIMENT_DURATION_4));
         scenarios.add(new BaseScenario(getName() + ++i, Constants.CHURN_30_MIN, Constants.WORKLOAD_10_SEC, Constants.TROMBONE_ADAPTIVE_RANDOM_KMEAN_2, Constants.EXPERIMENT_DURATION_6));
         scenarios.add(new BaseScenario(getName() + ++i, Constants.CHURN_30_MIN, Constants.WORKLOAD_10_SEC, Constants.TROMBONE_ADAPTIVE_RANDOM_KMEAN_4, Constants.EXPERIMENT_DURATION_8));
         scenarios.add(new BaseScenario(getName() + ++i, Constants.CHURN_30_MIN, Constants.WORKLOAD_10_SEC, Constants.TROMBONE_ADAPTIVE_RANDOM_KMEAN_8, Constants.EXPERIMENT_DURATION_12));
         scenarios.add(new BaseScenario(getName() + ++i, Constants.CHURN_30_MIN, Constants.WORKLOAD_10_SEC, Constants.TROMBONE_ADAPTIVE_RANDOM_KMEAN_16, Constants.EXPERIMENT_DURATION_20));
-
         scenarios.add(new BaseScenario(getName() + ++i, Constants.CHURN_30_MIN, Constants.WORKLOAD_10_SEC, Constants.TROMBONE_ADAPTIVE_GA_PER_POINT, Constants.EXPERIMENT_DURATION_4));
         scenarios.add(new BaseScenario(getName() + ++i, Constants.CHURN_30_MIN, Constants.WORKLOAD_10_SEC, Constants.TROMBONE_ADAPTIVE_GA_PER_POINT_2, Constants.EXPERIMENT_DURATION_6));
         scenarios.add(new BaseScenario(getName() + ++i, Constants.CHURN_30_MIN, Constants.WORKLOAD_10_SEC, Constants.TROMBONE_ADAPTIVE_GA_PER_POINT_4, Constants.EXPERIMENT_DURATION_8));
         scenarios.add(new BaseScenario(getName() + ++i, Constants.CHURN_30_MIN, Constants.WORKLOAD_10_SEC, Constants.TROMBONE_ADAPTIVE_GA_PER_POINT_8, Constants.EXPERIMENT_DURATION_12));
         scenarios.add(new BaseScenario(getName() + ++i, Constants.CHURN_30_MIN, Constants.WORKLOAD_10_SEC, Constants.TROMBONE_ADAPTIVE_GA_PER_POINT_16, Constants.EXPERIMENT_DURATION_20));
-
         scenarios.add(new BaseScenario(getName() + ++i, Constants.CHURN_30_MIN, Constants.WORKLOAD_10_SEC, Constants.TROMBONE_ADAPTIVE_RANDOM_PER_POINT, Constants.EXPERIMENT_DURATION_4));
         scenarios.add(new BaseScenario(getName() + ++i, Constants.CHURN_30_MIN, Constants.WORKLOAD_10_SEC, Constants.TROMBONE_ADAPTIVE_RANDOM_PER_POINT_2, Constants.EXPERIMENT_DURATION_6));
         scenarios.add(new BaseScenario(getName() + ++i, Constants.CHURN_30_MIN, Constants.WORKLOAD_10_SEC, Constants.TROMBONE_ADAPTIVE_RANDOM_PER_POINT_4, Constants.EXPERIMENT_DURATION_8));

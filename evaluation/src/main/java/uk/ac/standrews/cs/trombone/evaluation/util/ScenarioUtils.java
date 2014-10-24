@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
@@ -15,6 +17,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.json.JSONObject;
@@ -30,8 +34,8 @@ public final class ScenarioUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(ScenarioUtils.class);
     private static final Path RESULTS_HOME = Paths.get("results");
 
-    private static final JsonFactory JSON_FACTORY = new JsonFactory();
-     static final ObjectMapper OBJECT_MAPPER = new ObjectMapper(JSON_FACTORY);
+    public static final JsonFactory JSON_FACTORY = new JsonFactory();
+    public  static final ObjectMapper OBJECT_MAPPER = new ObjectMapper(JSON_FACTORY);
 
     static {
         OBJECT_MAPPER.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
@@ -67,9 +71,12 @@ public final class ScenarioUtils {
         return getScenarioHome(scenario_name).resolve("analysis");
     }
 
-    public static Path getScenarioEventsPath(String scenario_name) {
+    public static List<Path> getRepetitions(String scenario_name) throws IOException {
 
-        return getScenarioHome(scenario_name).resolve("events.zip");
+        final Path repetitionsHome = getScenarioRepetitionsHome(scenario_name);
+        return FileSystemUtils.getMatchingFiles(repetitionsHome, FileSystems.getDefault()
+                .getPathMatcher("glob:**/*.zip"));
+
     }
 
     public static void saveScenarioAsJson(Scenario scenario, Path directory) throws IOException {
@@ -96,9 +103,26 @@ public final class ScenarioUtils {
         }
     }
 
+    public static List<FileSystem> getRepetitionsFileSystems(final String scenario_name) throws IOException {
+
+        return getRepetitions(scenario_name).stream()
+                .map(ScenarioUtils:: toZipFileSystem)
+                .collect(Collectors.toList());
+    }
+
+    private static FileSystem toZipFileSystem(Path path) {
+
+        try {
+            return FileSystemUtils.newZipFileSystem(path, false);
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private static void compressPath(final Path path, final ZipOutputStream out) throws IOException {
 
-        final byte[] tmpBuf = new byte[0x2000];
+        final byte[] tmpBuf = new byte[8192];
         Files.walkFileTree(path, new FileVisitor<Path>() {
 
             @Override

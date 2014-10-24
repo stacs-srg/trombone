@@ -15,7 +15,12 @@ import static uk.ac.standrews.cs.trombone.evaluation.scenarios.Constants.EXPERIM
 public class Batch5EffectOfFeedback implements ScenarioBatch {
 
     private static final Batch5EffectOfFeedback BATCH_1_EFFECT_OF_CHURN = new Batch5EffectOfFeedback();
-
+    public static final PeerConfiguration TROMBONE_ADAPTIVE_GA_FEEDBACK_ENABLED = PeerConfiguration.builder(Constants.TROMBONE_ADAPTIVE_GA_BUILDER)
+            .enableApplicationFeedback(true)
+            .build();
+    public static final PeerConfiguration TROMBONE_RANDOM_GA_FEEDBACK_ENABLED = PeerConfiguration.builder(Constants.TROMBONE_ADAPTIVE_RANDOM_BUILDER)
+            .enableApplicationFeedback(true)
+            .build();
 
     public static Batch5EffectOfFeedback getInstance() {
 
@@ -32,12 +37,8 @@ public class Batch5EffectOfFeedback implements ScenarioBatch {
         return BaseScenario.generateAll(getName(), ALL_CHURN_MODELS, new Workload[] {
                 Constants.WORKLOAD_10_SEC
         }, new PeerConfiguration[] {
-                PeerConfiguration.builder(Constants.TROMBONE_ADAPTIVE_GA_BUILDER)
-                        .enableApplicationFeedback(true)
-                        .build(),
-                PeerConfiguration.builder(Constants.TROMBONE_ADAPTIVE_RANDOM_BUILDER)
-                        .enableApplicationFeedback(true)
-                        .build()
+                TROMBONE_ADAPTIVE_GA_FEEDBACK_ENABLED,
+                TROMBONE_RANDOM_GA_FEEDBACK_ENABLED
 
         }, new Duration[] {
                 EXPERIMENT_DURATION_4
