@@ -2,11 +2,11 @@ define(['jquery', 'util', 'theme', 'metric_themes' , 'highcharts'], function ($,
 
     var container = $('#chart');
 
-    var metrics_array = Papa.parse(util.read("../../../../results/metrics.csv"), {
+    var metrics_array = Papa.parse(util.read(util.resultsPath + "metrics.csv"), {
         header: true
     }).data;
 
-    var scenarios_array = Papa.parse(util.read("../../../../results/scenarios.csv"), {
+    var scenarios_array = Papa.parse(util.read(util.resultsPath + "scenarios.csv"), {
         header: true,
     }).data;
 
@@ -105,11 +105,11 @@ define(['jquery', 'util', 'theme', 'metric_themes' , 'highcharts'], function ($,
                 };
             }
 
+            var group_by = 'churn'
 
             if (this.data_type == 'overall' | this.data_type == 'btraining' | this.data_type == 'atraining') {
-                var series = [];
-                var group_by = 'training_duration'
 
+                var series = [];
                 var by_peer_configuration = this.matches.groupBy('peer_configuration');
 
                 Object.keys(by_peer_configuration).forEach(function (key, index) {
@@ -143,7 +143,8 @@ define(['jquery', 'util', 'theme', 'metric_themes' , 'highcharts'], function ($,
                         data: points,
                         lineWidth: 1,
                         color: theme.colours[index],
-                        dashStyle: 'dot'
+                        dashStyle: 'dot',
+//                        type: 'column'
                     })
                     series.push({
                         type: 'errorbar',
@@ -162,7 +163,112 @@ define(['jquery', 'util', 'theme', 'metric_themes' , 'highcharts'], function ($,
                     xAxis: {
                         type: 'category',
                         title: {
-                            text: group_by.replace('_', ' ').toTitleCase() + ' (Hours)'
+                            text: group_by.replace('_', ' ').toTitleCase() + (group_by == 'training_duration' ? ' (Hours)' : '')
+                        }
+                    },
+                    series: series
+                };
+            }
+
+            if (this.data_type == 'batraining') {
+                var series = [];
+                var by_peer_configuration = this.matches.groupBy('peer_configuration');
+
+                Object.keys(by_peer_configuration).forEach(function (key, index) {
+
+                    var matches_by = by_peer_configuration[key];
+
+                    var points = [];
+                    var intervals = [];
+
+                    matches_by.sortBy(group_by).forEach(function (match, index) {
+
+                        var data = Papa.parse(util.read(util.analysisPath(match.name, this.metric.name + "_overall_before_training.csv")), {header: true, dynamicTyping: true}).data[0];
+
+                        var y = data.mean == 'NaN' ? 0 : data.mean;
+                        var lower = data.ci_lower;
+                        var upper = data.ci_upper;
+                        if (themm.convert != undefined && themm.convert.y != undefined) {
+                            y = themm.convert.y(y);
+                            lower = themm.convert.y(lower);
+                            upper = themm.convert.y(upper);
+                        }
+
+                        points.push({name: match[group_by].replace(' hrs', ''), y: y});
+                        intervals.push([lower, upper]);
+                    }, this);
+
+
+                    series.push({
+                        name: key + ' During Training',
+                        id: key,
+                        data: points,
+                        lineWidth: 1,
+                        color: theme.colours[index],
+                        dashStyle: 'dot',
+                    })
+                    series.push({
+                        type: 'errorbar',
+                        data: intervals,
+                        linkedTo: key,
+                        color: theme.colours[index]
+                    });
+
+                }, this);
+
+                Object.keys(by_peer_configuration).forEach(function (key, index) {
+
+                    var matches_by = by_peer_configuration[key];
+
+                    var points = [];
+                    var intervals = [];
+
+                    matches_by.sortBy(group_by).forEach(function (match, index) {
+
+                        var data = Papa.parse(util.read(util.analysisPath(match.name, this.metric.name + "_overall_after_training.csv")), {header: true, dynamicTyping: true}).data[0];
+
+                        var y = data.mean == 'NaN' ? 0 : data.mean;
+                        var lower = data.ci_lower;
+                        var upper = data.ci_upper;
+                        if (themm.convert != undefined && themm.convert.y != undefined) {
+                            y = themm.convert.y(y);
+                            lower = themm.convert.y(lower);
+                            upper = themm.convert.y(upper);
+                        }
+
+
+
+                        points.push({name: match[group_by].replace(' hrs', ''), y: y});
+                        intervals.push([lower, upper]);
+                    }, this);
+
+
+                    series.push({
+                        name: key+ ' After Training',
+                        id: key +  2,
+                        data: points,
+                        lineWidth: 1,
+                        color: theme.colours[index + 2],
+                        dashStyle: 'dot'
+                    })
+                    series.push({
+                        type: 'errorbar',
+                        data: intervals,
+                        linkedTo: key+ 2,
+                        color: theme.colours[index + 2]
+                    });
+
+                }, this);
+
+                chart_config = {
+
+                    chart: {
+                        type: 'scatter'
+                    },
+                    xAxis: {
+                        type: 'category',
+                        title: {
+                            text: group_by.replace('_', ' ').toTitleCase() + (group_by == 'training_duration' ? ' (Hours)' : '')
                         }
                     },
                     series: series

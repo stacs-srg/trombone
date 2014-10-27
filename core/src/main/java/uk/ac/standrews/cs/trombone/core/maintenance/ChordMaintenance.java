@@ -20,6 +20,7 @@
 package uk.ac.standrews.cs.trombone.core.maintenance;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -60,8 +61,7 @@ public class ChordMaintenance extends Maintenance {
         state = (ChordPeerState) peer.getPeerState();
         successor_list = state.getSuccessorList();
         successor_list_selector = new ChordSuccessorListSelector(successor_list.getMaxSize());
-        executor = local.getExecutor();
-        local_key = peer.key();
+        executor = local.getExecutor(); local_key = peer.key();
         finger_table = state.getFingerTable();
     }
 
@@ -85,12 +85,10 @@ public class ChordMaintenance extends Maintenance {
             if (isMaintenanceCycleCompleted()) {
                 pingp = stab = fix = pred_of_suc = notif = succ_list = false;
                 maintenance_cycle = pingPredecessor().thenCompose(v -> {
-                    pingp = true;
-                    return stabilizeRing();
+                    pingp = true; return stabilizeRing();
                 })
                         .thenCompose(v -> {
-                            stab = true;
-                            return fixNextFinger();
+                            stab = true; return fixNextFinger();
                         })
                         .thenAccept(v -> fix = true);
 
@@ -98,8 +96,7 @@ public class ChordMaintenance extends Maintenance {
                 skipped_cycles = 0;
             }
             else {
-                ++skipped_cycles;
-                if (skipped_cycles >= MAX_SKIPPED_CYCLES) {
+                ++skipped_cycles; if (skipped_cycles >= MAX_SKIPPED_CYCLES) {
                     maintenance_cycle.cancel(true);
                 }
                 LOGGER.warn("still running {}, Ping predecessor {}, stabilize {} (pred {}, notif {}, refresh {}), fix {} ", skipped_cycles, pingp, stab, pred_of_suc, notif, succ_list, fix);
@@ -131,12 +128,20 @@ public class ChordMaintenance extends Maintenance {
                 });
     }
 
-    private CompletableFuture<Boolean> stabilizeRing() {
+    private CompletableFuture<Void> stabilizeRing() {
 
         return getPredecessorOfSuccessor().thenApply(this :: checkPotentialSuccessor)
                 .thenCompose(this :: notifySuccessor)
                 .thenCompose(this :: refreshSuccessorList)
-                .handleAsync(this :: handleStabilizeRing);
+                .handle(this :: handleStabilizeRing)
+                .thenCompose(success -> {
+                    if (!success) {
+                        return handleSuccessorFailure();
+                    }
+                    else {
+                        return CompletableFuture.completedFuture(null);
+                    }
+                });
     }
 
     private boolean handleStabilizeRing(final Void success, final Throwable error) {
@@ -144,12 +149,10 @@ public class ChordMaintenance extends Maintenance {
         final boolean stabilization_failed = error != null;
         if (stabilization_failed) {
             LOGGER.debug("failed to stabilise ring ", error);
-            handleSuccessorFailure();
         }
         else {
             LOGGER.debug("successfully stabilised ring");
-        }
-        return stabilization_failed;
+        } return stabilization_failed;
     }
 
     private CompletableFuture<Void> notifySuccessor(boolean successor_changed) {
@@ -165,8 +168,7 @@ public class ChordMaintenance extends Maintenance {
 
     private boolean checkPotentialSuccessor(PeerReference potential_successor) {
 
-        pred_of_suc = true;
-        if (potential_successor != null) {
+        pred_of_suc = true; if (potential_successor != null) {
             final PeerReference successor = state.getSuccessor();
             final Key successor_key = successor.getKey();
             final Key potential_successor_key = potential_successor.getKey();
@@ -174,10 +176,8 @@ public class ChordMaintenance extends Maintenance {
             // Check whether the potential successor's key lies in this node's current successor's key range, and the potential successor is not the current successor.
             if (!potential_successor_key.equals(successor_key) && Key.inSegment(local_key, potential_successor_key, successor_key)) {
                 return state.setSuccessor(potential_successor);
-            }
-            return false;
-        }
-        return false;
+            } return false;
+        } return false;
     }
 
     private CompletableFuture<PeerReference> getPredecessorOfSuccessor() {
@@ -188,34 +188,51 @@ public class ChordMaintenance extends Maintenance {
                 .thenApply(selection -> selection != null && !selection.isEmpty() ? selection.get(0) : null);
     }
 
-    private void handleSuccessorFailure() {
+    private CompletableFuture<Void> handleSuccessorFailure() {
 
-        final Optional<PeerReference> next_reachable_successor = successor_list.stream()
-                .filter(successor -> {
+        final Iterator<PeerReference> successors_iterator = successor_list.stream()
+                .iterator();
+        return findReachable(successors_iterator).thenAccept(next_reachable_successor -> {
 
-                    try {
-                        return isReachable(successor).get();
-                    }
-                    catch (InterruptedException | ExecutionException e) {
-                        return false;
-                    }
-                })
-                .findAny();
-        if (next_reachable_successor.isPresent()) {
-            state.setSuccessor(next_reachable_successor.get());
+            if (next_reachable_successor.isPresent()) {
+                state.setSuccessor(next_reachable_successor.get());
+            }
+            else {
+                LOGGER.debug("no reachable successor is found in successor list");
+
+                final PeerReference predecessor = state.getPredecessor();
+                local.join(predecessor)
+                        .whenComplete((result, error) -> {
+                            if (error != null) {
+                                LOGGER.debug("failed to join predecessor", error);
+                                joinUsingFingerTable();
+                            }
+                            else {
+                                LOGGER.debug("successfully joined predecessor");
+                            }
+                        });
+            }
+        });
+
+    }
+
+    private CompletableFuture<Optional<PeerReference>> findReachable(Iterator<PeerReference> references) {
+
+        if (references.hasNext()) {
+
+            final PeerReference next = references.next();
+
+            return isReachable(next).thenCompose(reachable -> {
+                if (reachable) {
+                    return CompletableFuture.completedFuture(Optional.of(next));
+                }
+                else {
+                    return findReachable(references);
+                }
+            });
         }
         else {
-            LOGGER.debug("no reachable successor is found in successor list");
-            local.join(state.getPredecessor())
-                    .whenComplete((result, error) -> {
-                        if (error != null) {
-                            LOGGER.debug("failed to join predecessor", error);
-                            joinUsingFingerTable();
-                        }
-                        else {
-                            LOGGER.debug("successfully joined predecessor");
-                        }
-                    });
+            return CompletableFuture.completedFuture(Optional.empty());
         }
     }
 
@@ -229,8 +246,7 @@ public class ChordMaintenance extends Maintenance {
                     .equals(local_key)) {
                 try {
                     local.join(finger)
-                            .get();
-                    break;
+                            .get(); break;
                 }
                 catch (InterruptedException | ExecutionException e) {
                     // ignore;
@@ -270,8 +286,7 @@ public class ChordMaintenance extends Maintenance {
         }
         else {
             LOGGER.debug("successfully pinged predecessor");
-        }
-        return ping_failed;
+        } return ping_failed;
     }
 
     private void handlePredecessorPingFailure() {

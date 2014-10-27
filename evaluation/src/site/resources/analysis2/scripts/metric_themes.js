@@ -207,7 +207,7 @@ define(['theme', 'util'], function (theme, util) {
         },
         memory_usage_gauge: {
             title: "JVM Heap + Non-heap Memory Usage",
-            covert: {
+            convert: {
                 y: util.convert.byteToGigabyte
             },
 
@@ -315,7 +315,7 @@ define(['theme', 'util'], function (theme, util) {
         thread_cpu_usage_gauge: {
             title: "JVM Thread CPU Usage",
 
-            covert: {
+            convert: {
                 y: util.convert.toPercent
             },
 
@@ -327,9 +327,40 @@ define(['theme', 'util'], function (theme, util) {
                 max: 100
             }
         },
+        state_correctness_counter: {
+            title: "Routing State Correctness",
+
+            convert: {
+                y: util.convert.toPercent
+            },
+
+            yAxis: {
+                title: {
+                    text: "% of Correct Routing Entries"
+                },
+                min: 0,
+                max: 100
+            }
+        },
+        state_completeness_counter: {
+            title: "Routing State Completeness",
+
+            convert: {
+                y: util.convert.toPercent
+            },
+
+            yAxis: {
+                title: {
+                    text: "% of Routing State Completeness"
+                },
+                min: 0,
+                max: 100
+            }
+        },
+
         gc_cpu_usage_gauge: {
             title: "JVM GC CPU Usage",
-            covert: {
+            convert: {
                 y: util.convert.toPercent
             },
 

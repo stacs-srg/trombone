@@ -1,5 +1,6 @@
 package uk.ac.standrews.cs.trombone.evaluation.analysis;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
@@ -9,6 +10,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -49,6 +51,8 @@ import uk.ac.standrews.cs.trombone.evaluation.scenarios.Batch2EffectOfWorkload;
 import uk.ac.standrews.cs.trombone.evaluation.scenarios.Batch3EffectOfTrainingDuration;
 import uk.ac.standrews.cs.trombone.evaluation.scenarios.Batch4EffectOfClusteringAlgorithm;
 import uk.ac.standrews.cs.trombone.evaluation.scenarios.Batch5EffectOfFeedback;
+import uk.ac.standrews.cs.trombone.evaluation.scenarios.Batch6EffectOfFeedbackWithTraining;
+import uk.ac.standrews.cs.trombone.evaluation.scenarios.Batch7EffectOfTrainingDurationOscillating;
 import uk.ac.standrews.cs.trombone.evaluation.scenarios.Constants;
 import uk.ac.standrews.cs.trombone.evaluation.util.FileSystemUtils;
 import uk.ac.standrews.cs.trombone.evaluation.util.ScenarioUtils;
@@ -72,59 +76,64 @@ public final class Analysis {
     static final List<Scenario> SCENARIOS = new ArrayList<>();
 
     static {
-        SCENARIOS.addAll(Batch1EffectOfChurn.getInstance()
+                SCENARIOS.addAll(Batch1EffectOfChurn.getInstance()
+                        .get());
+                SCENARIOS.addAll(Batch2EffectOfWorkload.getInstance()
+                        .get());
+                SCENARIOS.addAll(Batch3EffectOfTrainingDuration.getInstance()
+                        .get());
+                SCENARIOS.addAll(Batch4EffectOfClusteringAlgorithm.getInstance()
+                        .get());
+                SCENARIOS.addAll(Batch5EffectOfFeedback.getInstance()
+                        .get());
+
+        SCENARIOS.addAll(Batch6EffectOfFeedbackWithTraining.getInstance()
                 .get());
-        SCENARIOS.addAll(Batch2EffectOfWorkload.getInstance()
-                .get());
-        SCENARIOS.addAll(Batch3EffectOfTrainingDuration.getInstance()
-                .get());
-        SCENARIOS.addAll(Batch4EffectOfClusteringAlgorithm.getInstance()
-                .get());
-        SCENARIOS.addAll(Batch5EffectOfFeedback.getInstance()
+        SCENARIOS.addAll(Batch7EffectOfTrainingDurationOscillating.getInstance()
                 .get());
     }
 
     public static void main(String[] args) throws IOException {
 
-        //        final Path scenarios_path = ScenarioUtils.getResultsHome()
-        //                .resolve("scenarios.csv");
-        //
-        //        try (BufferedWriter writer = Files.newBufferedWriter(scenarios_path, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-        //
-        //            writer.write("name,churn,workload,peer_configuration,experiment_duration,training_duration,clustering_algorithm,feedback_enabled");
-        //            writer.newLine();
-        //
-        //            for (Scenario scenario : SCENARIOS) {
-        //
-        //                final Scenario.HostScenario hostScenario = scenario.getHostScenarios()
-        //                        .stream()
-        //                        .findFirst()
-        //                        .get();
-        //
-        //                writer.write(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"", scenario.getName(), shortName(hostScenario.getChurn()), shortName(hostScenario.getWorkload()), shortName(hostScenario.getPeerConfiguration()), scenario.getExperimentDuration(), scenario.getExperimentDuration()
-        //                        .subtract(new Duration(4, TimeUnit.HOURS)), getClusteringAlgorithmName(hostScenario.getPeerConfiguration()), hostScenario.getPeerConfiguration()
-        //                        .isApplicationFeedbackEnabled()));
-        //                writer.newLine();
-        //            }
-        //
-        //        }
-        //
-        //        try (BufferedWriter writer = Files.newBufferedWriter(ScenarioUtils.getResultsHome()
-        //                .resolve("metrics.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-        //
-        //            writer.write("name,type");
-        //            writer.newLine();
-        //
-        //            for (Map.Entry<String, Metric> entry : TROMBONE_METRIC_SET.getMetrics()
-        //                    .entrySet()) {
-        //
-        //                final Metric metric = entry.getValue();
-        //                writer.write(String.format("\"%s\",\"%s\"", entry.getKey(), getTypeName(metric)));
-        //                writer.newLine();
-        //            }
-        //        }
-        //
-        //        System.exit(0);
+        final Path scenarios_path = ScenarioUtils.getResultsHome()
+                .resolve("scenarios.csv");
+
+        try (BufferedWriter writer = Files.newBufferedWriter(scenarios_path, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+
+            writer.write("name,churn,workload,peer_configuration,experiment_duration,training_duration,clustering_algorithm,feedback_enabled");
+            writer.newLine();
+
+            for (Scenario scenario : SCENARIOS) {
+
+                final Scenario.HostScenario hostScenario = scenario.getHostScenarios()
+                        .stream()
+                        .findFirst()
+                        .get();
+
+                writer.write(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"", scenario.getName(), shortName(hostScenario.getChurn()), shortName(hostScenario.getWorkload()), shortName(hostScenario.getPeerConfiguration()), scenario.getExperimentDuration(), scenario.getExperimentDuration()
+                        .subtract(new Duration(4, TimeUnit.HOURS)), getClusteringAlgorithmName(hostScenario.getPeerConfiguration()), hostScenario.getPeerConfiguration()
+                        .isApplicationFeedbackEnabled()));
+                writer.newLine();
+            }
+
+        }
+
+        try (BufferedWriter writer = Files.newBufferedWriter(ScenarioUtils.getResultsHome()
+                .resolve("metrics.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+
+            writer.write("name,type");
+            writer.newLine();
+
+            for (Map.Entry<String, Metric> entry : TROMBONE_METRIC_SET.getMetrics()
+                    .entrySet()) {
+
+                final Metric metric = entry.getValue();
+                writer.write(String.format("\"%s\",\"%s\"", entry.getKey(), getTypeName(metric)));
+                writer.newLine();
+            }
+        }
+
+                System.exit(0);
 
         for (Scenario scenario : SCENARIOS) {
 
@@ -205,7 +214,7 @@ public final class Analysis {
 
                             final List<Stream<CounterRecord>> collect1 = repetition_records_as_list.stream()
                                     .map(stream1 -> stream1.stream()
-                                            .filter(recordd -> recordd.getTimestamp() > training_duration_buckets))
+                                            .filter(recordd -> recordd.getTimestamp() < training_duration_buckets))
                                     .collect(Collectors.toList());
 
                             CsvRecords.writeOverallToCsv(csv_overall_path2, record -> record.getCount(), collect1);
@@ -213,7 +222,7 @@ public final class Analysis {
                             final Path csv_overall_path3 = analysis_home.resolve(metric_name + "_overall_after_training.csv");
                             final List<Stream<CounterRecord>> collect01 = repetition_records_as_list.stream()
                                     .map(stream1 -> stream1.stream()
-                                            .filter(record -> record.getTimestamp() < training_duration_buckets))
+                                            .filter(record -> record.getTimestamp() > training_duration_buckets))
                                     .collect(Collectors.toList());
                             CsvRecords.writeOverallToCsv(csv_overall_path3, record -> record.getCount(), collect01);
                         }
@@ -243,7 +252,7 @@ public final class Analysis {
 
                             final List<Stream<RateRecord>> collect1 = repetition_records_as_list.stream()
                                     .map(stream1 -> stream1.stream()
-                                            .filter(recordd -> recordd.getTimestamp() > training_duration_buckets))
+                                            .filter(recordd -> recordd.getTimestamp() < training_duration_buckets))
                                     .collect(Collectors.toList());
 
                             CsvRecords.writeOverallToCsv(csv_overall_path2, record -> record.getRate(), collect1);
@@ -251,7 +260,7 @@ public final class Analysis {
                             final Path csv_overall_path3 = analysis_home.resolve(metric_name + "_overall_after_training.csv");
                             final List<Stream<RateRecord>> collect01 = repetition_records_as_list.stream()
                                     .map(stream1 -> stream1.stream()
-                                            .filter(record -> record.getTimestamp() < training_duration_buckets))
+                                            .filter(record -> record.getTimestamp() > training_duration_buckets))
                                     .collect(Collectors.toList());
                             CsvRecords.writeOverallToCsv(csv_overall_path3, record -> record.getRate(), collect01);
                         }
@@ -281,7 +290,7 @@ public final class Analysis {
 
                             final List<Stream<SamplerRecord>> collect1 = repetition_records_as_list.stream()
                                     .map(stream1 -> stream1.stream()
-                                            .filter(recordd -> recordd.getTimestamp() > training_duration_buckets))
+                                            .filter(recordd -> recordd.getTimestamp() < training_duration_buckets))
                                     .collect(Collectors.toList());
 
                             CsvRecords.writeOverallToCsv(csv_overall_path2, record -> record.getMean(), collect1);
@@ -289,7 +298,7 @@ public final class Analysis {
                             final Path csv_overall_path3 = analysis_home.resolve(metric_name + "_overall_after_training.csv");
                             final List<Stream<SamplerRecord>> collect01 = repetition_records_as_list.stream()
                                     .map(stream1 -> stream1.stream()
-                                            .filter(record -> record.getTimestamp() < training_duration_buckets))
+                                            .filter(record -> record.getTimestamp() > training_duration_buckets))
                                     .collect(Collectors.toList());
                             CsvRecords.writeOverallToCsv(csv_overall_path3, record -> record.getMean(), collect01);
                         }
@@ -319,7 +328,7 @@ public final class Analysis {
 
                             final List<Stream<TimerRecord>> collect1 = repetition_records_as_list.stream()
                                     .map(stream1 -> stream1.stream()
-                                            .filter(recordd -> recordd.getTimestamp() > training_duration_buckets))
+                                            .filter(recordd -> recordd.getTimestamp() < training_duration_buckets))
                                     .collect(Collectors.toList());
 
                             CsvRecords.writeOverallToCsv(csv_overall_path2, record -> record.getMean(), collect1);
@@ -327,7 +336,7 @@ public final class Analysis {
                             final Path csv_overall_path3 = analysis_home.resolve(metric_name + "_overall_after_training.csv");
                             final List<Stream<TimerRecord>> collect01 = repetition_records_as_list.stream()
                                     .map(stream1 -> stream1.stream()
-                                            .filter(record -> record.getTimestamp() < training_duration_buckets))
+                                            .filter(record -> record.getTimestamp() > training_duration_buckets))
                                     .collect(Collectors.toList());
                             CsvRecords.writeOverallToCsv(csv_overall_path3, record -> record.getMean(), collect01);
                         }

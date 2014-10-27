@@ -47,7 +47,29 @@ define(
         };
         Array.prototype.sortBy = function (property_name) {
             this.sort(function (one, other) {
-                return alphanum(one[property_name], other[property_name]);
+
+                var onep = one[property_name];
+                var otherp = other[property_name];
+
+                if(onep == 'Heavy'){
+                    onep= 0+ onep;
+                } else if(onep =='Medium'){
+                    onep = 1+ onep;
+                }else if(onep == 'Light'){
+                    onep = 2 + onep;
+                }
+
+
+                if(otherp == 'Heavy'){
+                    otherp= 0+ otherp;
+                } else if(otherp =='Medium'){
+                    otherp = 1+ otherp;
+                }else if(other == 'Light'){
+                    otherp = 2 + otherp;
+                }
+
+                return alphanum(onep, otherp)
+//                return alphanum(one[property_name], other[property_name]);
             })
             return this;
         };

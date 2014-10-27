@@ -19,7 +19,7 @@ public class LocalTestExperiment {
     @Test
     public void testExecution() throws Exception {
 
-        final Scenario scenario = Batch1EffectOfChurn.getInstance()
+        final Scenario scenario = Batch7EffectOfTrainingDurationOscillating.getInstance()
                 .get()
                 .get(0);
 
