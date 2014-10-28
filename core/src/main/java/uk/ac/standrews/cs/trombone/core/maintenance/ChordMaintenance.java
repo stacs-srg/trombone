@@ -199,8 +199,6 @@ public class ChordMaintenance extends Maintenance {
 
         final Iterator<PeerReference> successors_iterator = successor_list.stream()
                 .iterator();
-
-        System.out.println(successor_list.size());
         return findReachable(successors_iterator).thenAccept(next_reachable_successor -> {
 
             if (next_reachable_successor.isPresent()) {
