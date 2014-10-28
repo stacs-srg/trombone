@@ -23,7 +23,9 @@ public class ChordSuccessorList {
 
     ChordSuccessorList(final Peer local, final int max_size) {
 
-        if (max_size < 0) { throw new IllegalArgumentException("max_size cannot be negative");}
+        if (max_size < 0) {
+            throw new IllegalArgumentException("max_size cannot be negative");
+        }
 
         this.local = local;
         this.max_size = max_size;
@@ -49,10 +51,14 @@ public class ChordSuccessorList {
     public void refresh(List<PeerReference> replacements) {
 
         final PeerReference self_reference = local.getSelfReference();
-        final PeerReference successor = local.getPeerState().first();
+        final PeerReference successor = local.getPeerState()
+                .first();
+
         successor_list.clear();
         successor_list.add(successor);
-        for (int i = 0; i < Math.min(replacements.size(), max_size - 1); i++) {
+
+        final int successor_list_size = Math.min(replacements.size(), max_size - 1);
+        for (int i = 0; i < successor_list_size; i++) {
             final PeerReference replacement = replacements.get(i);
             if (isReplacementSuitable(replacement)) {
                 if (replacement.equals(self_reference)) { break;}
@@ -63,7 +69,8 @@ public class ChordSuccessorList {
 
     private boolean isReplacementSuitable(final PeerReference replacement) {
 
-        return replacement != null && !replacement.getKey().equals(local_key);
+        return replacement != null && !replacement.getKey()
+                .equals(local_key);
     }
 
     public int getMaxSize() {

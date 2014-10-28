@@ -94,34 +94,37 @@ public class PeerClientWithoutPiggybackFactory extends ClientFactory<Asynchronou
 
             final FuturePeerResponse<?> future_response = new FuturePeerResponse(peer.getSelfReference(), method, arguments);
             future_response.setWrittenByteCountListener(written_byte_count_listener);
-            future_response.whenComplete((Object result, Throwable error) -> {
-                if (!future_response.isCompletedExceptionally()) {
+            if (peer.getConfiguration()
+                    .isLearnFromCommunicationsEnabled()) {
+                future_response.whenComplete((Object result, Throwable error) -> {
+                    if (!future_response.isCompletedExceptionally()) {
 
-                    peer.getPeerState()
-                            .add(reference);
+                        peer.getPeerState()
+                                .add(reference);
 
-                    if (result instanceof PeerReference) {
-                        peer.push((PeerReference) result);
+                        if (result instanceof PeerReference) {
+                            peer.push((PeerReference) result);
+                        }
+
+                        if (result instanceof List) {
+                            List<?> list = (List<?>) result;
+                            list.stream()
+                                    .filter(element -> element instanceof PeerReference)
+                                    .forEach(element -> {
+                                        PeerReference peerReference = (PeerReference) element;
+                                        peer.push(peerReference);
+                                    });
+                        }
+                    }
+                    else {
+                        peer.getPeerState()
+                                .remove(reference);
+                        peer_metric.notifyRPCError(reference, error);
+                        LOGGER.debug("failure occurred on future", error);
                     }
 
-                    if (result instanceof List) {
-                        List<?> list = (List<?>) result;
-                        list.stream()
-                                .filter(element -> element instanceof PeerReference)
-                                .forEach(element -> {
-                                    PeerReference peerReference = (PeerReference) element;
-                                    peer.push(peerReference);
-                                });
-                    }
-                }
-                else {
-                    peer.getPeerState()
-                            .remove(reference);
-                    peer_metric.notifyRPCError(reference, error);
-                    LOGGER.debug("failure occurred on future", error);
-                }
-
-            });
+                });
+            }
 
             return future_response;
         }

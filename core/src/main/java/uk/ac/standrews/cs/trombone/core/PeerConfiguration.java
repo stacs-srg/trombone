@@ -22,6 +22,7 @@ public class PeerConfiguration {
         private SyntheticDelay synthetic_delay = SyntheticDelay.ZERO;
         private MaintenanceFactory maintenance_factory;
         private boolean application_feedback_enabled;
+        private boolean learn_from_communications;
         private PeerStateFactory peer_state_factory;
         private JoinStrategy join_strategy;
         private NextHopStrategy next_hop_strategy;
@@ -37,6 +38,7 @@ public class PeerConfiguration {
             synthetic_delay = builder.synthetic_delay;
             maintenance_factory = builder.maintenance_factory;
             application_feedback_enabled = builder.application_feedback_enabled;
+            learn_from_communications = builder.learn_from_communications;
             peer_state_factory = builder.peer_state_factory;
             join_strategy = builder.join_strategy;
             next_hop_strategy = builder.next_hop_strategy;
@@ -60,6 +62,12 @@ public class PeerConfiguration {
         public Builder enableApplicationFeedback(boolean application_feedback_enabled) {
 
             this.application_feedback_enabled = application_feedback_enabled;
+            return this;
+        }
+
+        public Builder learnFromCommunications(boolean learn_from_communications) {
+
+            this.learn_from_communications = learn_from_communications;
             return this;
         }
 
@@ -123,6 +131,11 @@ public class PeerConfiguration {
     public boolean isApplicationFeedbackEnabled() {
 
         return builder.application_feedback_enabled;
+    }
+
+    public boolean isLearnFromCommunicationsEnabled() {
+
+        return builder.learn_from_communications;
     }
 
     public MaintenanceFactory getMaintenance() {

@@ -144,35 +144,38 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
 
             final FuturePeerResponse<?> future_response = new FuturePeerResponse(peer.getSelfReference(), method, arguments);
             future_response.setWrittenByteCountListener(written_byte_count_listener);
-            future_response.whenComplete((Object result, Throwable error) -> {
-                if (!future_response.isCompletedExceptionally()) {
 
-                    peer.getPeerState()
-                            .add(reference);
+            if (peer.getConfiguration()
+                    .isLearnFromCommunicationsEnabled()) {
+                future_response.whenComplete((Object result, Throwable error) -> {
+                    if (!future_response.isCompletedExceptionally()) {
 
-                    if (result instanceof PeerReference) {
-                        peer.push((PeerReference) result);
+                        peer.getPeerState()
+                                .add(reference);
+
+                        if (result instanceof PeerReference) {
+                            peer.push((PeerReference) result);
+                        }
+
+                        if (result instanceof List) {
+                            List<?> list = (List<?>) result;
+                            list.stream()
+                                    .filter(element -> element instanceof PeerReference)
+                                    .forEach(element -> {
+                                        PeerReference peerReference = (PeerReference) element;
+                                        peer.push(peerReference);
+                                    });
+                        }
+                    }
+                    else {
+                        peer.getPeerState()
+                                .remove(reference);
+                        peer_metric.notifyRPCError(reference, error);
+                        LOGGER.debug("failure occurred on future", error);
                     }
 
-                    if (result instanceof List) {
-                        List<?> list = (List<?>) result;
-                        list.stream()
-                                .filter(element -> element instanceof PeerReference)
-                                .forEach(element -> {
-                                    PeerReference peerReference = (PeerReference) element;
-                                    peer.push(peerReference);
-                                });
-                    }
-                }
-                else {
-                    peer.getPeerState()
-                            .remove(reference);
-                    peer_metric.notifyRPCError(reference, error);
-                    LOGGER.debug("failure occurred on future", error);
-                }
-
-            });
-
+                });
+            }
             return future_response;
         }
 
@@ -189,7 +192,7 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
                     final List<DisseminationStrategy.Action> actions = strategy.getActions();
 
                     for (DisseminationStrategy.Action action : actions) {
-                        if(action.isOpportunistic()){
+                        if (action.isOpportunistic()) {
                             action.recipientsContain(peer, reference)
                                     .thenAccept(contains -> {
                                         if (contains) {
@@ -198,7 +201,9 @@ public class PeerClientFactory extends ClientFactory<AsynchronousPeerRemote> {
 
                                                 action.getPushData(peer)
                                                         .thenAccept(data -> {
-                                                            final FutureResponse<?> future_dissemination = newFutureResponse(getMethod(action), new Object[] {data});
+                                                            final FutureResponse<?> future_dissemination = newFutureResponse(getMethod(action), new Object[] {
+                                                                    data
+                                                            });
                                                             writeToChannel(channel, future_dissemination);
                                                         });
                                             }

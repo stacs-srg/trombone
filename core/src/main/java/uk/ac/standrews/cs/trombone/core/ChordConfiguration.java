@@ -23,6 +23,7 @@ public class ChordConfiguration extends PeerConfiguration {
                 .joinStrategy(new ChordJoinStrategy())
                 .lookupStrategy(new ChordLookupStrategy())
                 .nextHopStrategy(new ChordNextHopStrategy())
+                .learnFromCommunications(false)
                 .executor(new Supplier<ScheduledExecutorService>() {
 
                     private final ScheduledExecutorService service = Executors.newScheduledThreadPool(executor_pool_size);

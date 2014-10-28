@@ -33,6 +33,7 @@ public class Peer implements AsynchronousPeerRemote {
     private final PeerClientFactory remote_factory;
     private final PeerClientWithoutPiggybackFactory remote_factory_without_piggyback;
     private final Key key;
+    private final PeerConfiguration configuration;
     private final Server server;
     private final PropertyChangeSupport property_change_support;
     private final PeerMetric metric;
@@ -47,6 +48,7 @@ public class Peer implements AsynchronousPeerRemote {
     Peer(final InetSocketAddress address, final Key key, PeerConfiguration configuration) {
 
         this.key = key;
+        this.configuration = configuration;
         random = new RandomAdaptor(new MersenneTwister(key.longValue()));
         property_change_support = new PropertyChangeSupport(this);
         metric = new PeerMetric(configuration.isApplicationFeedbackEnabled());
@@ -68,6 +70,11 @@ public class Peer implements AsynchronousPeerRemote {
         lookup_strategy = configuration.getLookupStrategy();
         next_hop_strategy = configuration.getNextHopStrategy();
 
+    }
+
+    public PeerConfiguration getConfiguration() {
+
+        return configuration;
     }
 
     public Random getRandom() {

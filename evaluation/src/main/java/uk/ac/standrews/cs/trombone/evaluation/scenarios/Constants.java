@@ -148,6 +148,7 @@ public final class Constants {
 
     private static final PeerConfiguration.Builder BASE_BUILDER = PeerConfiguration.builder()
             .enableApplicationFeedback(false)
+            .learnFromCommunications(false)
             .syntheticDelay(BLUB_UNIFORMLY_DISTRIBUTED_SYNTHETIC_DELAY)
             .executor(() -> SCHEDULED_EXECUTOR_SERVICE);
 
@@ -166,6 +167,7 @@ public final class Constants {
             .build();
 
     private static final PeerConfiguration.Builder BASE_TROMBONE_CONFIGURATION = PeerConfiguration.builder(BASE_BUILDER)
+            .learnFromCommunications(true)
             .peerState(new TrombonePeerStateFactory())
             .joinStrategy(new ChordJoinStrategy())
             .nextHopStrategy(new TromboneNextHopStrategy())
