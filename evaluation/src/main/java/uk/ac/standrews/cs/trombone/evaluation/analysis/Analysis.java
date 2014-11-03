@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.trombone.core.PeerConfiguration;
+import uk.ac.standrews.cs.trombone.core.maintenance.ChordMaintenanceFactory;
 import uk.ac.standrews.cs.trombone.core.maintenance.EvaluatedDisseminationStrategy;
 import uk.ac.standrews.cs.trombone.core.maintenance.EvolutionaryMaintenanceFactory;
 import uk.ac.standrews.cs.trombone.core.maintenance.MaintenanceFactory;
@@ -76,16 +77,16 @@ public final class Analysis {
     static final List<Scenario> SCENARIOS = new ArrayList<>();
 
     static {
-                SCENARIOS.addAll(Batch1EffectOfChurn.getInstance()
-                        .get());
-                SCENARIOS.addAll(Batch2EffectOfWorkload.getInstance()
-                        .get());
-                SCENARIOS.addAll(Batch3EffectOfTrainingDuration.getInstance()
-                        .get());
-                SCENARIOS.addAll(Batch4EffectOfClusteringAlgorithm.getInstance()
-                        .get());
-                SCENARIOS.addAll(Batch5EffectOfFeedback.getInstance()
-                        .get());
+        SCENARIOS.addAll(Batch1EffectOfChurn.getInstance()
+                .get());
+        SCENARIOS.addAll(Batch2EffectOfWorkload.getInstance()
+                .get());
+        SCENARIOS.addAll(Batch3EffectOfTrainingDuration.getInstance()
+                .get());
+        SCENARIOS.addAll(Batch4EffectOfClusteringAlgorithm.getInstance()
+                .get());
+        SCENARIOS.addAll(Batch5EffectOfFeedback.getInstance()
+                .get());
 
         SCENARIOS.addAll(Batch6EffectOfFeedbackWithTraining.getInstance()
                 .get());
@@ -94,6 +95,19 @@ public final class Analysis {
     }
 
     public static void main(String[] args) throws IOException {
+
+        for (Scenario scenario : SCENARIOS) {
+            if (scenario.getHostScenarios()
+                    .stream()
+                    .findFirst()
+                    .get()
+                    .getPeerConfiguration()
+                    .getMaintenance() instanceof ChordMaintenanceFactory) {
+                System.out.println(scenario.getName());
+            }
+        }
+
+//        System.exit(0);
 
         final Path scenarios_path = ScenarioUtils.getResultsHome()
                 .resolve("scenarios.csv");
@@ -133,7 +147,7 @@ public final class Analysis {
             }
         }
 
-                System.exit(0);
+//        System.exit(0);
 
         for (Scenario scenario : SCENARIOS) {
 

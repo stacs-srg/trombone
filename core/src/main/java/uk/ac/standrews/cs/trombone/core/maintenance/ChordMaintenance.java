@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
@@ -199,25 +198,17 @@ public class ChordMaintenance extends Maintenance {
 
         final Iterator<PeerReference> successors_iterator = successor_list.stream()
                 .iterator();
-        return findReachable(successors_iterator).thenAccept(next_reachable_successor -> {
+        return findReachable(successors_iterator).thenCompose(next_reachable_successor -> {
 
             if (next_reachable_successor.isPresent()) {
                 state.setSuccessor(next_reachable_successor.get());
+                return CompletableFuture.completedFuture(null);
             }
             else {
                 LOGGER.debug("no reachable successor is found in successor list");
 
                 final PeerReference predecessor = state.getPredecessor();
-                local.join(predecessor)
-                        .whenComplete((result, error) -> {
-                            if (error != null) {
-                                LOGGER.debug("failed to join predecessor", error);
-                                joinUsingFingerTable();
-                            }
-                            else {
-                                LOGGER.debug("successfully joined predecessor");
-                            }
-                        });
+                return local.join(predecessor);
             }
         });
 
@@ -240,26 +231,6 @@ public class ChordMaintenance extends Maintenance {
         }
         else {
             return CompletableFuture.completedFuture(Optional.empty());
-        }
-    }
-
-    private void joinUsingFingerTable() {
-
-        for (final PeerReference finger : finger_table.getFingers()) {
-
-            assert finger != null;
-
-            if (!finger.getKey()
-                    .equals(local_key)) {
-                try {
-                    local.join(finger)
-                            .get();
-                    break;
-                }
-                catch (InterruptedException | ExecutionException e) {
-                    // ignore;
-                }
-            }
         }
     }
 
