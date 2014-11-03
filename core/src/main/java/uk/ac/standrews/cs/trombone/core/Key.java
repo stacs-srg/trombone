@@ -33,13 +33,11 @@ public class Key extends Number implements Comparable<Key> {
 
         if (value.compareTo(MAX_KEY_VALUE) > 0) {
             this.value = value.remainder(KEYSPACE_SIZE);
-        }
-        else if (value.compareTo(MIN_KEY_VALUE) < 0) {
+        } else if (value.compareTo(MIN_KEY_VALUE) < 0) {
 
             this.value = value.remainder(KEYSPACE_SIZE)
                     .add(KEYSPACE_SIZE);
-        }
-        else {
+        } else {
             this.value = value;
         }
     }
@@ -120,22 +118,30 @@ public class Key extends Number implements Comparable<Key> {
     /**
      * Compares the ring distance of this key to first key, with the distance of this key to second key.
      *
-     * @param first the first key
+     * @param first  the first key
      * @param second the second key
      * @return {@code -1}, {@code 0} or {@code 1} as the distance of this to first key is less than, equal or greater than the distance of this to second key.
      */
     public int compareRingDistance(Key first, Key second) {
 
         final int first_to_second = first.compareTo(second);
-        if (first_to_second == 0) { return 0; }
+        if (first_to_second == 0) {
+            return 0;
+        }
 
         final int this_to_first = compareTo(first);
-        if (this_to_first == 0) { return -1; }
+        if (this_to_first == 0) {
+            return -1;
+        }
 
         final int this_to_second = compareTo(second);
-        if (this_to_second == 0) { return 1; }
+        if (this_to_second == 0) {
+            return 1;
+        }
 
-        if (this_to_first * this_to_second > 0) { return first_to_second > 0 ? 1 : -1; }
+        if (this_to_first * this_to_second > 0) {
+            return first_to_second > 0 ? 1 : -1;
+        }
         return first_to_second > 0 ? -1 : 1;
     }
 
@@ -161,8 +167,12 @@ public class Key extends Number implements Comparable<Key> {
     @Override
     public boolean equals(final Object other) {
 
-        if (this == other) { return true; }
-        if (!(other instanceof Key)) { return false; }
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof Key)) {
+            return false;
+        }
         final Key that = (Key) other;
         return value.equals(that.value);
     }

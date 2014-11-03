@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Stream;
+
 import uk.ac.standrews.cs.trombone.core.Peer;
 import uk.ac.standrews.cs.trombone.core.PeerReference;
 import uk.ac.standrews.cs.trombone.core.Key;
@@ -61,7 +62,9 @@ public class ChordSuccessorList {
         for (int i = 0; i < successor_list_size; i++) {
             final PeerReference replacement = replacements.get(i);
             if (isReplacementSuitable(replacement)) {
-                if (replacement.equals(self_reference)) { break;}
+                if (replacement.equals(self_reference)) {
+                    break;
+                }
                 successor_list.add(replacement);
             }
         }
