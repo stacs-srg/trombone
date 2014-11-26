@@ -1,14 +1,14 @@
 package uk.ac.standrews.cs.trombone.core.state;
 
+import uk.ac.standrews.cs.trombone.core.Key;
+import uk.ac.standrews.cs.trombone.core.Peer;
+import uk.ac.standrews.cs.trombone.core.PeerReference;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Stream;
-
-import uk.ac.standrews.cs.trombone.core.Peer;
-import uk.ac.standrews.cs.trombone.core.PeerReference;
-import uk.ac.standrews.cs.trombone.core.Key;
 
 /**
  * Chord's successor list implementation.
