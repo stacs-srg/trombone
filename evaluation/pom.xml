@@ -12,6 +12,8 @@
     </parent>
     <groupId>uk.ac.standrews.cs.trombone</groupId>
     <artifactId>evaluation</artifactId>
+    <name>evaluation</name>
+    <description>Experiments used to evaluate various dissemination strategies</description>
 
     <properties>
         <generateReports>false</generateReports>

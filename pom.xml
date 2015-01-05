@@ -13,8 +13,9 @@
     <artifactId>trombone</artifactId>
     <version>3.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>trombone</name>
-    <description>A framework for studying dissemination of network state knowledge in structured P2P networks</description>
+    <name>Trombone</name>
+    <description>An overlay for studying adaptive dissemination of network state knowledge in structured P2P networks
+    </description>
     <url>http://trombone.cs.st-andrews.ac.uk/</url>
     <inceptionYear>2010</inceptionYear>
 
@@ -23,7 +24,7 @@
         <module>evaluation</module>
         <module>events</module>
     </modules>
-    
+
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -49,7 +50,9 @@
             <url>http://masih.host.cs.st-andrews.ac.uk/</url>
             <organization>University of St Andrews</organization>
             <organizationUrl>http://www.st-andrews.ac.uk/</organizationUrl>
-            <roles><role>Developer</role></roles>
+            <roles>
+                <role>Developer</role>
+            </roles>
         </developer>
         <developer>
             <id/>
@@ -58,7 +61,9 @@
             <url>http://graham.host.cs.st-andrews.ac.uk/</url>
             <organization>University of St Andrews</organization>
             <organizationUrl>http://www.st-andrews.ac.uk/</organizationUrl>
-            <roles><role>Supervisor</role></roles>
+            <roles>
+                <role>Supervisor</role>
+            </roles>
         </developer>
     </developers>
 
@@ -98,14 +103,21 @@
                     </dependency>
                 </dependencies>
                 <configuration>
-                    <generateReports>true</generateReports>
+                    <generateReports>false</generateReports>
                     <inputEncoding>UTF-8</inputEncoding>
                     <outputEncoding>UTF-8</outputEncoding>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-    
+
+    <distributionManagement>
+        <site>
+            <id>website</id>
+            <url>file:///cs/home/${env.USER}/public_html/</url>
+        </site>
+    </distributionManagement>
+
     <repositories>
         <repository>
             <id>uk.ac.standrews.cs.maven.repository</id>

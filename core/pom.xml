@@ -13,6 +13,8 @@
 
     <groupId>uk.ac.standrews.cs.trombone</groupId>
     <artifactId>core</artifactId>
+    <name>core</name>
+    <description>The core functionality of key-based routing and various network state dissemination strategies</description>
 
     <dependencies>
         <dependency>

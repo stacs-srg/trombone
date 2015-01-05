@@ -13,6 +13,8 @@
 
     <groupId>uk.ac.standrews.cs.trombone</groupId>
     <artifactId>events</artifactId>
+    <name>events</name>
+    <description>Simulation of churn and workload events</description>
 
     <dependencies>
         <dependency>
