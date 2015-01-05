@@ -13,6 +13,10 @@
     <artifactId>trombone</artifactId>
     <version>3.0-SNAPSHOT</version>
     <packaging>pom</packaging>
+    <name>trombone</name>
+    <description>A framework for studying dissemination of network state knowledge in structured P2P networks</description>
+    <url>http://trombone.cs.st-andrews.ac.uk/</url>
+    <inceptionYear>2010</inceptionYear>
 
     <modules>
         <module>core</module>
@@ -24,7 +28,40 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
-    
+
+    <ciManagement>
+        <system>Jenkins</system>
+        <url>https://builds.cs.st-andrews.ac.uk/job/trombone/</url>
+    </ciManagement>
+
+    <scm>
+        <connection>scm:hg:http://trombone.hg.cs.st-andrews.ac.uk/trombone/</connection>
+        <developerConnection>scm:hg:ssh://trombone@trombone.host.cs.st-andrews.ac.uk/hg/trombone/
+        </developerConnection>
+        <url>http://trombone.hg.cs.st-andrews.ac.uk/trombone/</url>
+    </scm>
+
+    <developers>
+        <developer>
+            <id/>
+            <name>Masih Hajiarabderkani</name>
+            <email>mh638e@st-andrews.ac.uk</email>
+            <url>http://masih.host.cs.st-andrews.ac.uk/</url>
+            <organization>University of St Andrews</organization>
+            <organizationUrl>http://www.st-andrews.ac.uk/</organizationUrl>
+            <roles><role>Developer</role></roles>
+        </developer>
+        <developer>
+            <id/>
+            <name>Graham Kirby</name>
+            <email>graham.kirby@st-andrews.ac.uk</email>
+            <url>http://graham.host.cs.st-andrews.ac.uk/</url>
+            <organization>University of St Andrews</organization>
+            <organizationUrl>http://www.st-andrews.ac.uk/</organizationUrl>
+            <roles><role>Supervisor</role></roles>
+        </developer>
+    </developers>
+
     <build>
         <plugins>
             <plugin>
@@ -38,12 +75,32 @@
                     <additionalparam>-Xdoclint:none</additionalparam>
                 </configuration>
             </plugin>
+
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
-                <version>2.5.4</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>3.4</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.doxia</groupId>
+                        <artifactId>doxia-module-markdown</artifactId>
+                        <version>1.6</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>lt.velykis.maven.skins</groupId>
+                        <artifactId>reflow-velocity-tools</artifactId>
+                        <version>1.1.1</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.velocity</groupId>
+                        <artifactId>velocity</artifactId>
+                        <version>1.7</version>
+                    </dependency>
+                </dependencies>
                 <configuration>
-                    <skip>true</skip>
+                    <generateReports>true</generateReports>
+                    <inputEncoding>UTF-8</inputEncoding>
+                    <outputEncoding>UTF-8</outputEncoding>
                 </configuration>
             </plugin>
         </plugins>

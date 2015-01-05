@@ -10,7 +10,7 @@
         <groupId>uk.ac.standrews.cs</groupId>
         <version>3.0-SNAPSHOT</version>
     </parent>
-    <groupId>uk.ac.standrews.cs.t3</groupId>
+    <groupId>uk.ac.standrews.cs.trombone</groupId>
     <artifactId>evaluation</artifactId>
 
     <properties>
