@@ -114,7 +114,7 @@
     <distributionManagement>
         <site>
             <id>website</id>
-            <url>file:///cs/home/${env.user}/public_html_trombone/</url>
+            <url>file:///cs/home/trombone/public_html_trombone/</url>
         </site>
     </distributionManagement>
 
