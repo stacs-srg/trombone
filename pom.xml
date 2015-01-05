@@ -103,7 +103,7 @@
                     </dependency>
                 </dependencies>
                 <configuration>
-                    <generateReports>false</generateReports>
+                    <generateReports>true</generateReports>
                     <inputEncoding>UTF-8</inputEncoding>
                     <outputEncoding>UTF-8</outputEncoding>
                 </configuration>
@@ -114,7 +114,7 @@
     <distributionManagement>
         <site>
             <id>website</id>
-            <url>file:///cs/home/${env.USER}/public_html_trombone/</url>
+            <url>file:///cs/home/${env.user}/public_html_trombone/</url>
         </site>
     </distributionManagement>
 
