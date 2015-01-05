@@ -120,7 +120,7 @@ public class DisseminationStrategyGenerator {
         }
     }
 
-    public DisseminationStrategy mate(DisseminationStrategy first, final DisseminationStrategy second, final Random random) {
+    public DisseminationStrategy crossover(DisseminationStrategy first, final DisseminationStrategy second, final Random random) {
 
         final DisseminationStrategy offspring = new DisseminationStrategy();
         final int first_size = first.size();

@@ -141,7 +141,7 @@ public final class Constants {
             NO_WORKLOAD, WORKLOAD_1_SEC, WORKLOAD_10_SEC, WORKLOAD_10_MIN, WORKLOAD_OSCILLATING
     };
 
-    public static final PeerConfiguration NO_MAINTENANCE_CONFIGURATION = null;// new PeerConfiguration(NO_MAINTENANCE, BLUB_UNIFORMLY_DISTRIBUTED_SYNTHETIC_DELAY);
+    public static final PeerConfiguration NO_MAINTENANCE_CONFIGURATION = null;
 
     public static final MaintenanceFactory NO_MAINTENANCE = NoMaintenanceFactory.getInstance();
     public static final ScheduledExecutorService SCHEDULED_EXECUTOR_SERVICE = new ScheduledThreadPoolExecutor(800);

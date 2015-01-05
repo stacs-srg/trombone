@@ -34,23 +34,23 @@ define(['jquery'], function ($) {
             sourceWidth: 500,
             sourceHeight: 350
         },
-        legend: {
-            itemStyle: {
-                color: 'black',
-                fontWeight: 'normal',
-                fontSize: '10pt'
-            },
-            align: 'right',
-            verticalAlign: 'top',
-            layout: 'vertical',
-            backgroundColor: 'white',
-            borderWidth: 1,
-            floating: true,
-            draggable: true,
-            zIndex: 20,
-            x: -20,
-            y: 20
-        },
+        //legend: {
+        //    itemStyle: {
+        //        color: 'black',
+        //        fontWeight: 'normal',
+        //        fontSize: '10pt'
+        //    },
+        //    align: 'right',
+        //    verticalAlign: 'top',
+        //    layout: 'vertical',
+        //    backgroundColor: 'white',
+        //    borderWidth: 1,
+        //    floating: true,
+        //    draggable: true,
+        //    zIndex: 20,
+        //    x: -20,
+        //    y: 20
+        //},
 
         plotOptions: {
             line: {

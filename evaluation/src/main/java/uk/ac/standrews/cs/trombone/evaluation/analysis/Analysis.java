@@ -92,6 +92,14 @@ public final class Analysis {
                 .get());
         SCENARIOS.addAll(Batch7EffectOfTrainingDurationOscillating.getInstance()
                 .get());
+
+        final List<Scenario> collect = SCENARIOS.stream().filter(scenario -> !scenario.getName().matches("(churn|workload)(1|6|11|16|21)")).collect(Collectors.toList());
+
+        for (Scenario scenario : collect) {
+            if(SCENARIOS.remove(scenario)){
+                System.out.println("removed " + scenario.getName());
+            }
+        }
     }
 
     public static void main(String[] args) throws IOException {

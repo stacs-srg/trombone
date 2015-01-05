@@ -226,7 +226,7 @@ public class EvolutionaryMaintenance extends StrategicMaintenance {
         final TreeMap<Double, EvaluatedDisseminationStrategy> cumulative_evaluated_strategies = getCumulativeWeightedFitness(total_weighted_fitness);
         final DisseminationStrategy one = select(cumulative_evaluated_strategies);
         final DisseminationStrategy other = select(cumulative_evaluated_strategies);
-        final DisseminationStrategy offspring = strategy_generator.mate(one, other, random);
+        final DisseminationStrategy offspring = strategy_generator.crossover(one, other, random);
 
         strategy_generator.mutate(offspring, random, mutation_probability);
         return offspring;

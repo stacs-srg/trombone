@@ -29,7 +29,9 @@ define(['theme', 'util'], function (theme, util) {
             yAxis: {
                 title: {
                     text: "Number of Available Peers"
-                }
+                },
+                min: 0,
+                max: 1000
             }
         },
         event_execution_duration_timer: {
