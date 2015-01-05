@@ -21,6 +21,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
 import org.mashti.gauge.MetricRegistry;
 import org.mashti.gauge.Timer;
 import org.mashti.gauge.reporter.CsvReporter;
@@ -28,14 +29,15 @@ import org.mashti.jetson.util.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.trombone.core.Peer;
-import uk.ac.standrews.cs.trombone.core.PeerMetric;
-import uk.ac.standrews.cs.trombone.core.PeerReference;
+import uk.ac.standrews.cs.trombone.core.*;
 import uk.ac.standrews.cs.trombone.core.maintenance.EvaluatedDisseminationStrategy;
 import uk.ac.standrews.cs.trombone.core.maintenance.EvolutionaryMaintenance;
 import uk.ac.standrews.cs.trombone.core.maintenance.Maintenance;
+import uk.ac.standrews.cs.trombone.core.maintenance.MaintenanceFactory;
 
-/** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
+/**
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
 public class EventExecutor {
 
     private static final int MAX_BUFFERED_EVENTS = 1;
@@ -124,11 +126,9 @@ public class EventExecutor {
                                 load_balancer.release();
                             }
                         }
-                    }
-                    catch (Throwable e) {
+                    } catch (Throwable e) {
                         LOGGER.error("failure occurred while executing events", e);
-                    }
-                    finally {
+                    } finally {
                         LOGGER.info("finished executing events ");
                         csv_reporter.stop();
                     }
@@ -162,29 +162,15 @@ public class EventExecutor {
 
             try {
                 peer.unexpose();
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 LOGGER.debug("failed to unexpose peer {} due to {}", peer, e);
             }
         }
 
-        //        final JSONObject strategies_json = new JSONObject(node_strategies);
-        //        try {
-        //            FileUtils.write(observations_home.resolve("evaluated_strategies_per_peer.json")
-        //                    .toFile(), strategies_json.toString(4), StandardCharsets.UTF_8, false);
-        //        }
-        //        catch (Exception e) {
-        //            LOGGER.error("failed to save evaluated strategies per peer", e);
-        //            LOGGER.error("Evaluated strategies per peer {}", strategies_json);
-        //        }
-
-        LOGGER.info("shutting down maintenance scheduler...");
-        //TODO fix
-        //MaintenanceFactory.SCHEDULER.shutdownNow();
-        //        LOGGER.info("shutting down peer client factory...");
-        //        PeerClientFactory.shutdownPeerClientFactory();
-        //        LOGGER.info("shutting down peer server factory...");
-        //        PeerServerFactory.shutdownPeerServerFactory();
+        LOGGER.info("shutting down peer client factory...");
+        PeerClientFactory.shutdownPeerClientFactory();
+        LOGGER.info("shutting down peer server factory...");
+        PeerServerFactory.shutdownPeerServerFactory();
     }
 
     public synchronized void stop() {
@@ -200,8 +186,7 @@ public class EventExecutor {
             try {
                 task_populator_future.get(timeout, timeout_unit);
                 task_scheduler_future.get(timeout, timeout_unit);
-            }
-            catch (ExecutionException e) {
+            } catch (ExecutionException e) {
                 LOGGER.warn("event executor encountered problems ", e);
             }
         }
@@ -211,14 +196,11 @@ public class EventExecutor {
 
         if (event instanceof JoinEvent) {
             queue(peer, (JoinEvent) event);
-        }
-        else if (event instanceof LeaveEvent) {
+        } else if (event instanceof LeaveEvent) {
             queue(peer, (LeaveEvent) event);
-        }
-        else if (event instanceof LookupEvent) {
+        } else if (event instanceof LookupEvent) {
             queue(peer, (LookupEvent) event);
-        }
-        else {
+        } else {
             throw new IllegalArgumentException("unknown event type: " + event);
         }
     }
@@ -253,11 +235,9 @@ public class EventExecutor {
                         load_balancer.acquire();
                         queueNextEvent();
                     }
-                }
-                catch (Throwable e) {
+                } catch (Throwable e) {
                     LOGGER.error("failure occurred while queuing events ", e);
-                }
-                finally {
+                } finally {
                     LOGGER.info("finished queueing events");
                 }
                 return null;
@@ -307,8 +287,12 @@ public class EventExecutor {
         @Override
         public boolean equals(final Object other) {
 
-            if (this == other) { return true; }
-            if (!(other instanceof RunnableExperimentEvent)) { return false; }
+            if (this == other) {
+                return true;
+            }
+            if (!(other instanceof RunnableExperimentEvent)) {
+                return false;
+            }
 
             final RunnableExperimentEvent that = (RunnableExperimentEvent) other;
             return event.equals(that.event) && peer.equals(that.peer);
@@ -327,8 +311,7 @@ public class EventExecutor {
             final Timer.Time time = metric_set.event_execution_duration_timer.time();
             try {
                 handleEvent();
-            }
-            finally {
+            } finally {
                 time.stop();
                 metric_set.event_completion_rate.mark();
             }
@@ -360,15 +343,13 @@ public class EventExecutor {
                     if (successfully_exposed) {
                         metric_set.peer_arrival_rate.mark();
                         metric_set.available_peer_counter.increment();
-                    }
-                    else {
+                    } else {
                         LOGGER.warn("exposure of peer {} was unsuccessful", peer);
                     }
 
                     join(peer, join_event.getKnownPeerReferences());
                 }
-            }
-            catch (final Exception e) {
+            } catch (final Exception e) {
                 LOGGER.warn("failed to expose peer {} on address {}", peer, peer.getAddress());
                 LOGGER.error("failure occurred when executing join event", e);
             }
@@ -381,8 +362,7 @@ public class EventExecutor {
             final CompletableFuture<Void> future_join = new CompletableFuture<>();
             if (known_members.isEmpty()) {
                 future_join.complete(null);
-            }
-            else {
+            } else {
                 join(future_join, peer, known_members.iterator());
             }
 
@@ -400,14 +380,12 @@ public class EventExecutor {
                 if (join_trial.isCompletedExceptionally()) {
                     if (known_members.hasNext()) {
                         join(future_join, peer, known_members);
-                    }
-                    else {
+                    } else {
                         future_join.completeExceptionally(error);
                         metric_set.join_failure_rate.mark();
                         LOGGER.debug("join failed", error);
                     }
-                }
-                else {
+                } else {
                     future_join.complete(null); // void future.
                     metric_set.join_success_rate.mark();
                 }
@@ -430,12 +408,10 @@ public class EventExecutor {
                 if (successfully_unexposed) {
                     metric_set.peer_departure_rate.mark();
                     metric_set.available_peer_counter.decrement();
-                }
-                else {
+                } else {
                     LOGGER.trace("un-exposure of peer {} was unsuccessful typically because it was already unexposed", peer);
                 }
-            }
-            catch (final IOException e) {
+            } catch (final IOException e) {
                 LOGGER.error("failed to unexpose peer", e);
             }
         }
@@ -467,25 +443,21 @@ public class EventExecutor {
                     metric_set.lookup_failure_hop_count_sampler.update(hop_count);
                     metric_set.lookup_failure_retry_count_sampler.update(retry_count);
                     metric_set.lookup_failure_delay_timer.update(duration_in_nanos, TimeUnit.NANOSECONDS);
-                }
-                else if (measurement.getResult()
+                } else if (measurement.getResult()
                         .equals(expected_result)) {
                     metric_set.lookup_correctness_rate.mark();
                     metric_set.lookup_correctness_hop_count_sampler.update(hop_count);
                     metric_set.lookup_correctness_retry_count_sampler.update(retry_count);
                     metric_set.lookup_correctness_delay_timer.update(duration_in_nanos, TimeUnit.NANOSECONDS);
-                }
-                else {
+                } else {
                     metric_set.lookup_incorrectness_rate.mark();
                     metric_set.lookup_incorrectness_hop_count_sampler.update(hop_count);
                     metric_set.lookup_incorrectness_retry_count_sampler.update(retry_count);
                     metric_set.lookup_incorrectness_delay_timer.update(duration_in_nanos, TimeUnit.NANOSECONDS);
                 }
-            }
-            catch (final Throwable e) {
+            } catch (final Throwable e) {
                 LOGGER.error("failure occurred when executing lookup", e);
-            }
-            finally {
+            } finally {
                 metric_set.lookup_execution_rate.mark();
             }
         }
@@ -519,23 +491,20 @@ public class EventExecutor {
                         metric_set.lookup_failure_hop_count_sampler.update(hop_count);
                         metric_set.lookup_failure_retry_count_sampler.update(retry_count);
                         metric_set.lookup_failure_delay_timer.update(duration_in_nanos, TimeUnit.NANOSECONDS);
-                    }
-                    else if (measurement.getResult()
+                    } else if (measurement.getResult()
                             .getKey()
                             .equals(expected_result.getKey())) {
                         metric_set.lookup_correctness_rate.mark();
                         metric_set.lookup_correctness_hop_count_sampler.update(hop_count);
                         metric_set.lookup_correctness_retry_count_sampler.update(retry_count);
                         metric_set.lookup_correctness_delay_timer.update(duration_in_nanos, TimeUnit.NANOSECONDS);
-                    }
-                    else {
+                    } else {
                         metric_set.lookup_incorrectness_rate.mark();
                         metric_set.lookup_incorrectness_hop_count_sampler.update(hop_count);
                         metric_set.lookup_incorrectness_retry_count_sampler.update(retry_count);
                         metric_set.lookup_incorrectness_delay_timer.update(duration_in_nanos, TimeUnit.NANOSECONDS);
                     }
-                }
-                else {
+                } else {
                     LOGGER.error("failure occurred when executing lookup", error);
                 }
             }, task_executor);
