@@ -32,12 +32,6 @@
     </bannerLeft>
 
     <body>
-        <head>
-            <link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700|Bitter:400,700" rel="stylesheet"
-                  type="text/css"/>
-            <link href="/css/override.css" rel="stylesheet" type="text/css"/>
-        </head>
-
         <links>
             <item name="Home" href="index.html"/>
             <item name="Javadoc" href="https://builds.cs.st-andrews.ac.uk/job/trombone/javadoc/"/>
@@ -47,9 +41,6 @@
             <item name="License" href="license.html"/>
             <item name="Team" href="team-list.html"/>
         </links>
-        <menu name="Software">
-            <!--<item name="Using Trombone" href="dependency-info.html"/>-->
-        </menu>
 
     </body>
 

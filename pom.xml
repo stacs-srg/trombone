@@ -37,8 +37,7 @@
 
     <scm>
         <connection>scm:hg:http://trombone.hg.cs.st-andrews.ac.uk/trombone/</connection>
-        <developerConnection>scm:hg:ssh://trombone@trombone.host.cs.st-andrews.ac.uk/hg/trombone/
-        </developerConnection>
+        <developerConnection>scm:hg:https://trombone.hg.cs.st-andrews.ac.uk/trombone/</developerConnection>
         <url>http://trombone.hg.cs.st-andrews.ac.uk/trombone/</url>
     </scm>
 
@@ -117,6 +116,28 @@
             <url>file:///cs/home/trombone/public_html_trombone/</url>
         </site>
     </distributionManagement>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>2.7</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>dependency-info</report>
+                            <report>project-team</report>
+                            <report>cim</report>
+                            <report>license</report>
+                            <report>scm</report>
+                            <report>modules</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
+    </reporting>
 
     <repositories>
         <repository>
