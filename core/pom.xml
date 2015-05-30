@@ -81,7 +81,7 @@
         <repository>
             <id>io.github.masih.maven</id>
             <name>Masih Maven Repository</name>
-            <url>http://masih.github.io/maven/</url>
+            <url>http://maven.derkani.org/</url>
             <snapshots>
                 <updatePolicy>always</updatePolicy>
             </snapshots>
